@@ -1,0 +1,50 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import Main from "@/layouts/Main.astro";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Card from "@/components/Card.astro";
+import Pagination from "@/components/Pagination.astro";
+import getSortedPosts from "@/utils/getSortedPosts";
+import config from "@/config";
+import { getLocaleFromPath, getLocalizedPath, useTranslations } from "@/i18n";
+import { resolveLocalizedEntries } from "@/utils/localizedContent";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  const localizedPosts = resolveLocalizedEntries(
+    posts,
+    "blog",
+    config.site.lang
+  );
+  return paginate(getSortedPosts(localizedPosts), {
+    pageSize: config.posts.perPage,
+  });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+
+const locale = getLocaleFromPath(Astro.url.pathname);
+const t = useTranslations(locale);
+
+const alternateLocale = config.i18n.locales.find(l => l !== locale);
+const pagePath = page.currentPage > 1 ? `/posts/${page.currentPage}` : "/posts";
+const alternateUrl = alternateLocale
+  ? getLocalizedPath(pagePath, alternateLocale)
+  : undefined;
+---
+
+<Layout title={`${t.pages.postsTitle} | ${config.site.title}`} localeAlternates>
+  <Header {alternateUrl} />
+  <Main pageTitle={t.pages.postsTitle} pageDesc={t.pages.postsDesc}>
+    <ul>
+      {page.data.map(data => <Card requestedLocale={locale} {...data} />)}
+    </ul>
+  </Main>
+
+  <Pagination {page} />
+
+  <Footer noMarginTop={page.lastPage > 1} />
+</Layout>

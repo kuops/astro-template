@@ -1,0 +1,32 @@
+:root,
+html[data-theme="light"] {
+  --background: #fdfdfd;
+  --foreground: #282728;
+  --accent: #006cac;
+  --accent-foreground: #fdfdfd;
+  --muted: #e6e6e6;
+  --muted-foreground: #737373;
+  --border: #ece9e9;
+  --scrollbar-thumb: #d8d4cf;
+  --scrollbar-thumb-hover: #b7b2ab;
+  --surface-radius: 0.5rem;
+  --overlay-backdrop: rgb(0 0 0 / 36%);
+  --overlay-shadow: 0 12px 32px rgb(0 0 0 / 14%);
+  --sheet-shadow: 0 -8px 24px rgb(0 0 0 / 14%);
+}
+
+html[data-theme="dark"] {
+  --background: #282c34;
+  --foreground: #eaedf3;
+  --accent: #c678dd;
+  --accent-foreground: #fdfdfd;
+  --muted: #353c4d;
+  --muted-foreground: #a0a0a0;
+  --border: #3e4451;
+  --scrollbar-thumb: #4a5162;
+  --scrollbar-thumb-hover: #5d6577;
+  --surface-radius: 0.5rem;
+  --overlay-backdrop: rgb(0 0 0 / 56%);
+  --overlay-shadow: 0 12px 32px rgb(0 0 0 / 35%);
+  --sheet-shadow: 0 -8px 24px rgb(0 0 0 / 35%);
+}

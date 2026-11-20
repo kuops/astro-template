@@ -1,0 +1,198 @@
+---
+import { getLocaleFromPath, useTranslations } from "@/i18n";
+
+const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
+---
+
+<span
+  class="hidden"
+  id="i18n-copy"
+  data-copy={t.post.copyCode}
+  data-copied={t.post.copied}
+  data-heading-anchor={t.a11y.headingAnchor}></span>
+
+<script is:inline data-astro-rerun>
+  window.__articleEnhancementsCleanup?.();
+  window.__articleEnhancementsController = new AbortController();
+
+  function createProgressBar() {
+    document.getElementById("myBar")?.parentElement?.remove();
+
+    const progressContainer = document.createElement("div");
+    progressContainer.className =
+      "progress-container fixed top-0 z-50 h-1 w-full bg-background";
+
+    const progressBar = document.createElement("div");
+    progressBar.className = "progress-bar h-1 w-0 bg-accent";
+    progressBar.id = "myBar";
+
+    progressContainer.appendChild(progressBar);
+    document.body.appendChild(progressContainer);
+  }
+  createProgressBar();
+
+  function updateScrollProgress() {
+    function setProgress() {
+      const winScroll =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+      const myBar = document.getElementById("myBar");
+      if (myBar) {
+        myBar.style.width = scrolled + "%";
+      }
+    }
+
+    document.addEventListener("scroll", setProgress, {
+      passive: true,
+      signal: window.__articleEnhancementsController.signal,
+    });
+    setProgress();
+  }
+  updateScrollProgress();
+
+  function addHeadingLinks() {
+    const headings = Array.from(
+      document.querySelectorAll(
+        "#article h2[id]:not(.sr-only), #article h3[id]:not(.sr-only), #article h4[id]:not(.sr-only)"
+      )
+    );
+    const labelTemplate =
+      document.getElementById("i18n-copy")?.dataset.headingAnchor ||
+      "Link to section: {{title}}";
+    for (const heading of headings) {
+      if (heading.querySelector(":scope > .heading-link")) continue;
+      const headingText = heading.textContent?.trim() || "";
+      heading.classList.add("group");
+      const link = document.createElement("a");
+      link.className =
+        "heading-link ms-2 no-underline opacity-40 transition-opacity focus:opacity-100 active:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
+      link.href = "#" + heading.id;
+      link.setAttribute(
+        "aria-label",
+        labelTemplate.replace("{{title}}", headingText)
+      );
+
+      const span = document.createElement("span");
+      span.ariaHidden = "true";
+      span.innerText = "#";
+      link.appendChild(span);
+      heading.appendChild(link);
+    }
+  }
+  addHeadingLinks();
+
+  function fadeInArticleImages() {
+    const images = document.querySelectorAll("#article img.img-fade");
+    for (const img of images) {
+      if (img.complete) {
+        img.classList.add("is-loaded");
+        continue;
+      }
+      const reveal = () => img.classList.add("is-loaded");
+      img.addEventListener("load", reveal, { once: true });
+      img.addEventListener("error", reveal, { once: true });
+    }
+  }
+  fadeInArticleImages();
+
+  function restoreArticleDetails() {
+    const details = Array.from(document.querySelectorAll("#article details"));
+    if (!details.length) return;
+
+    const storageKey = "article-details:" + window.location.pathname;
+    let saved = {};
+    try {
+      saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    } catch {}
+
+    const stateKeys = details.map(function (detail, index) {
+      const summary = detail
+        .querySelector(":scope > summary")
+        ?.textContent?.trim();
+      return `${index}:${summary || "details"}`;
+    });
+
+    details.forEach(function (detail, index) {
+      const stateKey = stateKeys[index];
+      if (stateKey in saved) detail.open = Boolean(saved[stateKey]);
+    });
+
+    function saveState() {
+      const state = {};
+      details.forEach(function (detail, index) {
+        state[stateKeys[index]] = detail.open;
+      });
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      } catch {}
+    }
+
+    details.forEach(function (detail) {
+      detail.addEventListener("toggle", saveState, {
+        signal: window.__articleEnhancementsController.signal,
+      });
+    });
+  }
+  restoreArticleDetails();
+
+  function attachCopyButtons() {
+    const i18nEl = document.getElementById("i18n-copy");
+    const copyButtonLabel = i18nEl?.dataset.copy || "Copy";
+    const copiedLabel = i18nEl?.dataset.copied || "Copied";
+    const codeBlocks = Array.from(document.querySelectorAll("pre")).filter(
+      pre =>
+        pre.getAttribute("data-language") !== "mermaid" &&
+        !pre.closest(".mermaid-block")
+    );
+
+    for (const codeBlock of codeBlocks) {
+      let wrapper = codeBlock.parentElement;
+      if (!wrapper || wrapper.tagName !== "DIV") {
+        wrapper = document.createElement("div");
+        wrapper.style.position = "relative";
+        codeBlock.parentNode?.insertBefore(wrapper, codeBlock);
+        wrapper.appendChild(codeBlock);
+      }
+
+      const computedStyle = getComputedStyle(codeBlock);
+      const hasFileNameOffset =
+        computedStyle.getPropertyValue("--file-name-offset").trim() !== "";
+
+      const topClass = hasFileNameOffset
+        ? "top-(--file-name-offset)"
+        : "-top-3";
+
+      const copyButton = document.createElement("button");
+      copyButton.className = `copy-code absolute end-3 ${topClass} rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
+      copyButton.innerHTML = copyButtonLabel;
+      codeBlock.setAttribute("tabindex", "0");
+      codeBlock.appendChild(copyButton);
+
+      copyButton.addEventListener("click", async () => {
+        const code = codeBlock.querySelector("code");
+        const text = code?.innerText;
+
+        await navigator.clipboard.writeText(text ?? "");
+
+        copyButton.innerText = copiedLabel;
+        setTimeout(() => {
+          copyButton.innerText = copyButtonLabel;
+        }, 700);
+      });
+    }
+  }
+  attachCopyButtons();
+
+  function cleanupArticleEnhancements() {
+    window.__articleEnhancementsController?.abort();
+  }
+
+  window.__articleEnhancementsCleanup = cleanupArticleEnhancements;
+  document.addEventListener("astro:before-swap", cleanupArticleEnhancements, {
+    once: true,
+    signal: window.__articleEnhancementsController.signal,
+  });
+</script>

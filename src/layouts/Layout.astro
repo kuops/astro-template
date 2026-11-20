@@ -1,0 +1,595 @@
+---
+import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
+import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
+import config from "@/config";
+import { getLocaleFromPath, getLocalizedPath } from "@/i18n";
+import type { Locale } from "@/types/config";
+import "@/styles/global.css";
+import PagefindModal from "@/components/PagefindModal.astro";
+
+type Props = {
+  title?: string;
+  author?: string;
+  profile?: string;
+  description?: string;
+  ogImage?: string;
+  canonicalURL?: string;
+  pubDatetime?: Date;
+  modDatetime?: Date | null;
+  alternateURLs?: Partial<Record<Locale, string>>;
+  localeAlternates?: boolean;
+};
+
+const {
+  title = config.site.title,
+  author = config.site.author,
+  profile = config.site.profile,
+  description = config.site.description,
+  ogImage = config.site.ogImage ? `/${config.site.ogImage}` : "/og.png",
+  canonicalURL = new URL(Astro.url.pathname, Astro.url),
+  pubDatetime,
+  modDatetime,
+  alternateURLs = {},
+  localeAlternates = false,
+} = Astro.props;
+
+const socialImageURL = new URL(ogImage, Astro.url);
+const locale = getLocaleFromPath(Astro.url.pathname);
+const resolvedAlternateURLs = localeAlternates
+  ? Object.fromEntries(
+      config.i18n.locales.map(alternateLocale => [
+        alternateLocale,
+        getLocalizedPath(Astro.url.pathname, alternateLocale),
+      ])
+    )
+  : alternateURLs;
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": pubDatetime ? "BlogPosting" : "WebPage",
+  headline: `${title}`,
+  ...(pubDatetime && {
+    datePublished: pubDatetime.toISOString(),
+    image: `${socialImageURL}`,
+  }),
+  ...(modDatetime && { dateModified: modDatetime.toISOString() }),
+  author: [
+    {
+      "@type": "Person",
+      name: `${author}`,
+      ...(profile && { url: profile }),
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html dir={config.site.dir} lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    {
+      Object.entries(resolvedAlternateURLs).map(([alternateLocale, href]) => (
+        <link
+          rel="alternate"
+          hreflang={alternateLocale}
+          href={new URL(href, Astro.url).href}
+        />
+      ))
+    }
+    <meta name="generator" content={Astro.generator} />
+
+    <Font cssVariable="--font-google-sans-code" preload />
+
+    <!-- General Meta Tags -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <meta name="author" content={author} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={pubDatetime ? "article" : "website"} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={socialImageURL} />
+    <meta property="og:site_name" content={config.site.title} />
+
+    <!-- Article Published/Modified time -->
+    {
+      pubDatetime && (
+        <meta
+          property="article:published_time"
+          content={pubDatetime.toISOString()}
+        />
+      )
+    }
+    {
+      modDatetime && (
+        <meta
+          property="article:modified_time"
+          content={modDatetime.toISOString()}
+        />
+      )
+    }
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={socialImageURL} />
+
+    <!-- Google JSON-LD Structured data -->
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(structuredData)}
+    />
+
+    <!-- Enable RSS feed auto-discovery  -->
+    <!-- https://docs.astro.build/en/recipes/rss/#enabling-rss-feed-auto-discovery -->
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={config.site.title}
+      href={new URL(getLocalizedPath("/rss.xml", locale), Astro.site)}
+    />
+
+    <meta name="theme-color" content="#fdfdfd" />
+
+    {
+      // If PUBLIC_GOOGLE_SITE_VERIFICATION is set in the environment variable,
+      // include google-site-verification tag in the heading
+      // Learn more: https://support.google.com/webmasters/answer/9008080#meta_tag_verification&zippy=%2Chtml-tag
+      PUBLIC_GOOGLE_SITE_VERIFICATION && (
+        <meta
+          name="google-site-verification"
+          content={PUBLIC_GOOGLE_SITE_VERIFICATION}
+        />
+      )
+    }
+
+    <script is:inline>
+      (() => {
+        if ("scrollRestoration" in history) {
+          history.scrollRestoration = "manual";
+        }
+
+        const state = window.history.state;
+        let backup = null;
+        try {
+          backup = JSON.parse(
+            sessionStorage.getItem(
+              "scroll-anchor:" + location.pathname.replace(/\/+$/, "")
+            ) || "null"
+          );
+        } catch {}
+        const top = Number.isFinite(Number(state?.scrollY))
+          ? Number(state?.scrollY)
+          : Number(backup?.y);
+        const left = Number.isFinite(Number(state?.scrollX))
+          ? Number(state?.scrollX)
+          : Number(backup?.x);
+
+        const injectMermaidHeights = () => {
+          try {
+            const prefix =
+              "mermaid-h:" + location.pathname.replace(/\/+$/, "") + ":";
+            let css = "";
+            for (let i = 0; i < sessionStorage.length; i++) {
+              const k = sessionStorage.key(i);
+              if (!k || !k.startsWith(prefix)) continue;
+              const v = JSON.parse(sessionStorage.getItem(k) || "null");
+              if (!v || !Number.isFinite(v.h) || v.h <= 0) continue;
+              const key = k.slice(prefix.length).replace(/[^a-zA-Z0-9_-]/g, "");
+              css += `.mermaid-block[data-mermaid-key="${key}"]{min-height:${Math.round(v.h)}px}`;
+            }
+            let style = document.getElementById("mermaid-height-cache");
+            if (!style) {
+              style = document.createElement("style");
+              style.id = "mermaid-height-cache";
+              document.head.appendChild(style);
+            }
+            style.textContent = css;
+          } catch {}
+        };
+        window.__injectMermaidHeights = injectMermaidHeights;
+        document.addEventListener("astro:after-swap", injectMermaidHeights);
+        document.addEventListener("DOMContentLoaded", injectMermaidHeights);
+
+        if (
+          (state?.__scrollPositionSaved || backup) &&
+          Number.isFinite(top) &&
+          top > 0
+        ) {
+          document.documentElement.style.removeProperty("overflow-anchor");
+          document.documentElement.style.minHeight = `${top + innerHeight}px`;
+          window.scrollTo({
+            left: Number.isFinite(left) ? left : 0,
+            top,
+            behavior: "instant",
+          });
+        }
+
+        let resetTimer = 0;
+        const resetScrollBehavior = () => {
+          document.documentElement.style.removeProperty("scroll-behavior");
+          window.clearTimeout(resetTimer);
+        };
+
+        const ANCHOR_SELECTOR =
+          "#article h2, #article h3, #article h4, #article p, #article pre.astro-code, #article .mermaid-wrapper, #article .mermaid-block, #article img, #article table, #article blockquote, #article ul, #article ol, #article li";
+        const structuralPath = el => {
+          const parts = [];
+          let node = el;
+          while (node && node.id !== "article") {
+            const parent = node.parentElement;
+            if (!parent) return "";
+            const idx = Array.prototype.indexOf.call(parent.children, node) + 1;
+            parts.unshift(
+              node.tagName.toLowerCase() + ":nth-child(" + idx + ")"
+            );
+            node = parent;
+          }
+          return node ? "#article > " + parts.join(" > ") : "";
+        };
+        let saveFrame = 0;
+        window.__pinActive = true;
+        const saveScrollPosition = () => {
+          saveFrame = 0;
+          let anchorSel = "";
+          let anchorDelta = 0;
+          let anchorRatio = 0;
+          if (window.__pinActive && window.__origAnchor?.sel) {
+            anchorSel = window.__origAnchor.sel;
+            anchorDelta = Number(window.__origAnchor.delta) || 0;
+            anchorRatio = Number(window.__origAnchor.ratio) || 0;
+          } else {
+            const candidates = document.querySelectorAll(ANCHOR_SELECTOR);
+            for (const el of candidates) {
+              const rect = el.getBoundingClientRect();
+              if (rect.top <= 96 && rect.bottom > 0) {
+                anchorSel = el.id
+                  ? "#" + CSS.escape(el.id)
+                  : structuralPath(el);
+                anchorDelta = Math.round(rect.top);
+                anchorRatio = rect.height > 0 ? rect.top / rect.height : 0;
+              }
+            }
+          }
+          window.history.replaceState(
+            {
+              ...window.history.state,
+              __scrollPositionSaved: true,
+              scrollX: window.scrollX,
+              scrollY: window.scrollY,
+              __anchorSel: anchorSel,
+              __anchorDelta: anchorDelta,
+              __anchorRatio: anchorRatio,
+            },
+            ""
+          );
+          try {
+            sessionStorage.setItem(
+              "scroll-anchor:" + location.pathname.replace(/\/+$/, ""),
+              JSON.stringify({
+                sel: anchorSel,
+                delta: anchorDelta,
+                ratio: anchorRatio,
+                y: window.scrollY,
+                x: window.scrollX,
+              })
+            );
+          } catch {}
+        };
+
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (!saveFrame) {
+              saveFrame = window.requestAnimationFrame(saveScrollPosition);
+            }
+          },
+          { passive: true }
+        );
+
+        document.addEventListener("click", event => {
+          if (
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+          ) {
+            return;
+          }
+
+          const element = event.target;
+          const link =
+            element instanceof Element ? element.closest("a[href]") : null;
+          if (!link) return;
+
+          const url = new URL(link.href, window.location.href);
+          if (
+            !url.hash ||
+            url.origin !== window.location.origin ||
+            url.pathname !== window.location.pathname ||
+            url.search !== window.location.search ||
+            !document.getElementById(decodeURIComponent(url.hash.slice(1)))
+          ) {
+            return;
+          }
+
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            return;
+          }
+
+          window.clearTimeout(resetTimer);
+          document.documentElement.style.scrollBehavior = "smooth";
+          resetTimer = window.setTimeout(resetScrollBehavior, 1000);
+
+          if ("onscrollend" in window) {
+            window.addEventListener("scrollend", resetScrollBehavior, {
+              once: true,
+            });
+          }
+        });
+      })();
+    </script>
+
+    <ClientRouter />
+
+    <script is:inline>
+      (function () {
+        const initialColorScheme = ""; // "light" | "dark"
+        const currentTheme = localStorage.getItem("theme");
+
+        function getPreferTheme() {
+          if (currentTheme) return currentTheme;
+          if (initialColorScheme) return initialColorScheme;
+          return window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+
+        const themeValue = getPreferTheme();
+
+        const root = document.firstElementChild;
+        root?.setAttribute("data-theme", themeValue);
+        root?.classList.toggle("dark", themeValue === "dark");
+        root?.classList.add("theme-ready");
+
+        // Export minimal API for external script
+        window.theme = {
+          themeValue: themeValue,
+          getTheme: () => window.theme.themeValue,
+          setTheme: val => {
+            window.theme.themeValue = val;
+          },
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <script is:inline>
+      window.__injectMermaidHeights?.();
+    </script>
+    <slot />
+
+    <script is:inline>
+      (() => {
+        const state = window.history.state;
+        let backup = null;
+        try {
+          backup = JSON.parse(
+            sessionStorage.getItem(
+              "scroll-anchor:" + location.pathname.replace(/\/+$/, "")
+            ) || "null"
+          );
+        } catch {}
+        const savedTop = Number.isFinite(Number(state?.scrollY))
+          ? Number(state?.scrollY)
+          : Number(backup?.y);
+        window.__origAnchor = {
+          sel: state?.__anchorSel ?? backup?.sel,
+          delta: state?.__anchorDelta ?? backup?.delta,
+          ratio: state?.__anchorRatio ?? backup?.ratio,
+          top: savedTop,
+          left: Number(state?.scrollX),
+        };
+        const hasSavedPosition =
+          (state?.__scrollPositionSaved === true || !!backup) &&
+          Number.isFinite(savedTop);
+
+        if (window.location.hash && !hasSavedPosition) {
+          const id = decodeURIComponent(window.location.hash.slice(1));
+          const target = document.getElementById(id);
+          if (!target) return;
+
+          document.documentElement.style.overflowAnchor = "none";
+          const restoreHashTarget = () => {
+            target.scrollIntoView({ behavior: "instant", block: "start" });
+          };
+          const releaseAnchor = () => {
+            window.setTimeout(() => {
+              document.documentElement.style.removeProperty("overflow-anchor");
+            }, 1200);
+          };
+
+          let hashUserScrolled = false;
+          const hashYield = () => {
+            hashUserScrolled = true;
+          };
+          for (const type of ["wheel", "touchmove", "keydown", "pointerdown"]) {
+            window.addEventListener(type, hashYield, {
+              passive: true,
+              once: true,
+            });
+          }
+          restoreHashTarget();
+          const hashDeadline = performance.now() + 3000;
+          const followHash = () => {
+            if (hashUserScrolled) {
+              releaseAnchor();
+              return;
+            }
+            restoreHashTarget();
+            if (performance.now() < hashDeadline) {
+              window.setTimeout(followHash, 250);
+            } else {
+              releaseAnchor();
+            }
+          };
+          window.setTimeout(followHash, 250);
+          document.addEventListener(
+            "article:layout-stable",
+            () => {
+              if (!hashUserScrolled) restoreHashTarget();
+            },
+            {
+              once: true,
+            }
+          );
+          return;
+        }
+
+        const top = savedTop;
+        const left = Number(state?.scrollX);
+        const origSel = window.__origAnchor.sel;
+        const origDelta = window.__origAnchor.delta;
+
+        let userScrolled = false;
+        let expectedY = window.scrollY;
+        const pinTo = y => {
+          expectedY = y;
+          window.scrollTo({
+            left: Number.isFinite(left) ? left : 0,
+            top: y,
+            behavior: "instant",
+          });
+        };
+        const yieldToUser = () => {
+          userScrolled = true;
+          window.__pinActive = false;
+          document.documentElement.style.removeProperty("overflow-anchor");
+        };
+        const releaseScaffold = () => {
+          if (
+            document.documentElement.scrollHeight >=
+            top + window.innerHeight
+          ) {
+            document.documentElement.style.removeProperty("min-height");
+          }
+        };
+        for (const type of ["wheel", "touchmove", "keydown", "pointerdown"]) {
+          window.addEventListener(type, yieldToUser, {
+            passive: true,
+            once: true,
+          });
+        }
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (Math.abs(window.scrollY - expectedY) > 2) yieldToUser();
+          },
+          { passive: true }
+        );
+
+        if (!Number.isFinite(top) || top < 0) return;
+
+        document.documentElement.style.overflowAnchor = "none";
+
+        let anchorTimer = 0;
+        const finishRestore = () => {
+          const latestState = window.history.state;
+          window.history.replaceState(
+            {
+              ...latestState,
+              __scrollPositionSaved: true,
+              scrollX: Number.isFinite(left) ? left : 0,
+              scrollY: top,
+              __anchorSel: origSel,
+              __anchorDelta: origDelta,
+              __anchorRatio: window.__origAnchor.ratio,
+            },
+            ""
+          );
+          window.clearTimeout(anchorTimer);
+          anchorTimer = window.setTimeout(releaseScaffold, 1200);
+        };
+
+        const resolveAnchor = () => {
+          const orig = window.__origAnchor || {};
+          const anchorSel = orig.sel ?? window.history.state?.__anchorSel;
+          const anchorDelta = Number(
+            orig.delta ?? window.history.state?.__anchorDelta
+          );
+          let anchorEl = null;
+          if (anchorSel) {
+            try {
+              anchorEl = document.querySelector(anchorSel);
+            } catch {}
+          }
+          if (!anchorEl) return top;
+          const rect = anchorEl.getBoundingClientRect();
+          const offset = Number.isFinite(anchorDelta) ? anchorDelta : 0;
+          return Math.max(0, Math.round(rect.top + window.scrollY - offset));
+        };
+        const markAnchor = () => {
+          const sel = (window.__origAnchor || {}).sel;
+          if (!sel) return;
+          try {
+            const el = document.querySelector(sel);
+            if (el) el.style.overflowAnchor = "none";
+          } catch {}
+        };
+        markAnchor();
+        document.addEventListener("astro:after-swap", markAnchor);
+        const alignDeadline = performance.now() + 8000;
+        const alignTick = () => {
+          if (userScrolled || !window.__pinActive) return;
+          const t = resolveAnchor();
+          if (Math.abs(window.scrollY - t) > 1) pinTo(t);
+          if (performance.now() < alignDeadline) {
+            window.setTimeout(alignTick, 30);
+          }
+        };
+        alignTick();
+        const repinNow = () => {
+          if (userScrolled || !window.__pinActive) return;
+          pinTo(resolveAnchor());
+        };
+        const restoreTarget = () => {
+          if (userScrolled) return;
+          repinNow();
+          finishRestore();
+        };
+
+        document.addEventListener("article:layout-stable", restoreTarget, {
+          once: true,
+        });
+        if (document.fonts?.ready) {
+          document.fonts.ready.then(repinNow);
+        }
+        document.fonts?.addEventListener("loadingdone", repinNow);
+        window.addEventListener("load", repinNow, { once: true });
+        window.setTimeout(() => {
+          window.__pinActive = false;
+          releaseScaffold();
+          document.documentElement.style.removeProperty("overflow-anchor");
+        }, 8000);
+      })();
+    </script>
+
+    <PagefindModal />
+
+    <!-- Load full theme logic -->
+    <script src="../scripts/theme.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,180 @@
+---
+import { getLocaleFromPath, useTranslations } from "@/i18n";
+
+const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+type Props = {
+  headings: Heading[];
+};
+
+const { headings } = Astro.props;
+
+const minDepth =
+  headings.length > 0 ? Math.min(...headings.map(h => h.depth)) : 2;
+---
+
+<nav class="toc hidden xl:block" aria-label="Table of contents">
+  <h2
+    class="mb-2 text-sm font-semibold tracking-wider text-muted-foreground uppercase"
+  >
+    {t.pages.toc}
+  </h2>
+  <ul class="space-y-0.5 border-s border-border text-sm">
+    {
+      headings.map(({ depth, slug, text }) => {
+        const indent = depth - minDepth;
+        return (
+          <li
+            class="toc-item"
+            style={`padding-inline-start: ${indent * 0.75 + 0.75}rem`}
+          >
+            <a
+              href={`#${slug}`}
+              class="toc-link block rounded-e-md px-2 py-1 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent"
+              data-heading-slug={slug}
+              title={text}
+            >
+              <span class="toc-label">{text}</span>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>
+
+<script is:inline data-astro-rerun>
+  function initTocHighlight() {
+    const toc = document.querySelector(".toc");
+    if (!toc) return;
+    toc.__tocCleanup?.();
+
+    const tocLinks = toc.querySelectorAll(".toc-link");
+    if (tocLinks.length === 0) return;
+
+    const article = document.getElementById("article");
+    if (!article) return;
+
+    const headings = Array.from(
+      article.querySelectorAll("h2, h3, h4, h5, h6")
+    ).filter(heading => !heading.classList.contains("sr-only"));
+    const scroller = toc.closest("[data-toc-scroll]");
+    const controller = new AbortController();
+    const visibleMedia = window.matchMedia("(min-width: 1280px)");
+    let frameId = 0;
+    let firstRun = true;
+
+    function setActive() {
+      const root = document.documentElement;
+      const scrollTotal = root.scrollHeight - root.clientHeight;
+      const atBottom = scrollTotal > 0 && scrollTotal - root.scrollTop <= 2;
+      let currentId = headings[0]?.id || "";
+      if (atBottom) {
+        currentId =
+          tocLinks[tocLinks.length - 1]?.getAttribute("data-heading-slug") ||
+          currentId;
+      } else {
+        for (const heading of headings) {
+          const rect = heading.getBoundingClientRect();
+          if (rect.top <= 120) {
+            currentId = heading.id;
+          }
+        }
+      }
+
+      let activeLink = null;
+      tocLinks.forEach(link => {
+        const slug = link.getAttribute("data-heading-slug");
+        const li = link.closest(".toc-item");
+        const active = slug === currentId;
+        li?.classList.toggle("active", active);
+        if (active) {
+          link.setAttribute("aria-current", "location");
+          activeLink = link;
+        } else link.removeAttribute("aria-current");
+      });
+
+      if (
+        scroller &&
+        activeLink &&
+        scroller.scrollHeight > scroller.clientHeight
+      ) {
+        const li = activeLink.closest(".toc-item");
+        const top = li.offsetTop;
+        const bottom = top + li.offsetHeight;
+        const viewTop = scroller.scrollTop;
+        const viewBottom = viewTop + scroller.clientHeight;
+        if (top < viewTop + 8 || bottom > viewBottom - 8) {
+          const target = top - scroller.clientHeight / 2 + li.offsetHeight / 2;
+          const instant =
+            firstRun ||
+            window.__pinActive ||
+            Math.abs(target - scroller.scrollTop) > scroller.clientHeight;
+          scroller.scrollTo({
+            top: target,
+            behavior:
+              instant ||
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                ? "auto"
+                : "smooth",
+          });
+        }
+      }
+      firstRun = false;
+    }
+
+    function scheduleActive() {
+      if (!visibleMedia.matches || frameId) return;
+      frameId = window.requestAnimationFrame(function () {
+        frameId = 0;
+        setActive();
+      });
+    }
+
+    window.addEventListener("scroll", scheduleActive, {
+      passive: true,
+      signal: controller.signal,
+    });
+    visibleMedia.addEventListener("change", scheduleActive, {
+      signal: controller.signal,
+    });
+    scheduleActive();
+
+    function cleanup() {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      controller.abort();
+    }
+
+    toc.__tocCleanup = cleanup;
+    document.addEventListener("astro:before-swap", cleanup, {
+      once: true,
+      signal: controller.signal,
+    });
+  }
+  initTocHighlight();
+</script>
+
+<style>
+  .toc-item.active {
+    margin-inline-start: -1px;
+    border-inline-start: 2px solid var(--accent);
+    border-radius: 0 0.375rem 0.375rem 0;
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
+  }
+  .toc-item.active .toc-link {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .toc-label {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+</style>

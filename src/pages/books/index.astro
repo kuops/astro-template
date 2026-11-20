@@ -1,0 +1,36 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Main from "@/layouts/Main.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import BookCard from "@/components/BookCard.astro";
+import { getAllBooks } from "@/utils/books";
+import config from "@/config";
+import { getLocaleFromPath, useTranslations } from "@/i18n";
+
+const locale = getLocaleFromPath(Astro.url.pathname);
+const t = useTranslations(locale);
+
+const books = await getAllBooks(locale);
+---
+
+<Layout title={`${t.booksPage.title} | ${config.site.title}`} localeAlternates>
+  <Header />
+  <Main pageTitle={t.booksPage.title} pageDesc={t.booksPage.description}>
+    <div class="grid gap-6 sm:grid-cols-2">
+      {
+        books.map(book => (
+          <BookCard
+            slug={book.slug}
+            title={book.title}
+            description={book.description}
+            href={book.href}
+            sourceLocale={book.sourceLocale}
+            requestedLocale={locale}
+          />
+        ))
+      }
+    </div>
+  </Main>
+  <Footer />
+</Layout>

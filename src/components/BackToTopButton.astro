@@ -1,0 +1,93 @@
+---
+import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
+import { getLocaleFromPath, useTranslations } from "@/i18n";
+const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
+---
+
+<div
+  id="btt-btn-container"
+  class:list={[
+    "fixed end-4 bottom-8 z-40",
+    "pointer-events-none translate-y-14 opacity-0 motion-safe:transition motion-safe:duration-500",
+  ]}
+>
+  <button
+    data-button="back-to-top"
+    class="floating-tool-button"
+    aria-label={t.post.backToTop}
+    title={t.post.backToTop}
+  >
+    <IconArrowNarrowUp class="size-5" />
+  </button>
+</div>
+
+<script is:inline data-astro-rerun>
+  /** Scrolls the document to the top when
+   * the "Back to Top" button is clicked. */
+  function backToTop() {
+    const rootElement = document.documentElement;
+    const btnContainer = document.querySelector("#btt-btn-container");
+    const backToTopBtn = document.querySelector("[data-button='back-to-top']");
+
+    if (!rootElement || !btnContainer || !backToTopBtn) return;
+
+    const controller = new AbortController();
+
+    backToTopBtn.addEventListener(
+      "click",
+      () => {
+        const behavior = window.matchMedia("(prefers-reduced-motion: reduce)")
+          .matches
+          ? "auto"
+          : "smooth";
+        window.scrollTo({ top: 0, behavior });
+      },
+      { signal: controller.signal }
+    );
+
+    let lastVisible = null;
+    function handleScroll() {
+      const viewport = rootElement.clientHeight;
+      const scrollTotal = rootElement.scrollHeight - viewport;
+      const scrollTop = rootElement.scrollTop;
+      const isVisible =
+        scrollTotal >= viewport * 1.5 &&
+        scrollTop > (lastVisible ? viewport * 0.6 : viewport);
+
+      if (isVisible !== lastVisible) {
+        btnContainer.classList.toggle("opacity-100", isVisible);
+        btnContainer.classList.toggle("translate-y-0", isVisible);
+        btnContainer.classList.toggle("opacity-0", !isVisible);
+        btnContainer.classList.toggle("translate-y-14", !isVisible);
+        btnContainer.classList.toggle("pointer-events-none", !isVisible);
+        btnContainer.classList.toggle("pointer-events-auto", isVisible);
+        lastVisible = isVisible;
+      }
+    }
+
+    let ticking = false;
+    document.addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            handleScroll();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      },
+      { passive: true, signal: controller.signal }
+    );
+    handleScroll();
+
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        controller.abort();
+      },
+      { once: true, signal: controller.signal }
+    );
+  }
+  backToTop();
+</script>

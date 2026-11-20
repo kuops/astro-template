@@ -1,0 +1,33 @@
+---
+import BookChapterNav from "@/components/BookChapterNav.astro";
+import type { SidebarGroup } from "@/types/books";
+import type { Locale } from "@/types/config";
+
+type Props = {
+  bookSlug: string;
+  sidebar: SidebarGroup[];
+  currentSlug: string;
+  titleMap?: Record<string, string>;
+  hrefMap: Record<string, string>;
+  sourceLocaleMap?: Record<string, Locale>;
+};
+
+const {
+  bookSlug,
+  sidebar,
+  currentSlug,
+  titleMap = {},
+  hrefMap,
+  sourceLocaleMap,
+} = Astro.props;
+---
+
+<BookChapterNav
+  {bookSlug}
+  {sidebar}
+  {currentSlug}
+  {titleMap}
+  {hrefMap}
+  {sourceLocaleMap}
+  variant="desktop"
+/>

@@ -1,0 +1,118 @@
+---
+import "photoswipe/style.css";
+---
+
+<style is:inline>
+  .pswp__img {
+    background: var(--background);
+  }
+
+  .pswp__img--placeholder {
+    background: var(--background) !important;
+  }
+</style>
+
+<script>
+  import PhotoSwipeLightbox from "photoswipe/lightbox";
+
+  let cleanupController: AbortController | undefined;
+  let lightbox: PhotoSwipeLightbox | undefined;
+  let pswpModulePromise: Promise<typeof import("photoswipe")> | undefined;
+
+  function loadPswpModule() {
+    pswpModulePromise ??= import("photoswipe");
+    return pswpModulePromise;
+  }
+
+  function initLightbox() {
+    cleanupController?.abort();
+    cleanupController = new AbortController();
+    lightbox?.destroy();
+
+    const containers = document.querySelectorAll("#article");
+    if (!containers.length) return;
+
+    const allImages: HTMLImageElement[] = [];
+    containers.forEach(container => {
+      container.querySelectorAll("img").forEach(img => {
+        if (!img.hasAttribute("data-lightbox-ignore")) {
+          allImages.push(img);
+        }
+      });
+    });
+
+    if (!allImages.length) return;
+    void loadPswpModule();
+
+    const getDataSource = () =>
+      allImages.map(im => {
+        const src = im.currentSrc || im.src;
+        const url = new URL(src, window.location.origin);
+        const w =
+          im.naturalWidth ||
+          im.width ||
+          parseInt(url.searchParams.get("w") || "") ||
+          800;
+        const h =
+          im.naturalHeight ||
+          im.height ||
+          parseInt(url.searchParams.get("h") || "") ||
+          600;
+        return {
+          src,
+          msrc: src,
+          width: w,
+          height: h,
+          alt: im.alt || "",
+          element: im,
+        };
+      });
+
+    const dataSource = getDataSource();
+
+    lightbox = new PhotoSwipeLightbox({
+      dataSource,
+      pswpModule: loadPswpModule,
+      preloadFirstSlide: true,
+      bgOpacity: 0.75,
+      padding: { top: 40, bottom: 40, left: 40, right: 40 },
+      showHideAnimationType: "zoom",
+      bgClickAction: "close",
+      imageClickAction: "zoom-or-close",
+      tapAction: "close",
+      doubleTapAction: "zoom",
+    });
+
+    allImages.forEach(img => {
+      img.style.cursor = "zoom-in";
+      img.addEventListener(
+        "click",
+        e => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          const index = allImages.indexOf(img);
+          const currentDataSource = getDataSource();
+          const currentImage = currentDataSource[index];
+          if (!currentImage) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (lightbox) {
+            lightbox.options.showHideAnimationType =
+              currentImage.width <= 160 || currentImage.height <= 160
+                ? "fade"
+                : "zoom";
+            lightbox.loadAndOpen(index, currentDataSource, {
+              x: e.clientX,
+              y: e.clientY,
+            });
+          }
+        },
+        { signal: cleanupController?.signal }
+      );
+    });
+  }
+
+  initLightbox();
+  document.addEventListener("astro:after-swap", () => {
+    initLightbox();
+  });
+</script>

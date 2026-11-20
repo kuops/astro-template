@@ -1,0 +1,301 @@
+---
+import IconHash from "@/assets/icons/IconHash.svg";
+import IconX from "@/assets/icons/IconX.svg";
+import { getLocaleFromPath, useTranslations } from "@/i18n";
+
+const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+type Props = {
+  headings: Heading[];
+};
+
+const { headings } = Astro.props;
+const minDepth = Math.min(...headings.map(heading => heading.depth));
+---
+
+<div class="mobile-toc xl:hidden" data-mobile-toc>
+  <button
+    type="button"
+    class="fixed end-4 bottom-24 z-40 floating-tool-button"
+    data-mobile-toc-open
+    aria-label={t.pages.openToc}
+    title={t.pages.openToc}
+    aria-expanded="false"
+    aria-controls="mobile-toc-dialog"
+  >
+    <IconHash class="size-5" />
+  </button>
+
+  <dialog
+    id="mobile-toc-dialog"
+    class="mobile-toc-dialog"
+    aria-labelledby="mobile-toc-title"
+    data-mobile-toc-dialog
+  >
+    <div class="mobile-toc-shell">
+      <div class="mobile-toc-handle" aria-hidden="true"></div>
+      <div class="flex min-h-12 items-center gap-3 px-4">
+        <div
+          id="mobile-toc-title"
+          class="min-w-0 flex-1 text-base font-semibold"
+        >
+          {t.pages.toc}
+        </div>
+        <button
+          type="button"
+          class="focus-outline flex size-11 flex-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent active:bg-foreground/10"
+          data-mobile-toc-close
+          aria-label={t.pages.closeToc}
+          title={t.pages.closeToc}
+        >
+          <IconX class="size-5" />
+        </button>
+      </div>
+
+      <nav class="mobile-toc-list" aria-label={t.pages.toc}>
+        <ul class="border-s border-border text-sm">
+          {
+            headings.map(({ depth, slug, text }) => {
+              const indent = depth - minDepth;
+              return (
+                <li style={`padding-inline-start: ${indent * 0.75 + 0.5}rem`}>
+                  <a
+                    href={`#${slug}`}
+                    class="mobile-toc-link flex min-h-11 items-center rounded-e-md border-s-2 border-transparent px-2 py-2 leading-5 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent"
+                    data-mobile-toc-heading={slug}
+                  >
+                    <span class="mobile-toc-label">{text}</span>
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+    </div>
+  </dialog>
+</div>
+
+<script is:inline data-astro-rerun>
+  (function () {
+    const root = document.querySelector("[data-mobile-toc]");
+    if (!root) return;
+    root.__mobileTocCleanup?.();
+
+    const controller = new AbortController();
+    const openButton = root.querySelector("[data-mobile-toc-open]");
+    const closeButton = root.querySelector("[data-mobile-toc-close]");
+    const dialog = root.querySelector("[data-mobile-toc-dialog]");
+    const links = Array.from(
+      root.querySelectorAll("[data-mobile-toc-heading]")
+    );
+
+    if (!openButton || !closeButton || !dialog) return;
+
+    let previousOverflow = "";
+    let frameId = 0;
+    const visibleMedia = window.matchMedia("(max-width: 1279px)");
+
+    function setActiveHeading() {
+      const article = document.getElementById("article");
+      const articleHeadings = article
+        ? Array.from(article.querySelectorAll("h2, h3, h4")).filter(
+            heading => !heading.classList.contains("sr-only")
+          )
+        : [];
+      const root = document.documentElement;
+      const scrollTotal = root.scrollHeight - root.clientHeight;
+      const atBottom = scrollTotal > 0 && scrollTotal - root.scrollTop <= 2;
+      let currentId = articleHeadings[0]?.id || "";
+      if (atBottom) {
+        currentId =
+          links[links.length - 1]?.getAttribute("data-mobile-toc-heading") ||
+          currentId;
+      } else {
+        articleHeadings.forEach(function (heading) {
+          if (heading.getBoundingClientRect().top <= 72) currentId = heading.id;
+        });
+      }
+      links.forEach(function (link) {
+        const active =
+          link.getAttribute("data-mobile-toc-heading") === currentId;
+        link.classList.toggle("active", active);
+        if (active) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    function scheduleActiveHeading() {
+      if (!visibleMedia.matches || frameId) return;
+      frameId = window.requestAnimationFrame(function () {
+        frameId = 0;
+        setActiveHeading();
+      });
+    }
+
+    function lockScroll() {
+      previousOverflow = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = "hidden";
+    }
+
+    function unlockScroll() {
+      document.documentElement.style.overflow = previousOverflow;
+    }
+
+    function openDialog() {
+      if (dialog.open) return;
+      setActiveHeading();
+      lockScroll();
+      dialog.showModal();
+      openButton.setAttribute("aria-expanded", "true");
+      requestAnimationFrame(function () {
+        const activeLink = dialog.querySelector(".mobile-toc-link.active");
+        (activeLink || closeButton).focus();
+        activeLink?.scrollIntoView({ block: "nearest" });
+      });
+    }
+
+    function closeDialog(restoreFocus) {
+      if (dialog.open) dialog.close();
+      unlockScroll();
+      openButton.setAttribute("aria-expanded", "false");
+      if (restoreFocus) openButton.focus();
+    }
+
+    openButton.addEventListener("click", openDialog, {
+      signal: controller.signal,
+    });
+    closeButton.addEventListener(
+      "click",
+      function () {
+        closeDialog(true);
+      },
+      { signal: controller.signal }
+    );
+    dialog.addEventListener(
+      "click",
+      function (event) {
+        if (event.target === dialog) closeDialog(true);
+      },
+      { signal: controller.signal }
+    );
+    dialog.addEventListener(
+      "close",
+      function () {
+        if (dialog.open) return;
+        unlockScroll();
+        openButton.setAttribute("aria-expanded", "false");
+      },
+      { signal: controller.signal }
+    );
+    links.forEach(function (link) {
+      link.addEventListener(
+        "click",
+        function () {
+          closeDialog(false);
+        },
+        { signal: controller.signal }
+      );
+    });
+
+    window.addEventListener("scroll", scheduleActiveHeading, {
+      passive: true,
+      signal: controller.signal,
+    });
+    visibleMedia.addEventListener("change", scheduleActiveHeading, {
+      signal: controller.signal,
+    });
+    scheduleActiveHeading();
+
+    function cleanup() {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      controller.abort();
+      closeDialog(false);
+    }
+
+    root.__mobileTocCleanup = cleanup;
+    document.addEventListener("astro:before-swap", cleanup, {
+      once: true,
+      signal: controller.signal,
+    });
+  })();
+</script>
+
+<style>
+  .mobile-toc-dialog {
+    position: fixed;
+    inset: auto 0 0;
+    width: min(100%, 42rem);
+    max-width: none;
+    max-height: 72dvh;
+    margin: auto auto 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: var(--surface-radius) var(--surface-radius) 0 0;
+    color: var(--foreground);
+    background: var(--background);
+    box-shadow: var(--sheet-shadow);
+  }
+  .mobile-toc-dialog::backdrop {
+    background: var(--overlay-backdrop);
+  }
+  .mobile-toc-dialog[open] {
+    animation: mobile-toc-in 0.2s ease-out;
+  }
+  .mobile-toc-shell {
+    display: flex;
+    max-height: 72dvh;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mobile-toc-handle {
+    width: 2.25rem;
+    height: 0.25rem;
+    margin: 0.5rem auto 0.125rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--foreground) 20%, transparent);
+  }
+  .mobile-toc-list {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid var(--border);
+    padding: 0.75rem;
+  }
+  .mobile-toc-label {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .mobile-toc-link.active {
+    margin-inline-start: -1px;
+    border-inline-start-color: var(--accent);
+    color: var(--foreground);
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
+    font-weight: 600;
+  }
+  @keyframes mobile-toc-in {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-toc-dialog[open] {
+      animation: none;
+    }
+  }
+</style>

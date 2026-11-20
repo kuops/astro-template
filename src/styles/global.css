@@ -1,0 +1,275 @@
+@import "tailwindcss";
+@import "./theme.css";
+@import "./typography.css";
+@import "rehype-callouts/theme/obsidian";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* 校准 fallback：使 web font 到达前后行宽/行高一致，消除字体 swap 布局跳动。
+   度量来源：Google Sans Code upm2000 adv1200 winA2377 winD930；
+   DejaVu Sans Mono upm2048 adv1233 winA1901 winD483。 */
+@font-face {
+  font-family: "GSC Fallback";
+  src:
+    local("DejaVu Sans Mono"), local("Menlo"), local("Consolas"),
+    local("Liberation Mono"), local("Courier New");
+  size-adjust: 99.67%;
+  ascent-override: 119.25%;
+  descent-override: 46.66%;
+  line-gap-override: 0%;
+}
+
+/* 中文无 webfont，但行盒 strut 取自栈首字体；此 face 仅含空格，
+   让中文字符的 strut 行高与 GSC 一致（1.6535em），消除 swap 时中文行盒跳动。 */
+@font-face {
+  font-family: "GSC Fallback CJK";
+  src:
+    local("Space"), local("DejaVu Sans Mono"), local("Menlo"), local("Consolas");
+  unicode-range: U+0020;
+  ascent-override: 118.85%;
+  descent-override: 46.5%;
+  line-gap-override: 0%;
+}
+
+@theme inline {
+  --font-app:
+    var(--font-google-sans-code), "GSC Fallback", "GSC Fallback CJK",
+    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono:
+    var(--font-google-sans-code), "GSC Fallback", "GSC Fallback CJK",
+    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-monospace, monospace;
+  --font-reading:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-accent/75;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  html {
+    @apply overflow-y-scroll;
+  }
+  body {
+    @apply flex min-h-svh flex-col bg-background font-app text-foreground selection:bg-accent/75 selection:text-background;
+  }
+  a,
+  button {
+    @apply outline-offset-1 outline-accent focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  #article img {
+    background-color: var(--muted);
+  }
+  #article img.img-fade {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  #article img.img-fade.is-loaded {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #article img.img-fade {
+      transition: none;
+    }
+  }
+}
+
+@utility max-w-app {
+  @apply max-w-3xl;
+}
+
+@utility app-layout {
+  @apply mx-auto w-full max-w-app px-4;
+}
+
+@utility floating-tool-button {
+  @apply flex size-11 items-center justify-center rounded-md border border-border bg-background shadow-sm transition-colors hover:border-accent hover:text-accent active:bg-foreground/5;
+}
+
+.active-nav {
+  @apply underline decoration-accent decoration-wavy decoration-2 underline-offset-8;
+}
+
+/* 代码块首帧占位高度：typography 外链 CSS 到达前按行数预留，防刷新跳动 */
+pre.astro-code {
+  min-height: calc(var(--code-lines, 1) * 1.4rem + 2rem);
+  box-sizing: border-box;
+}
+
+/* 复制按钮运行时包 wrapper 会使 prose pre 的 margin 失效，
+   在 wrapper 上等价补偿，保证包前包后布局一致 */
+.app-prose div:has(> pre.astro-code) {
+  margin-block: 24px;
+}
+.app-prose div:has(> pre.astro-code) > pre.astro-code {
+  margin-block: 0;
+}
+
+/* Mermaid 首帧关键样式：必须位于首载样式表，保证骨架与源码隐藏同帧生效 */
+.mermaid-block {
+  position: relative;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--background);
+  min-height: clamp(8rem, calc(var(--mermaid-lines, 8) * 1.1rem), 18rem);
+}
+
+.mermaid-block[aria-busy="true"] pre {
+  display: none;
+}
+
+.mermaid-skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+
+.mermaid-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  animation: mermaid-spin 0.8s linear infinite;
+}
+
+.mermaid-shimmer {
+  height: 0.625rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--foreground) 6%, transparent) 25%,
+    color-mix(in srgb, var(--foreground) 13%, transparent) 50%,
+    color-mix(in srgb, var(--foreground) 6%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  animation: mermaid-shimmer 1.6s ease-in-out infinite;
+}
+
+.mermaid-shimmer:nth-child(2) {
+  width: 62%;
+}
+
+.mermaid-shimmer:nth-child(3) {
+  width: 46%;
+  animation-delay: 0.15s;
+}
+
+.mermaid-shimmer:nth-child(4) {
+  width: 54%;
+  animation-delay: 0.3s;
+}
+
+.mermaid-block[data-state="error"] {
+  min-height: 0;
+}
+
+.mermaid-block[data-state="error"] .mermaid-skeleton {
+  display: none;
+}
+
+.mermaid-block[data-state="error"] pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+@keyframes mermaid-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mermaid-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mermaid-spinner,
+  .mermaid-shimmer {
+    animation: none;
+  }
+}
+
+@layer base {
+  .toc-scroll,
+  .sidebar-scroll,
+  .mobile-toc-list,
+  .book-dialog-panels {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  .toc-scroll::-webkit-scrollbar,
+  .sidebar-scroll::-webkit-scrollbar,
+  .mobile-toc-list::-webkit-scrollbar,
+  .book-dialog-panels::-webkit-scrollbar {
+    width: 6px;
+  }
+  .toc-scroll::-webkit-scrollbar-track,
+  .sidebar-scroll::-webkit-scrollbar-track,
+  .mobile-toc-list::-webkit-scrollbar-track,
+  .book-dialog-panels::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .toc-scroll::-webkit-scrollbar-thumb,
+  .sidebar-scroll::-webkit-scrollbar-thumb,
+  .mobile-toc-list::-webkit-scrollbar-thumb,
+  .book-dialog-panels::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--scrollbar-thumb);
+  }
+  .toc-scroll::-webkit-scrollbar-thumb:hover,
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover,
+  .mobile-toc-list::-webkit-scrollbar-thumb:hover,
+  .book-dialog-panels::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+}
+
+/* Source: https://piccalil.li/blog/a-more-modern-css-reset/ */
+/* Anything that has been anchored to should have extra scroll margin */
+:target {
+  scroll-margin-block: 1rem;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 700;
+  }
+  p,
+  li,
+  blockquote,
+  figcaption {
+    font-weight: 400;
+  }
+}

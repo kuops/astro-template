@@ -1,0 +1,160 @@
+---
+import { render } from "astro:content";
+import BookLayout from "@/layouts/BookLayout.astro";
+import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
+import type { CollectionEntry } from "astro:content";
+import type { SidebarGroup } from "@/types/books";
+import {
+  getLocaleFromPath,
+  getLocalizedPath,
+  tplStr,
+  useTranslations,
+} from "@/i18n";
+import type { Locale } from "@/types/config";
+import { getContentLocale } from "@/utils/localizedContent";
+import { getReadingMetadata } from "@/utils/readingMetadata";
+const locale = getLocaleFromPath(Astro.url.pathname);
+const t = useTranslations(locale);
+
+interface Props {
+  chapter: CollectionEntry<"books">;
+  book: string;
+  bookTitle: string;
+  slug: string;
+  sidebar: SidebarGroup[];
+  titleMap: Record<string, string>;
+  hrefMap: Record<string, string>;
+  sourceLocaleMap?: Record<string, Locale>;
+  prevSlug: string | null;
+  nextSlug: string | null;
+  indexable?: boolean;
+  alternateUrl?: string;
+  canonicalURL?: string;
+}
+
+const {
+  chapter,
+  book,
+  bookTitle,
+  slug,
+  sidebar,
+  titleMap,
+  hrefMap,
+  sourceLocaleMap = {},
+  prevSlug,
+  nextSlug,
+  indexable = true,
+  alternateUrl,
+  canonicalURL,
+} = Astro.props;
+
+const { Content, headings: allHeadings } = await render(chapter);
+const headings = allHeadings.filter(
+  h => h.depth >= 2 && h.depth <= 4 && h.slug !== "footnote-label"
+);
+const sourceLocale = getContentLocale(chapter, "books");
+const contentT = useTranslations(sourceLocale);
+const isFallback = sourceLocale !== locale;
+const sourceLabel = tplStr(t.language.sourceLabel, {
+  language: t.language.names[sourceLocale],
+});
+const readingMetadata = getReadingMetadata(chapter.body, sourceLocale);
+const readingLabel = tplStr(contentT.reading.metadata, {
+  count: readingMetadata.count,
+  minutes: readingMetadata.minutes,
+});
+---
+
+<BookLayout
+  title={chapter.data.title}
+  description={chapter.data.description}
+  {canonicalURL}
+  {bookTitle}
+  bookSlug={book}
+  {sidebar}
+  currentSlug={slug}
+  {titleMap}
+  {hrefMap}
+  {sourceLocaleMap}
+  {headings}
+  {readingLabel}
+  sourceLabel={isFallback ? sourceLabel : undefined}
+  indexable={indexable}
+  {alternateUrl}
+>
+  <Content />
+
+  <hr class="my-8 border-dashed" />
+
+  <div data-pagefind-ignore class="grid grid-cols-2 gap-3 sm:gap-6">
+    {
+      prevSlug ? (
+        <a
+          href={hrefMap[prevSlug]}
+          class="group flex min-h-14 w-full min-w-0 items-center gap-1 rounded-md py-2 hover:bg-foreground/5"
+        >
+          <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
+          <div class="min-w-0">
+            <span class="text-sm text-muted-foreground">
+              {t.book.previousChapter}
+            </span>
+            <div class="truncate text-sm font-medium text-accent">
+              {titleMap[prevSlug] || prevSlug}
+            </div>
+          </div>
+        </a>
+      ) : (
+        nextSlug && (
+          <a
+            href={getLocalizedPath("/books", locale)}
+            class="group flex min-h-14 w-full min-w-0 items-center gap-1 rounded-md py-2 hover:bg-foreground/5"
+          >
+            <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
+            <span class="text-sm font-medium text-accent">
+              {t.book.backToBooks}
+            </span>
+          </a>
+        )
+      )
+    }
+    {
+      nextSlug ? (
+        <a
+          href={hrefMap[nextSlug]}
+          class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end hover:bg-foreground/5"
+        >
+          <div class="min-w-0">
+            <span class="text-sm text-muted-foreground">
+              {t.book.nextChapter}
+            </span>
+            <div class="truncate text-sm font-medium text-accent">
+              {titleMap[nextSlug] || nextSlug}
+            </div>
+          </div>
+          <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
+        </a>
+      ) : prevSlug ? (
+        <a
+          href={getLocalizedPath("/books", locale)}
+          class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end hover:bg-foreground/5"
+        >
+          <span class="text-sm font-medium text-accent">
+            {t.book.backToBooks}
+          </span>
+          <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
+        </a>
+      ) : (
+        <a
+          href={getLocalizedPath("/books", locale)}
+          class="group col-span-2 flex min-h-14 w-full items-center justify-center gap-1 rounded-md py-2 hover:bg-foreground/5"
+        >
+          <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
+          <span class="text-sm font-medium text-accent">
+            {t.book.backToBooks}
+          </span>
+        </a>
+      )
+    }
+  </div>
+</BookLayout>
