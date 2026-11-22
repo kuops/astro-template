@@ -14,6 +14,8 @@ import {
 import BookChapterContent from "@/components/BookChapterContent.astro";
 import config from "@/config";
 import { getLocalizedPath } from "@/i18n";
+import { getCollection } from "astro:content";
+import { getContentLocale } from "@/utils/localizedContent";
 
 export async function getStaticPaths() {
   const books = await getAllBooks();
@@ -57,6 +59,15 @@ const alternateLocale = config.i18n.locales.find(
 const alternateUrl = alternateLocale
   ? getLocalizedPath(`/books/${book}/${slug}`, alternateLocale)
   : undefined;
+// 当前章节在另一语言是否有真翻译（区别于回退路由）。
+// 注意 entries 已被 resolveLocalizedEntries 按 zh 解析（不含 en 章节条目），
+// 必须查原始集合；getChapterSlug 会剥离 locale 段，两种语言的 slug 一致
+const allBookEntries = await getCollection("books", ({ data }) => !data.draft);
+const translationAvailable = allBookEntries.some(
+  entry =>
+    getChapterSlug(entry) === slug &&
+    getContentLocale(entry, "books") === alternateLocale
+);
 ---
 
 <BookChapterContent
@@ -71,4 +82,5 @@ const alternateUrl = alternateLocale
   {prevSlug}
   {nextSlug}
   {alternateUrl}
+  {translationAvailable}
 />

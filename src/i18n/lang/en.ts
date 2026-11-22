@@ -11,6 +11,7 @@ export default {
       en: "English",
     },
     sourceLabel: "Source: {{language}}",
+    readIn: "Read in {{language}}",
   },
   nav: {
     home: "Home",
@@ -46,6 +47,10 @@ export default {
     featured: "Featured",
     recentPosts: "Recent Posts",
     allPosts: "All Posts",
+    statsPosts: "posts",
+    statsBooks: "books",
+    statsTags: "tags",
+    browseBooks: "Browse Books",
   },
   footer: {
     copyright: "Copyright © {{year}}",
@@ -67,6 +72,7 @@ export default {
     closeToc: "Close TOC",
     searchHintBefore: "Click the search icon in the top right corner or press",
     searchHintAfter: "to open search",
+    searchHintMobile: "Tap the search icon in the top bar to search",
   },
   a11y: {
     skipToContent: "Skip to content",

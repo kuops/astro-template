@@ -9,6 +9,7 @@ export interface UIStrings {
       en: string;
     };
     sourceLabel: string;
+    readIn: string;
   };
   nav: {
     home: string;
@@ -44,6 +45,10 @@ export interface UIStrings {
     featured: string;
     recentPosts: string;
     allPosts: string;
+    statsPosts: string;
+    statsBooks: string;
+    statsTags: string;
+    browseBooks: string;
   };
   footer: {
     copyright: string;
@@ -65,6 +70,7 @@ export interface UIStrings {
     closeToc: string;
     searchHintBefore: string;
     searchHintAfter: string;
+    searchHintMobile: string;
   };
   a11y: {
     skipToContent: string;

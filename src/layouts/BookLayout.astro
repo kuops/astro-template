@@ -6,6 +6,7 @@ import BookSidebar from "@/components/BookSidebar.astro";
 import BookMobileNav from "@/components/BookMobileNav.astro";
 import TableOfContents from "@/components/TableOfContents.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
+import MobileToc from "@/components/MobileToc.astro";
 import ArticleEnhancements from "@/components/ArticleEnhancements.astro";
 import MermaidRenderer from "@/components/MermaidRenderer.astro";
 import ImageLightbox from "@/components/ImageLightbox.astro";
@@ -29,6 +30,8 @@ type Props = {
   sourceLabel?: string;
   indexable?: boolean;
   alternateUrl?: string;
+  /** 渲染好的反向语言提示文案（如「阅读 English 版」），上游判定后传入 */
+  translationHint?: string;
   canonicalURL?: string;
 };
 
@@ -47,6 +50,7 @@ const {
   sourceLabel,
   indexable = true,
   alternateUrl,
+  translationHint,
   canonicalURL,
 } = Astro.props;
 ---
@@ -54,6 +58,7 @@ const {
 <Layout
   title={`${title} | ${config.site.title}`}
   description={description}
+  contentLang={sourceLocaleMap?.[currentSlug]}
   {canonicalURL}
 >
   <Header maxWidth="mx-auto w-full max-w-7xl px-4" {alternateUrl} />
@@ -90,6 +95,18 @@ const {
         </div>
       </aside>
       <div class="min-w-0 flex-1">
+        {
+          translationHint && alternateUrl && (
+            <p class="mb-3 text-sm text-muted-foreground">
+              <a
+                href={alternateUrl}
+                class="underline decoration-dashed underline-offset-4 hover:text-accent"
+              >
+                {translationHint}
+              </a>
+            </p>
+          )
+        }
         <h1
           class="mb-8 text-[1.75rem] leading-9 font-bold text-accent sm:text-3xl"
           data-pagefind-meta="title"
@@ -130,6 +147,7 @@ const {
       }
     </div>
     <BackToTopButton />
+    {headings.length > 0 && <MobileToc headings={headings} />}
   </main>
   <Footer maxWidth="mx-auto w-full max-w-7xl px-4" />
 </Layout>

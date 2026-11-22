@@ -1,0 +1,12 @@
+---
+// 渲染于文章页分享链接之后、上下篇导航之前。在此添加评论、订阅表单
+// 或作者信息；可通过 `post` 参数跳过某些文章。
+// 本文件归你所有：后续版本不会改动、移动或重命名它（上游 v7.2.0 承诺）。
+import type { CollectionEntry } from "astro:content";
+
+type Props = {
+  post: CollectionEntry<"blog">;
+};
+
+const {}: Props = Astro.props;
+---

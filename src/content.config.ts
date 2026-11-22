@@ -23,6 +23,7 @@ const blog = defineCollection({
       canonicalURL: z.string().optional(),
       translationKey: z.string().optional(),
       hideEditPost: z.boolean().optional(),
+      hideToc: z.boolean().optional(),
       timezone: z.string().optional(),
     }),
 });

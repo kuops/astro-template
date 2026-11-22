@@ -6,8 +6,8 @@ export default defineAstroPaperConfig({
     title: "My Blog",
     description: "一个基于 Astro 的个人博客。",
     author: "Blog Author",
+    avatar: "/astropaper-og.jpg",
     profile: "https://blog.example.com/",
-    ogImage: "astropaper-og.jpg",
     lang: "zh",
     timezone: "Asia/Shanghai",
     dir: "ltr",
@@ -25,6 +25,7 @@ export default defineAstroPaperConfig({
     dynamicOgImage: true,
     showArchives: true,
     showBackButton: true,
+    toc: true,
     editPost: {
       enabled: false,
     },

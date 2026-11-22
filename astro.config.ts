@@ -7,17 +7,18 @@ import {
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
-import { unified } from "@astrojs/markdown-remark";
-import remarkToc from "remark-toc";
-import remarkCollapse from "remark-collapse";
-import remarkGfm from "remark-gfm";
-import remarkSupersub from "remark-supersub";
-import { remarkMark } from "remark-mark-highlight";
-import rehypeCallouts from "rehype-callouts";
-import rehypeImageDimensions from "./src/utils/rehypeImageDimensions";
-import rehypeMermaidBlock, {
-  rehypeCodeLines,
-} from "./src/utils/rehypeMermaidBlock";
+import { satteri } from "@astrojs/markdown-satteri";
+import { satteriMark } from "@mirrordown/sat-mark";
+import satteriCallouts from "satteri-callouts";
+import {
+  satteriMermaidBlock,
+  satteriCodeLines,
+} from "./src/utils/satteriMermaidBlock";
+import { satteriImageDimensions } from "./src/utils/satteriImageDimensions";
+import { satteriDegreeSup } from "./src/utils/satteriDegreeSup";
+import { satteriCodeTabs } from "./src/utils/satteriCodeTabs";
+import { satteriSteps } from "./src/utils/satteriSteps";
+import { satteriTableWrapper } from "./src/utils/satteriTableWrapper";
 import {
   transformerNotationDiff,
   transformerNotationHighlight,
@@ -25,6 +26,7 @@ import {
   transformerMetaHighlight,
 } from "@shikijs/transformers";
 import { transformerFileName } from "./src/utils/transformers/fileName";
+import { transformerCodeScroll } from "./src/utils/transformers/codeScroll";
 import { transformerMermaidHidden } from "./src/utils/transformers/mermaidHidden";
 import config from "./astro-paper.config";
 
@@ -54,20 +56,25 @@ export default defineConfig({
     },
   },
   markdown: {
-    processor: unified({
-      gfm: false,
-      remarkPlugins: [
-        remarkToc,
-        [remarkCollapse, { test: "Table of contents" }],
-        remarkSupersub,
-        [remarkGfm, { singleTilde: false }],
-        remarkMark,
+    processor: satteri({
+      features: {
+        gfm: true,
+        superscript: true,
+        subscript: true,
+        smartPunctuation: true,
+      },
+      mdastPlugins: [
+        satteriMark,
+        satteriDegreeSup,
+        satteriCodeTabs,
+        satteriSteps,
       ],
-      rehypePlugins: [
-        rehypeCallouts,
-        rehypeImageDimensions,
-        rehypeMermaidBlock,
-        rehypeCodeLines,
+      hastPlugins: [
+        () => satteriCallouts(),
+        satteriImageDimensions,
+        satteriMermaidBlock,
+        satteriCodeLines,
+        satteriTableWrapper,
       ],
     }),
     shikiConfig: {
@@ -82,6 +89,7 @@ export default defineConfig({
         transformerNotationHighlight(),
         transformerNotationWordHighlight(),
         transformerNotationDiff({ matchAlgorithm: "v3" }),
+        transformerCodeScroll(),
       ],
     },
   },

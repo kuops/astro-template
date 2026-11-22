@@ -1,37 +1,30 @@
 ---
-title: "About"
-description: "About this blog"
+title: "关于"
+description: "关于这个博客"
 ---
 
-AstroPaper is a minimal, accessible and SEO-friendly blog theme built with [Astro](https://astro.build/) and [Tailwind CSS](https://tailwindcss.com/).
+这是一个基于 [Astro](https://astro.build/) 与 [Tailwind CSS](https://tailwindcss.com/) 构建的个人博客，追求简洁、快速与无障碍的阅读体验。
 
-![Astro Paper](public/astropaper-og.jpg)
+![站点预览](/astropaper-og.jpg)
 
-AstroPaper provides a solid foundation for blogs, or even portfolios\_ with full markdown support, built-in dark mode, and a clean layout that works out-of-the-box.
+## 关于本站
 
-The blog posts in this theme also serve as guides, docs or example articles\_ making AstroPaper a flexible starting point for your next content-driven site.
+这里记录我在开发与设计过程中的笔记、心得与教程，内容以 Web 开发为主，涵盖框架、工具链与工程实践。书籍板块按章节整理成体系的指南，文章板块则是相对独立的技术短文。
 
-## Features
+## 本站特性
 
-AstroPaper comes with a set of useful features that make content publishing easy and effective:
+- SEO 友好
+- 极致性能
+- 深色 / 浅色模式
+- 中英双语与内容回退
+- 高度可定制
+- 基于目录的书籍与文章组织
+- 响应式设计与无障碍支持
+- 基于 [Pagefind](https://pagefind.app/) 的静态搜索
+- 社交分享图自动生成
 
-- SEO-friendly
-- Fast performance
-- Light & dark mode
-- Highly customizable
-- Organizable blog posts
-- Responsive & accessible
-- Static search with [PageFind](https://pagefind.app/)
-- Automatic social image generation
+## 交流与支持
 
-and so much more.
+如果你喜欢本站的内容，欢迎通过 [GitHub](https://github.com) 关注与交流。
 
-## Show your support
-
-If you like [AstroPaper](https://github.com/satnaing/astro-paper), consider giving it a star ⭐️.
-
-Found a bug 🐛 or have an improvement ✨ in mind? Feel free to open an [issue](https://github.com/satnaing/astro-paper/issues), submit a [pull request](https://github.com/satnaing/astro-paper/pulls) or start a [discussion](https://github.com/satnaing/astro-paper/discussions).
-
-If you find this theme helpful, you can also [sponsor me on GitHub](https://github.com/sponsors/satnaing) or [buy me a coffee](https://buymeacoffee.com/satnaing) to show your support — every penny counts.
-
-Kyay zuu! 🙏🏼
+发现问题或有改进建议？欢迎提 [issue](https://github.com) 或发起讨论。

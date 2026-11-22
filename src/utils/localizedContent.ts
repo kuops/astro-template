@@ -5,9 +5,7 @@ import { isLocale } from "@/i18n/locale";
 
 type CollectionName = "blog" | "books" | "pages";
 type ContentEntry =
-  | CollectionEntry<"blog">
-  | CollectionEntry<"books">
-  | CollectionEntry<"pages">;
+  CollectionEntry<"blog"> | CollectionEntry<"books"> | CollectionEntry<"pages">;
 
 const collectionRoots: Record<CollectionName, string> = {
   blog: "src/data/blog",

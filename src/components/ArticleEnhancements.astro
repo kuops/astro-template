@@ -68,7 +68,7 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
       heading.classList.add("group");
       const link = document.createElement("a");
       link.className =
-        "heading-link ms-2 no-underline opacity-40 transition-opacity focus:opacity-100 active:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
+        "heading-link ms-2 no-underline opacity-0 transition-opacity focus:opacity-100 active:opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
       link.href = "#" + heading.id;
       link.setAttribute(
         "aria-label",
@@ -142,6 +142,11 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
     const i18nEl = document.getElementById("i18n-copy");
     const copyButtonLabel = i18nEl?.dataset.copy || "Copy";
     const copiedLabel = i18nEl?.dataset.copied || "Copied";
+    // 剪贴板/对勾图标（内嵌式，文档站同款：卡片内右侧垂直居中）
+    const CLIPBOARD_ICON =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>';
+    const CHECK_ICON =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
     const codeBlocks = Array.from(document.querySelectorAll("pre")).filter(
       pre =>
         pre.getAttribute("data-language") !== "mermaid" &&
@@ -150,26 +155,25 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 
     for (const codeBlock of codeBlocks) {
       let wrapper = codeBlock.parentElement;
-      if (!wrapper || wrapper.tagName !== "DIV") {
+      if (
+        !wrapper ||
+        wrapper.tagName !== "DIV" ||
+        wrapper.classList.contains("code-tabs-panel")
+      ) {
         wrapper = document.createElement("div");
         wrapper.style.position = "relative";
         codeBlock.parentNode?.insertBefore(wrapper, codeBlock);
         wrapper.appendChild(codeBlock);
       }
 
-      const computedStyle = getComputedStyle(codeBlock);
-      const hasFileNameOffset =
-        computedStyle.getPropertyValue("--file-name-offset").trim() !== "";
-
-      const topClass = hasFileNameOffset
-        ? "top-(--file-name-offset)"
-        : "-top-3";
-
       const copyButton = document.createElement("button");
-      copyButton.className = `copy-code absolute end-3 ${topClass} rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
-      copyButton.innerHTML = copyButtonLabel;
+      copyButton.type = "button";
+      copyButton.className = "code-copy-button";
+      copyButton.title = copyButtonLabel;
+      copyButton.setAttribute("aria-label", copyButtonLabel);
+      copyButton.innerHTML = CLIPBOARD_ICON;
       codeBlock.setAttribute("tabindex", "0");
-      codeBlock.appendChild(copyButton);
+      wrapper.appendChild(copyButton);
 
       copyButton.addEventListener("click", async () => {
         const code = codeBlock.querySelector("code");
@@ -177,14 +181,134 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 
         await navigator.clipboard.writeText(text ?? "");
 
-        copyButton.innerText = copiedLabel;
+        copyButton.innerHTML = CHECK_ICON;
+        copyButton.title = copiedLabel;
+        copyButton.setAttribute("aria-label", copiedLabel);
         setTimeout(() => {
-          copyButton.innerText = copyButtonLabel;
-        }, 700);
+          copyButton.innerHTML = CLIPBOARD_ICON;
+          copyButton.title = copyButtonLabel;
+          copyButton.setAttribute("aria-label", copyButtonLabel);
+        }, 1200);
       });
     }
   }
   attachCopyButtons();
+
+  function initCodeTabs() {
+    const { signal } = window.__articleEnhancementsController;
+    const panelActivators = new Map();
+    for (const group of document.querySelectorAll("#article .code-tabs")) {
+      const bar = group.querySelector(":scope > .code-tabs-bar");
+      if (!bar) continue;
+      const tabs = Array.from(bar.querySelectorAll(":scope > .code-tabs-tab"));
+      const panels = group.querySelectorAll(":scope > .code-tabs-panel");
+      if (!tabs.length || tabs.length !== panels.length) continue;
+
+      function activate(index) {
+        tabs.forEach(function (tab, i) {
+          const selected = i === index;
+          tab.classList.toggle("active", selected);
+          tab.setAttribute("aria-selected", String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          panels[i].hidden = !selected;
+          // WAI-ARIA tabs 模式：可见的 tabpanel 可聚焦，方便键盘用户进入
+          panels[i].tabIndex = selected ? 0 : -1;
+        });
+        document.dispatchEvent(new Event("article:tabs-change"));
+      }
+
+      tabs.forEach(function (tab, index) {
+        panelActivators.set(panels[index], () => activate(index));
+        tab.addEventListener("click", () => activate(index), { signal });
+        tab.addEventListener(
+          "keydown",
+          function (event) {
+            let next;
+            if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+            else if (event.key === "ArrowLeft")
+              next = (index - 1 + tabs.length) % tabs.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = tabs.length - 1;
+            else return;
+            event.preventDefault();
+            activate(next);
+            tabs[next].focus();
+          },
+          { signal }
+        );
+      });
+
+      activate(
+        Math.max(
+          0,
+          tabs.findIndex(tab => tab.classList.contains("active"))
+        )
+      );
+      bar.hidden = false;
+    }
+
+    function revealLinkedPanel() {
+      let target;
+      try {
+        target = document.getElementById(
+          decodeURIComponent(location.hash.slice(1))
+        );
+      } catch {
+        return;
+      }
+
+      let revealed = false;
+      for (
+        let panel = target?.closest(".code-tabs-panel");
+        panel;
+        panel = panel.parentElement?.closest(".code-tabs-panel")
+      ) {
+        if (!panel.hidden || !panelActivators.has(panel)) continue;
+        panelActivators.get(panel)();
+        revealed = true;
+      }
+      if (revealed) target.scrollIntoView();
+    }
+
+    if (panelActivators.size) {
+      window.addEventListener("hashchange", revealLinkedPanel, { signal });
+      revealLinkedPanel();
+    }
+
+    // Astro ClientRouter 接管同页锚点点击：preventDefault 后用 pushState
+    // 更新地址栏，hashchange 不会触发、浏览器也不滚动。此处对指向本文
+    // 存在的锚点的链接统一补齐：展开隐藏面板 + 滚动到位。
+    document.addEventListener(
+      "click",
+      function (event) {
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        )
+          return;
+        const link = event.target.closest?.("a[href^='#']");
+        if (!link || !link.hash) return;
+        let target;
+        try {
+          target = document.getElementById(
+            decodeURIComponent(link.hash.slice(1))
+          );
+        } catch {
+          return;
+        }
+        if (!target) return;
+        const panel = target.closest(".code-tabs-panel");
+        if (panel && panel.hidden && panelActivators.has(panel))
+          panelActivators.get(panel)();
+        target.scrollIntoView();
+      },
+      { signal }
+    );
+  }
+  initCodeTabs();
 
   function cleanupArticleEnhancements() {
     window.__articleEnhancementsController?.abort();

@@ -35,9 +35,10 @@ export async function getStaticPaths() {
         },
         props: {
           post,
-          prevPost: currentIndex > 0 ? posts[currentIndex - 1] : null,
-          nextPost:
+          // posts 为最新在前：prev（上一篇）= 更早的 = 更大索引；next = 更小索引（上游 #674）
+          prevPost:
             currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null,
+          nextPost: currentIndex > 0 ? posts[currentIndex - 1] : null,
           alternateUrl: source
             ? getPath(source.id, source.filePath)
             : getPath(post.id, post.filePath),
@@ -48,13 +49,28 @@ export async function getStaticPaths() {
                   [locale]: getPath(post.id, post.filePath),
                 }
               : {},
+          translationAvailable: exactTranslation,
         },
       };
     });
   });
 }
 
-const { post, prevPost, nextPost, alternateUrl, alternateURLs } = Astro.props;
+const {
+  post,
+  prevPost,
+  nextPost,
+  alternateUrl,
+  alternateURLs,
+  translationAvailable,
+} = Astro.props;
 ---
 
-<PostDetails {post} {prevPost} {nextPost} {alternateUrl} {alternateURLs} />
+<PostDetails
+  {post}
+  {prevPost}
+  {nextPost}
+  {alternateUrl}
+  {alternateURLs}
+  {translationAvailable}
+/>

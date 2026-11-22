@@ -59,18 +59,29 @@ const minDepth = Math.min(...headings.map(heading => heading.depth));
       </div>
 
       <nav class="mobile-toc-list" aria-label={t.pages.toc}>
-        <ul class="border-s border-border text-sm">
+        <ul class="space-y-0.5 text-sm">
           {
             headings.map(({ depth, slug, text }) => {
               const indent = depth - minDepth;
+              const isTop = indent === 0;
               return (
-                <li style={`padding-inline-start: ${indent * 0.75 + 0.5}rem`}>
+                <li>
                   <a
                     href={`#${slug}`}
-                    class="mobile-toc-link flex min-h-11 items-center rounded-e-md border-s-2 border-transparent px-2 py-2 leading-5 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent"
+                    class:list={[
+                      "mobile-toc-link block min-h-11 rounded-md pr-1 hover:text-accent",
+                      isTop
+                        ? "text-[13.5px] text-foreground/85"
+                        : "text-[12.5px] text-muted-foreground",
+                    ]}
                     data-mobile-toc-heading={slug}
                   >
-                    <span class="mobile-toc-label">{text}</span>
+                    <span
+                      class="mobile-toc-label"
+                      style={`padding-inline-start: ${indent * 0.875}rem`}
+                    >
+                      {text}
+                    </span>
                   </a>
                 </li>
               );
@@ -106,7 +117,9 @@ const minDepth = Math.min(...headings.map(heading => heading.depth));
       const article = document.getElementById("article");
       const articleHeadings = article
         ? Array.from(article.querySelectorAll("h2, h3, h4")).filter(
-            heading => !heading.classList.contains("sr-only")
+            heading =>
+              !heading.classList.contains("sr-only") &&
+              !heading.closest(".code-tabs-panel[hidden]")
           )
         : [];
       const root = document.documentElement;
@@ -114,9 +127,7 @@ const minDepth = Math.min(...headings.map(heading => heading.depth));
       const atBottom = scrollTotal > 0 && scrollTotal - root.scrollTop <= 2;
       let currentId = articleHeadings[0]?.id || "";
       if (atBottom) {
-        currentId =
-          links[links.length - 1]?.getAttribute("data-mobile-toc-heading") ||
-          currentId;
+        currentId = articleHeadings.at(-1)?.id || currentId;
       } else {
         articleHeadings.forEach(function (heading) {
           if (heading.getBoundingClientRect().top <= 72) currentId = heading.id;
@@ -208,6 +219,9 @@ const minDepth = Math.min(...headings.map(heading => heading.depth));
       passive: true,
       signal: controller.signal,
     });
+    document.addEventListener("article:tabs-change", scheduleActiveHeading, {
+      signal: controller.signal,
+    });
     visibleMedia.addEventListener("change", scheduleActiveHeading, {
       signal: controller.signal,
     });
@@ -276,12 +290,21 @@ const minDepth = Math.min(...headings.map(heading => heading.depth));
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
+  .mobile-toc-link {
+    /* 与桌面 TOC 同规范：字重恒定 500（CJK 伪粗体会重排闪动），
+       仅 color 参与过渡；激活用 accent 渐变文字（不经过 transparent） */
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
   .mobile-toc-link.active {
-    margin-inline-start: -1px;
-    border-inline-start-color: var(--accent);
-    color: var(--foreground);
-    background: color-mix(in srgb, var(--accent) 4%, transparent);
-    font-weight: 600;
+    background-image: linear-gradient(
+      115deg,
+      var(--accent),
+      color-mix(in srgb, var(--accent) 55%, var(--foreground))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   @keyframes mobile-toc-in {
     from {

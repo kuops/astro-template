@@ -14,6 +14,7 @@ type Props = {
   nextPost: CollectionEntry<"blog"> | null;
   alternateUrl?: string;
   alternateURLs?: Partial<Record<Locale, string>>;
+  translationAvailable?: boolean;
 };
 
 export async function getStaticPaths() {
@@ -39,14 +40,16 @@ export async function getStaticPaths() {
       params: { slug: getPath(post.id, post.filePath, false) },
       props: {
         post,
-        prevPost: currentIndex > 0 ? sortedPosts[currentIndex - 1] : null,
-        nextPost:
+        // sortedPosts 为最新在前：prev（上一篇）= 更早的 = 更大索引；next = 更小索引（上游 #674）
+        prevPost:
           currentIndex < sortedPosts.length - 1
             ? sortedPosts[currentIndex + 1]
             : null,
+        nextPost: currentIndex > 0 ? sortedPosts[currentIndex - 1] : null,
         alternateUrl: alternateLocale
           ? getLocalizedPath(getPath(post.id, post.filePath), alternateLocale)
           : undefined,
+        translationAvailable: !!translation,
         alternateURLs: translation
           ? {
               [config.site.lang]: getPath(post.id, post.filePath),
@@ -58,7 +61,14 @@ export async function getStaticPaths() {
   });
 }
 
-const { post, prevPost, nextPost, alternateUrl, alternateURLs } = Astro.props;
+const {
+  post,
+  prevPost,
+  nextPost,
+  alternateUrl,
+  alternateURLs,
+  translationAvailable,
+} = Astro.props;
 ---
 
 <PostDetails
@@ -67,4 +77,5 @@ const { post, prevPost, nextPost, alternateUrl, alternateURLs } = Astro.props;
   nextPost={nextPost}
   {alternateUrl}
   {alternateURLs}
+  {translationAvailable}
 />

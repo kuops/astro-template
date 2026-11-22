@@ -5,6 +5,8 @@ interface SiteConfig {
   title: string;
   description: string;
   author: string;
+  /** 站长头像（首页 hero 个人标识用），相对 public 路径或外链 */
+  avatar?: string;
   profile?: string;
   ogImage?: string;
   lang?: Locale;
@@ -28,6 +30,7 @@ interface FeaturesConfig {
   dynamicOgImage?: boolean;
   showArchives?: boolean;
   showBackButton?: boolean;
+  toc?: boolean;
   editPost?:
     | {
         enabled: true;
@@ -71,7 +74,7 @@ type ResolvedSiteConfig = Required<
     | "ogImage"
   >
 > &
-  Pick<SiteConfig, "profile" | "googleVerification">;
+  Pick<SiteConfig, "profile" | "googleVerification" | "avatar">;
 
 export interface ResolvedAstroPaperConfig {
   site: ResolvedSiteConfig;

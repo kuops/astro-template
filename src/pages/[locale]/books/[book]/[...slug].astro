@@ -69,6 +69,8 @@ const sourceEntry = allBookEntries.find(
 const alternateUrl = sourceEntry
   ? getLocalizedPath(`/books/${book}/${slug}`, config.site.lang)
   : getLocalizedPath("/books", config.site.lang);
+// 本语言有真章节（非回退）且 zh 源存在 → 显示反向提示
+const translationAvailable = sourceLocale === locale && !!sourceEntry;
 const canonicalURL =
   sourceLocale !== locale
     ? new URL(
@@ -87,6 +89,7 @@ const canonicalURL =
   {titleMap}
   {hrefMap}
   {sourceLocaleMap}
+  {translationAvailable}
   {prevSlug}
   {nextSlug}
   {alternateUrl}

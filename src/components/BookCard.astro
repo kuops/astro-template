@@ -23,7 +23,7 @@ const sourceLabel = tplStr(t.language.sourceLabel, {
 
 <a
   {href}
-  class="group block rounded-lg border border-border p-6 transition-colors hover:border-accent"
+  class="group flex h-full flex-col rounded-lg border border-border p-6 transition-colors hover:border-accent"
 >
   <h2 class="text-xl font-semibold text-foreground group-hover:text-accent">
     {title}
@@ -35,8 +35,12 @@ const sourceLabel = tplStr(t.language.sourceLabel, {
       )
     }
   </h2>
-  <p class="mt-2 font-reading text-sm text-muted-foreground">{description}</p>
-  <span class="mt-4 inline-flex items-center gap-1 text-sm text-accent">
+  <p
+    class="mt-2 line-clamp-2 min-h-10 font-reading text-sm leading-5 text-muted-foreground"
+  >
+    {description}
+  </p>
+  <span class="mt-auto inline-flex items-center gap-1 pt-4 text-sm text-accent">
     {t.book.startReading}
     <IconArrowRight class="size-4 rtl:rotate-180" />
   </span>

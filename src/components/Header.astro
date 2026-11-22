@@ -4,7 +4,7 @@ import IconMoon from "@/assets/icons/IconMoon.svg";
 import IconSearch from "@/assets/icons/IconSearch.svg";
 import IconLanguage from "@/assets/icons/IconLanguage.svg";
 import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
-import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
+import IconBarsMenu from "@/assets/icons/IconBarsMenu.svg";
 import config from "@/config";
 import {
   getAlternateLocale,
@@ -82,36 +82,47 @@ const isCurrentPage = (path: string) => currentPath === path;
   >
     <a
       href={localizedPath("/")}
-      class="absolute py-1 text-xl leading-8 font-semibold whitespace-nowrap md:static md:my-auto md:text-2xl md:leading-none"
+      class="absolute z-10 py-1 text-xl leading-8 font-semibold whitespace-nowrap md:static md:my-auto md:text-2xl md:leading-none"
     >
       {config.site.title}
     </a>
     <nav
       id="nav-menu"
-      class="flex w-full flex-col items-center md:ms-2 md:flex-row md:justify-end md:space-x-4 md:py-0"
+      class="relative flex w-full flex-col items-center md:ms-2 md:flex-row md:justify-end md:space-x-4 md:py-0"
     >
-      <button
-        id="menu-btn"
-        class="focus-outline flex size-12 items-center justify-center self-end md:hidden"
-        aria-label={t.a11y.openMenu}
-        aria-expanded="false"
-        aria-controls="menu-items"
-        data-label-open={t.a11y.openMenu}
-        data-label-close={t.a11y.closeMenu}
-      >
-        <IconX id="close-icon" class="hidden" />
-        <IconMenuDeep id="menu-icon" />
-      </button>
+      <div class="flex w-full items-center justify-end gap-1 md:contents">
+        <button
+          id="search-btn-mobile"
+          class="focus-outline flex size-12 items-center justify-center hover:text-accent md:hidden"
+          title={`${t.nav.search} (Ctrl+K)`}
+          aria-label={t.nav.search}
+        >
+          <IconSearch />
+          <span class="sr-only">{t.nav.search}</span>
+        </button>
+        <button
+          id="menu-btn"
+          class="focus-outline flex size-12 items-center justify-center self-end md:hidden"
+          aria-label={t.a11y.openMenu}
+          aria-expanded="false"
+          aria-controls="menu-items"
+          data-label-open={t.a11y.openMenu}
+          data-label-close={t.a11y.closeMenu}
+        >
+          <IconX id="close-icon" class="hidden" />
+          <IconBarsMenu id="menu-icon" />
+        </button>
+      </div>
       <ul
         id="menu-items"
         class:list={[
-          "absolute -inset-x-4 top-full z-50 grid grid-cols-6 gap-1 border-b border-border bg-background px-4 py-3",
+          "absolute top-full right-0 z-50 grid min-w-44 grid-cols-[1fr_auto_auto] gap-1 rounded-[var(--surface-radius)] border border-border bg-background px-4 py-2 shadow-lg dark:border-foreground/15 dark:shadow-none",
           "[&>li>a]:flex [&>li>a]:min-h-12 [&>li>a]:items-center [&>li>a]:px-3 [&>li>a]:font-medium [&>li>a]:hover:text-accent md:[&>li>a]:min-h-8 md:[&>li>a]:px-2 md:[&>li>a]:py-1",
           "hidden",
-          "md:static md:inset-auto md:mt-0 md:flex md:w-auto md:items-center md:gap-x-3 md:gap-y-0 md:border-0 md:p-0",
+          "md:static md:inset-auto md:mt-0 md:flex md:w-auto md:min-w-0 md:items-center md:gap-x-3 md:gap-y-0 md:rounded-none md:border-0 md:p-0 md:shadow-none",
         ]}
       >
-        <li class="col-span-3">
+        <li class="order-4 col-span-3 md:order-1">
           <a
             href={localizedPath("/books")}
             class:list={{ "active-nav": isActive("/books") }}
@@ -120,7 +131,7 @@ const isCurrentPage = (path: string) => currentPath === path;
             {t.nav.books}
           </a>
         </li>
-        <li class="col-span-3">
+        <li class="order-4 col-span-3 md:order-1">
           <a
             href={localizedPath("/posts")}
             class:list={{ "active-nav": isActive("/posts") }}
@@ -129,7 +140,7 @@ const isCurrentPage = (path: string) => currentPath === path;
             {t.nav.posts}
           </a>
         </li>
-        <li class="col-span-3">
+        <li class="order-4 col-span-3 md:order-1">
           <a
             href={localizedPath("/tags")}
             class:list={{ "active-nav": isActive("/tags") }}
@@ -138,7 +149,7 @@ const isCurrentPage = (path: string) => currentPath === path;
             {t.nav.tags}
           </a>
         </li>
-        <li class="col-span-3">
+        <li class="order-4 col-span-3 md:order-1">
           <a
             href={localizedPath("/about")}
             class:list={{ "active-nav": isActive("/about") }}
@@ -149,7 +160,7 @@ const isCurrentPage = (path: string) => currentPath === path;
         </li>
         {
           config.features.showArchives && (
-            <li class="col-span-3">
+            <li class="order-4 col-span-3 md:order-1">
               <a
                 href={localizedPath("/archives")}
                 class:list={{ "active-nav": isActive("/archives") }}
@@ -162,12 +173,12 @@ const isCurrentPage = (path: string) => currentPath === path;
         }
         <li
           aria-hidden="true"
-          class="col-span-6 my-1 border-t border-border md:my-0 md:h-5 md:w-px md:border-s md:border-t-0"
+          class="order-3 col-span-3 my-1 border-t border-border md:order-2 md:my-0 md:h-5 md:w-px md:border-s md:border-t-0"
         >
         </li>
         {
           alternateLocale && languageHref && targetLanguage && (
-            <li class="col-span-2 flex items-center justify-center">
+            <li class="order-1 flex items-center justify-self-end md:order-3">
               <a
                 href={languageHref}
                 class="focus-outline flex min-w-12 justify-center !p-3 md:min-w-0 md:!p-1"
@@ -182,7 +193,7 @@ const isCurrentPage = (path: string) => currentPath === path;
             </li>
           )
         }
-        <li class="col-span-2 flex items-center justify-center">
+        <li class="hidden items-center md:order-4 md:flex">
           <button
             id="search-btn"
             class="focus-outline flex p-3 hover:text-accent md:p-1"
@@ -195,7 +206,7 @@ const isCurrentPage = (path: string) => currentPath === path;
         </li>
         {
           config.features.lightAndDarkMode && (
-            <li class="col-span-2 flex items-center justify-center">
+            <li class="order-2 flex items-center md:order-5">
               <button
                 id="theme-btn"
                 class="focus-outline relative size-12 p-4 hover:text-accent md:size-8"
@@ -289,19 +300,64 @@ const isCurrentPage = (path: string) => currentPath === path;
 
   toggleNav();
 
+  // 无障碍：跳转链接把真实键盘焦点移到主内容区（上游 v7.0 #665）
+  function handleSkipToContent() {
+    const skipLink = document.getElementById("skip-to-content");
+    if (!skipLink) return;
+    skipLink.addEventListener("click", e => {
+      if (
+        e.defaultPrevented ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.button !== 0
+      )
+        return;
+      e.preventDefault();
+      const target = document.getElementById("main-content");
+      if (target) {
+        target.setAttribute("tabindex", "-1");
+        target.addEventListener(
+          "blur",
+          () => target.removeAttribute("tabindex"),
+          { once: true }
+        );
+        target.focus();
+        target.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }
+
   function bindSearchBtn() {
-    const searchBtn = document.querySelector("#search-btn");
-    if (!searchBtn) return;
-    searchBtn.addEventListener("click", () => {
-      const modal = document.querySelector(
-        "#search-modal"
-      ) as HTMLDialogElement | null;
-      modal?.showModal();
+    const buttons = document.querySelectorAll(
+      "#search-btn, #search-btn-mobile"
+    );
+    if (!buttons.length) return;
+    buttons.forEach(searchBtn => {
+      searchBtn.addEventListener(
+        "click",
+        () => {
+          // 移动端顶栏入口：若导航抽屉开着，先收起
+          const menuBtn = document.querySelector(
+            "#menu-btn"
+          ) as HTMLElement | null;
+          if (menuBtn?.getAttribute("aria-expanded") === "true") {
+            menuBtn.click();
+          }
+          const modal = document.querySelector(
+            "#search-modal"
+          ) as HTMLDialogElement | null;
+          modal?.showModal();
+        },
+        { signal: navController?.signal }
+      );
     });
   }
   bindSearchBtn();
+  handleSkipToContent();
 
   document.addEventListener("astro:after-swap", toggleNav);
   document.addEventListener("astro:after-swap", bindSearchBtn);
+  document.addEventListener("astro:after-swap", handleSkipToContent);
   document.addEventListener("astro:before-swap", () => navController?.abort());
 </script>

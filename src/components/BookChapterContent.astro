@@ -6,6 +6,7 @@ import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
 import type { CollectionEntry } from "astro:content";
 import type { SidebarGroup } from "@/types/books";
 import {
+  getAlternateLocale,
   getLocaleFromPath,
   getLocalizedPath,
   tplStr,
@@ -30,6 +31,7 @@ interface Props {
   nextSlug: string | null;
   indexable?: boolean;
   alternateUrl?: string;
+  translationAvailable?: boolean;
   canonicalURL?: string;
 }
 
@@ -46,6 +48,7 @@ const {
   nextSlug,
   indexable = true,
   alternateUrl,
+  translationAvailable,
   canonicalURL,
 } = Astro.props;
 
@@ -56,6 +59,13 @@ const headings = allHeadings.filter(
 const sourceLocale = getContentLocale(chapter, "books");
 const contentT = useTranslations(sourceLocale);
 const isFallback = sourceLocale !== locale;
+const alternateLocale = getAlternateLocale(locale);
+const translationHint =
+  !isFallback && translationAvailable && alternateUrl && alternateLocale
+    ? tplStr(t.language.readIn, {
+        language: t.language.names[alternateLocale],
+      })
+    : undefined;
 const sourceLabel = tplStr(t.language.sourceLabel, {
   language: t.language.names[sourceLocale],
 });
@@ -82,6 +92,7 @@ const readingLabel = tplStr(contentT.reading.metadata, {
   sourceLabel={isFallback ? sourceLabel : undefined}
   indexable={indexable}
   {alternateUrl}
+  translationHint={translationHint}
 >
   <Content />
 

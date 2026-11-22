@@ -7,6 +7,8 @@ import { getLocaleFromPath, getLocalizedPath } from "@/i18n";
 import type { Locale } from "@/types/config";
 import "@/styles/global.css";
 import PagefindModal from "@/components/PagefindModal.astro";
+import CustomHead from "@/custom/Head.astro";
+import CustomBodyEnd from "@/custom/BodyEnd.astro";
 
 type Props = {
   title?: string;
@@ -19,6 +21,10 @@ type Props = {
   modDatetime?: Date | null;
   alternateURLs?: Partial<Record<Locale, string>>;
   localeAlternates?: boolean;
+  /** 回退内容页的内容语言（Source: 中文 的 en 路由页）：
+      html lang 应反映内容语言而非路由语言——屏读/TTS/字体选择与
+      Pagefind 的语言分索引都以它为准 */
+  contentLang?: string;
 };
 
 const {
@@ -32,6 +38,7 @@ const {
   modDatetime,
   alternateURLs = {},
   localeAlternates = false,
+  contentLang,
 } = Astro.props;
 
 const socialImageURL = new URL(ogImage, Astro.url);
@@ -65,7 +72,7 @@ const structuredData = {
 ---
 
 <!doctype html>
-<html dir={config.site.dir} lang={locale}>
+<html dir={config.site.dir} lang={contentLang ?? locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -128,7 +135,7 @@ const structuredData = {
     <script
       type="application/ld+json"
       is:inline
-      set:html={JSON.stringify(structuredData)}
+      set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
     />
 
     <!-- Enable RSS feed auto-discovery  -->
@@ -344,6 +351,8 @@ const structuredData = {
     </script>
 
     <ClientRouter />
+
+    <CustomHead {title} {description} />
 
     <script is:inline>
       (function () {
@@ -591,5 +600,6 @@ const structuredData = {
 
     <!-- Load full theme logic -->
     <script src="../scripts/theme.ts"></script>
+    <CustomBodyEnd />
   </body>
 </html>

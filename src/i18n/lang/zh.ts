@@ -11,6 +11,7 @@ export default {
       en: "English",
     },
     sourceLabel: "{{language}}原文",
+    readIn: "阅读 {{language}} 版",
   },
   nav: {
     home: "首页",
@@ -46,6 +47,10 @@ export default {
     featured: "精选文章",
     recentPosts: "最新文章",
     allPosts: "所有文章",
+    statsPosts: "篇文章",
+    statsBooks: "本书",
+    statsTags: "个标签",
+    browseBooks: "浏览书籍",
   },
   footer: {
     copyright: "© {{year}}",
@@ -67,6 +72,7 @@ export default {
     closeToc: "关闭目录",
     searchHintBefore: "点击右上角搜索图标或按",
     searchHintAfter: "打开搜索",
+    searchHintMobile: "点击右上角搜索图标开始搜索",
   },
   a11y: {
     skipToContent: "跳到内容",

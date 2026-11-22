@@ -143,6 +143,42 @@ npm run build
 echo "Deploy complete!"
 ```
 
+### 限高滚动（scroll）
+
+围栏加 `scroll` 限高滚动（默认 30rem），`scroll=值` 自定义高度。
+
+```bash scroll
+echo "开始构建..."
+echo "编译模块 alpha"
+echo "编译模块 beta"
+echo "编译模块 gamma"
+echo "编译模块 delta"
+echo "编译模块 epsilon"
+echo "编译模块 zeta"
+echo "编译模块 eta"
+echo "编译模块 theta"
+echo "编译模块 iota"
+echo "编译模块 kappa"
+echo "编译模块 lambda"
+echo "编译模块 mu"
+echo "构建完成！"
+```
+
+`scroll=140`：
+
+```bash scroll=140
+echo "第一行"
+echo "第二行"
+echo "第三行"
+echo "第四行"
+echo "第五行"
+echo "第六行"
+echo "第七行"
+echo "第八行"
+echo "第九行"
+echo "第十行"
+```
+
 ## 图片
 
 ![示例图片](https://picsum.photos/seed/book-test/600/300)
@@ -170,6 +206,42 @@ echo "Deploy complete!"
 - 前端框架：React、Vue、Svelte、Astro
 - 后端语言：Node.js、Python、Go、Rust
 - 数据库：PostgreSQL、MySQL、MongoDB、Redis
+
+### 步骤指引（Steps）
+
+`<!--steps-->` 包住有序列表，渲染为"编号圆圈 + 连接竖线"的步骤条，步骤体内可嵌套标签组等任意元素。
+
+<!--steps-->
+
+1. **创建项目**
+
+   使用包管理器初始化：
+
+   <!--tab:npm-->
+
+   ```bash
+   npm create astro@latest
+   ```
+
+   <!--tab:pnpm-->
+
+   ```bash
+   pnpm create astro@latest
+   ```
+
+   <!--tabs-end-->
+
+2. **编写内容**
+
+   在 `src/data/` 下新增 Markdown 文件即可。
+
+3. **构建部署**
+
+   ```bash
+   npm run build
+   ```
+
+<!--steps-end-->
 
 ## 链接
 
@@ -352,3 +424,30 @@ classDiagram
 14. 行内 HTML
 15. 分隔线
 16. 转义字符
+
+## 代码标签组
+
+同一主题的多语言示例可以用标签组展示——代码块前一行加
+`<!--tab:标签名-->` 注释标记，连续多个自动成组：
+
+<!--tab:TypeScript-->
+
+```ts
+const site = {
+  name: "TypeScript",
+  static: true,
+};
+```
+
+<!--tab:JavaScript-->
+
+```js
+const site = {
+  name: "JavaScript",
+  static: true,
+};
+```
+
+<!--tabs-end-->
+
+被普通段落隔开的标签组各自独立；单个标记的代码块按普通代码块渲染。

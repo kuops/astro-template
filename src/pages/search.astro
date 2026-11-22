@@ -17,7 +17,10 @@ if (config.features.search !== "pagefind") {
 >
   <Header />
   <main class="app-layout py-8">
-    <p class="text-center text-muted-foreground">
+    <p class="text-center text-muted-foreground md:hidden">
+      {t.pages.searchHintMobile}
+    </p>
+    <p class="hidden text-center text-muted-foreground md:block">
       {t.pages.searchHintBefore}
       <kbd class="rounded border border-border bg-muted px-1.5 py-0.5 text-sm"
         >Ctrl+K</kbd

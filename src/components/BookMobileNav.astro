@@ -1,14 +1,8 @@
 ---
 import BookChapterNav from "@/components/BookChapterNav.astro";
-import IconArrowLeft from "@/assets/icons/IconArrowLeft.svg";
-import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
+import IconMenu from "@/assets/icons/IconMenu.svg";
 import IconX from "@/assets/icons/IconX.svg";
-import {
-  getLocaleFromPath,
-  getLocalizedPath,
-  tplStr,
-  useTranslations,
-} from "@/i18n";
+import { getLocaleFromPath, tplStr, useTranslations } from "@/i18n";
 import type { SidebarGroup } from "@/types/books";
 import type { Locale } from "@/types/config";
 import { getFlatItems } from "@/utils/books";
@@ -52,16 +46,19 @@ const minDepth =
 <div class="book-mobile-nav lg:hidden" data-book-mobile-nav>
   <div class="book-mobile-bar">
     <div
-      class="mx-auto grid h-[52px] w-full max-w-7xl grid-cols-[44px_minmax(0,1fr)_44px] items-center px-1 sm:px-4"
+      class="mx-auto grid h-[52px] w-full max-w-7xl grid-cols-[44px_minmax(0,1fr)] items-center px-1 sm:px-4"
     >
-      <a
-        href={getLocalizedPath("/books", locale)}
+      <button
+        type="button"
         class="focus-outline flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent active:bg-foreground/10"
-        aria-label={t.book.backToBooks}
-        title={t.book.backToBooks}
+        data-book-nav-open
+        aria-label={t.book.openChapterNav}
+        title={t.book.openChapterNav}
+        aria-expanded="false"
+        aria-controls="book-mobile-dialog"
       >
-        <IconArrowLeft class="size-5 rtl:rotate-180" />
-      </a>
+        <IconMenu class="size-5" />
+      </button>
 
       <div class="min-w-0 px-2 leading-tight">
         <div class="truncate text-sm font-semibold" title={bookTitle}>
@@ -74,18 +71,6 @@ const minDepth =
           {progress} · {chapterTitle}
         </div>
       </div>
-
-      <button
-        type="button"
-        class="focus-outline flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent active:bg-foreground/10"
-        data-book-nav-open
-        aria-label={t.book.openChapterNav}
-        title={t.book.openChapterNav}
-        aria-expanded="false"
-        aria-controls="book-mobile-dialog"
-      >
-        <IconMenuDeep class="size-5" />
-      </button>
     </div>
   </div>
 
@@ -180,20 +165,28 @@ const minDepth =
               hidden
             >
               <nav aria-label={t.book.onThisPage}>
-                <ul class="border-s border-border text-sm">
+                <ul class="space-y-0.5 text-sm">
                   {headings.map(({ depth, slug, text }) => {
                     const indent = depth - minDepth;
+                    const isTop = indent === 0;
                     return (
-                      <li
-                        class="book-page-item"
-                        style={`padding-inline-start: ${indent * 0.75 + 0.5}rem`}
-                      >
+                      <li>
                         <a
                           href={`#${slug}`}
-                          class="book-page-link flex min-h-11 items-center rounded-e-md border-s-2 border-transparent px-2 py-2 leading-5 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent"
+                          class:list={[
+                            "book-page-link block min-h-11 rounded-md pr-1 hover:text-accent",
+                            isTop
+                              ? "text-[13.5px] text-foreground/85"
+                              : "text-[12.5px] text-muted-foreground",
+                          ]}
                           data-book-heading={slug}
                         >
-                          <span class="book-page-label">{text}</span>
+                          <span
+                            class="book-page-label"
+                            style={`padding-inline-start: ${indent * 0.875}rem`}
+                          >
+                            {text}
+                          </span>
                         </a>
                       </li>
                     );
@@ -301,7 +294,9 @@ const minDepth =
       const article = document.getElementById("article");
       const articleHeadings = article
         ? Array.from(article.querySelectorAll("h2, h3, h4")).filter(
-            heading => !heading.classList.contains("sr-only")
+            heading =>
+              !heading.classList.contains("sr-only") &&
+              !heading.closest(".code-tabs-panel[hidden]")
           )
         : [];
       const root = document.documentElement;
@@ -309,10 +304,7 @@ const minDepth =
       const atBottom = scrollTotal > 0 && scrollTotal - root.scrollTop <= 2;
       let currentId = articleHeadings[0]?.id || "";
       if (atBottom) {
-        currentId =
-          headingLinks[headingLinks.length - 1]?.getAttribute(
-            "data-book-heading"
-          ) || currentId;
+        currentId = articleHeadings.at(-1)?.id || currentId;
       } else {
         articleHeadings.forEach(function (heading) {
           if (heading.getBoundingClientRect().top <= 72) {
@@ -396,6 +388,9 @@ const minDepth =
 
     window.addEventListener("scroll", scheduleActiveHeading, {
       passive: true,
+      signal: controller.signal,
+    });
+    document.addEventListener("article:tabs-change", scheduleActiveHeading, {
       signal: controller.signal,
     });
     visibleMedia.addEventListener("change", scheduleActiveHeading, {
@@ -507,12 +502,20 @@ const minDepth =
   .book-dialog-panel[hidden] {
     display: none;
   }
+  .book-page-link {
+    /* 与 TOC 同规范：字重恒定 500，仅 color 过渡；激活为渐变文字 */
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
   .book-page-link.active {
-    margin-inline-start: -1px;
-    border-inline-start-color: var(--accent);
-    color: var(--foreground);
-    background: color-mix(in srgb, var(--accent) 4%, transparent);
-    font-weight: 600;
+    background-image: linear-gradient(
+      115deg,
+      var(--accent),
+      color-mix(in srgb, var(--accent) 55%, var(--foreground))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   @keyframes book-dialog-in {
     from {

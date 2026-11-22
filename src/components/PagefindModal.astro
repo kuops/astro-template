@@ -66,6 +66,7 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
           <path d="m6 6 12 12"></path>
         </svg>
       </button>
+      <kbd class="search-esc" aria-hidden="true">esc</kbd>
     </div>
 
     <div id="search-body" class="search-body">
@@ -78,21 +79,6 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
         <div class="search-skeleton"></div>
         <div class="search-skeleton"></div>
       </div>
-    </div>
-
-    <div class="search-footer">
-      <span class="search-hint">
-        <kbd>↑↓</kbd>
-        <span id="search-hint-navigate"></span>
-      </span>
-      <span class="search-hint">
-        <kbd>↵</kbd>
-        <span id="search-hint-open"></span>
-      </span>
-      <span class="search-hint">
-        <kbd>esc</kbd>
-        <span id="search-hint-close"></span>
-      </span>
     </div>
   </div>
 </dialog>
@@ -112,22 +98,6 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
     const unavailable = i18nEl
       ? i18nEl.dataset.unavailable
       : "Search index not available. Run build first.";
-
-    const hintNav = document.getElementById("search-hint-navigate");
-    const hintOpen = document.getElementById("search-hint-open");
-    const hintClose = document.getElementById("search-hint-close");
-    if (hintNav)
-      hintNav.textContent = i18nEl
-        ? i18nEl.dataset.hintNavigate || "navigate"
-        : "navigate";
-    if (hintOpen)
-      hintOpen.textContent = i18nEl
-        ? i18nEl.dataset.hintOpen || "open"
-        : "open";
-    if (hintClose)
-      hintClose.textContent = i18nEl
-        ? i18nEl.dataset.hintClose || "close"
-        : "close";
 
     const dialog = document.getElementById("search-modal");
     const input = document.getElementById("search-input");
@@ -195,6 +165,70 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
         .replace(/"/g, "&quot;");
     }
 
+    // 字符级高亮细化：Pagefind 按"词"标 mark（CJK 分词粒度），
+    // 这里把摘要重写为"以首个命中点为中心的开窗文本 + 字符级 mark"，
+    // 子串精确高亮，且保证高亮落在 CSS 截断前的可视区。
+    // 词干匹配（文本中无查询字面子串）时保留 Pagefind 原摘要兜底。
+    function refineExcerpt(html, query) {
+      const terms = [...new Set(query.trim().split(/\s+/).filter(Boolean))];
+      if (terms.length === 0) return html;
+      const holder = document.createElement("div");
+      holder.innerHTML = html; // Pagefind 输出已转义，仅含 <mark>
+      const text = holder.textContent || "";
+      const lowered = text.toLowerCase();
+      const loweredTerms = terms.map(t => t.toLowerCase());
+
+      // 定位最早出现的命中
+      let hit = -1;
+      let hitLen = 0;
+      for (const t of loweredTerms) {
+        const idx = lowered.indexOf(t);
+        if (idx !== -1 && (hit === -1 || idx < hit)) {
+          hit = idx;
+          hitLen = t.length;
+        }
+      }
+      if (hit === -1) return html; // 词干匹配场景，保留原高亮
+
+      // 以命中点为中心开窗
+      const BEFORE = 24;
+      const AFTER = 56;
+      const start = Math.max(0, hit - BEFORE);
+      const end = Math.min(text.length, hit + hitLen + AFTER);
+      const windowed =
+        (start > 0 ? "…" : "") +
+        text.slice(start, end) +
+        (end < text.length ? "…" : "");
+
+      // 窗口内全部命中包 mark
+      const frag = document.createDocumentFragment();
+      const wLower = windowed.toLowerCase();
+      let i = 0;
+      while (i < windowed.length) {
+        let pos = -1;
+        let posLen = 0;
+        for (const t of loweredTerms) {
+          const idx = wLower.indexOf(t.toLowerCase(), i);
+          if (idx !== -1 && (pos === -1 || idx < pos)) {
+            pos = idx;
+            posLen = t.length;
+          }
+        }
+        if (pos === -1) {
+          frag.append(windowed.slice(i));
+          break;
+        }
+        if (pos > i) frag.append(windowed.slice(i, pos));
+        const mk = document.createElement("mark");
+        mk.textContent = windowed.slice(pos, pos + posLen);
+        frag.append(mk);
+        i = pos + posLen;
+      }
+      const out = document.createElement("div");
+      out.append(frag);
+      return out.innerHTML;
+    }
+
     async function performSearch(query) {
       const currentVersion = ++searchVersion;
       clearState();
@@ -231,6 +265,7 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
       const limit = Math.min(search.results.length, MAX_RESULTS);
       const fragment = document.createDocumentFragment();
 
+      const groupEls = [];
       for (let i = 0; i < limit; i++) {
         const result = search.results[i];
         const data = await result.data();
@@ -247,7 +282,15 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
         const mainItem = document.createElement("a");
         mainItem.href = data.url;
         mainItem.className = "search-result";
-        mainItem.setAttribute("data-index", String(fragment.children.length));
+        // 页级摘要以命中点为中心，必定包含查询字符——保证每组至少有一条"看得见为什么命中"
+        const mainRefined = data.excerpt
+          ? refineExcerpt(data.excerpt, query)
+          : "";
+        // 摘要含查询字面 = 内容命中（对齐"永不命中标题"的语义）；
+        // 纯标题命中的组在展示层沉底。
+        // 主条目只显示面包屑→标题：命中的内容统一由子条目摘要展示，
+        // 避免主条目摘要与首个子条目摘要重复（主流文档站同款布局）
+        const mainHasMatch = mainRefined.includes("<mark");
         mainItem.innerHTML =
           '<span class="search-result-title">' +
           '<span class="search-result-prefix">' +
@@ -257,7 +300,16 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
           "</span>";
         group.appendChild(mainItem);
 
-        const subs = data.sub_results || [];
+        const subs = (data.sub_results || [])
+          .map(sub => {
+            const refined =
+              sub.excerpt && sub.excerpt.trim()
+                ? refineExcerpt(sub.excerpt, query)
+                : "";
+            return { ...sub, refined, hasMatch: refined.includes("<mark") };
+          })
+          // 命中查询字符的子节排前面，避免出现"匹配了但摘要没有查询字"的展示
+          .sort((a, b) => Number(b.hasMatch) - Number(a.hasMatch));
         const subLimit = Math.min(subs.length, 4);
         for (let j = 0; j < subLimit; j++) {
           const sub = subs[j];
@@ -269,19 +321,26 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
           item.className =
             "search-result search-result-sub" +
             (isSubLast ? " search-result-sub-last" : "");
-          item.setAttribute("data-index", String(fragment.children.length));
           item.innerHTML =
             '<span class="search-result-title">' +
             escapeHtml(sub.title) +
             "</span>" +
-            (sub.excerpt
-              ? '<span class="search-result-excerpt">' + sub.excerpt + "</span>"
+            (sub.refined
+              ? '<span class="search-result-excerpt">' + sub.refined + "</span>"
               : "");
           group.appendChild(item);
         }
 
-        fragment.appendChild(group);
+        groupEls.push({ group, mainHasMatch });
       }
+
+      // 内容命中的组在前，纯标题命中的组沉底
+      groupEls.sort((a, b) => Number(b.mainHasMatch) - Number(a.mainHasMatch));
+      for (const { group } of groupEls) fragment.appendChild(group);
+      // 重新编号，保证键盘导航的 data-index 与 DOM 顺序一致
+      fragment
+        .querySelectorAll(".search-result")
+        .forEach((el, i) => el.setAttribute("data-index", String(i)));
 
       if (currentVersion !== searchVersion) return;
       resultsContainer.replaceChildren(fragment);
@@ -445,17 +504,41 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
   }
 
   .search-header {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 0 20px;
+    margin: 12px;
+    padding: 0 14px;
     height: var(--pf-input-height);
-    border-bottom: 1px solid var(--border);
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-radius: var(--surface-radius);
     flex-shrink: 0;
+    transition: border-color 0.15s ease;
+  }
+
+  /* esc 徽标：空输入时显示；有文字时清除按钮出现，徽标自动让位 */
+  .search-esc {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-family: inherit;
+    color: var(--foreground);
+    opacity: 0.45;
+  }
+
+  .search-clear.visible ~ .search-esc {
+    display: none;
   }
 
   .search-header:focus-within {
-    box-shadow: inset 0 -2px var(--accent);
+    border-color: var(--accent);
   }
 
   .search-icon {
@@ -750,34 +833,6 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
     }
   }
 
-  .search-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 8px 16px;
-    border-top: 1px solid var(--border);
-    opacity: 0.65;
-    font-size: 12px;
-    flex-shrink: 0;
-  }
-
-  .search-hint {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .search-hint kbd {
-    background: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 1px 5px;
-    font-size: 11px;
-    font-family: inherit;
-    opacity: 0.7;
-  }
-
   :root {
     --pf-font: var(--font-app);
     --pf-text: var(--foreground);
@@ -801,22 +856,15 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
 
   @media (max-width: 639px) {
     #search-modal {
-      inset: auto 0 0;
-      width: 100%;
-      max-height: 80dvh;
-      margin: auto auto 0;
-      border-radius: 8px 8px 0 0;
-      border-bottom: 0;
+      /* 顶部约在页头下方、面包屑上缘之上一点 */
+      margin: 6rem 12px auto;
+      width: calc(100% - 24px);
+      max-height: calc(75dvh - 6rem);
       box-shadow: var(--sheet-shadow);
     }
 
     .search-modal-inner {
-      max-height: 80dvh;
-      border-radius: 8px 8px 0 0;
-    }
-
-    .search-footer {
-      display: none;
+      max-height: calc(75dvh - 6rem);
     }
   }
 

@@ -1,6 +1,7 @@
 ---
 import Breadcrumb from "@/components/Breadcrumb.astro";
 import config from "@/config";
+import BackToTopButton from "@/components/BackToTopButton.astro";
 
 type StringTitle = { pageTitle: string };
 type ArrayTitle = { pageTitle: [string, string]; titleTransition: string };
@@ -29,6 +30,7 @@ const backUrl = config.features.showBackButton ? Astro.url.pathname : "/";
   <p class="mt-2 mb-6 font-reading text-muted-foreground">{props.pageDesc}</p>
   <slot />
 </main>
+<BackToTopButton />
 
 <script>
   document.addEventListener("astro:page-load", () => {

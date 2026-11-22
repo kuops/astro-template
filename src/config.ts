@@ -2,7 +2,7 @@ import userConfig from "../astro-paper.config";
 import type { ResolvedAstroPaperConfig } from "./types/config";
 import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 
-const DEFAULT_OG_IMAGE = "astropaper-og.jpg";
+const DEFAULT_OG_IMAGE = "og.png";
 const defaultLocale = userConfig.site.lang ?? "en";
 const locales = userConfig.i18n?.locales ?? [defaultLocale];
 
@@ -36,6 +36,7 @@ const config: ResolvedAstroPaperConfig = {
     dynamicOgImage: userConfig.features?.dynamicOgImage ?? true,
     showArchives: userConfig.features?.showArchives ?? true,
     showBackButton: userConfig.features?.showBackButton ?? true,
+    toc: userConfig.features?.toc ?? true,
     editPost: userConfig.features?.editPost ?? { enabled: false },
     search: userConfig.features?.search ?? "pagefind",
   },
