@@ -178,6 +178,23 @@ pre.astro-code {
   margin-bottom: 1rem;
 }
 
+/* 连续折叠块自动成组：容器统一圆角裁切，项列表化（千问/Mintlify AccordionGroup 同构） */
+.app-prose .accordion-group {
+  margin-block: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--surface-radius);
+  overflow: hidden;
+}
+.app-prose .accordion-group > details:not(.callout) {
+  margin-block: 0;
+  border: none;
+  border-radius: 0;
+  border-top: 1px solid var(--border);
+}
+.app-prose .accordion-group > details:not(.callout):first-child {
+  border-top: none;
+}
+
 /* Mermaid 首帧关键样式：必须位于首载样式表，保证骨架与源码隐藏同帧生效 */
 .mermaid-block {
   position: relative;

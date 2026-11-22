@@ -18,6 +18,7 @@ import { satteriImageDimensions } from "./src/utils/satteriImageDimensions";
 import { satteriDegreeSup } from "./src/utils/satteriDegreeSup";
 import { satteriCodeTabs } from "./src/utils/satteriCodeTabs";
 import { satteriSteps } from "./src/utils/satteriSteps";
+import { satteriAccordion } from "./src/utils/satteriAccordion";
 import { satteriTableWrapper } from "./src/utils/satteriTableWrapper";
 import {
   transformerNotationDiff,
@@ -71,6 +72,7 @@ export default defineConfig({
       ],
       hastPlugins: [
         () => satteriCallouts(),
+        satteriAccordion,
         satteriImageDimensions,
         satteriMermaidBlock,
         satteriCodeLines,

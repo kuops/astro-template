@@ -81,6 +81,40 @@ HTML 原生 `<details>/<summary>` 写法，适合收纳长表格或补充说明�
 
 折叠块内部支持完整的 Markdown（表格、列表、代码块），首尾保留空行即可。
 
+### 连续折叠块自动成组
+
+**连续相邻**写多个 `<details>`（中间不隔其他内容）会自动包进一个圆角卡片组，项之间以分隔线区分：
+
+<details>
+<summary>基础用法</summary>
+
+`<details>` 与 `<summary>` 原生写法，展开区留空行即可继续写 Markdown。
+
+</details>
+
+<details>
+<summary>组内样式</summary>
+
+组容器统一圆角与边框，项之间以 1px 分隔线区分，首项无上边框。
+
+</details>
+
+<details>
+<summary>与独立折叠块的区别</summary>
+
+单个 `<details>` 前后隔了段落时仍是独立卡片；只有连续排列才成组。
+
+</details>
+
+对照：上面组结束、隔了一个段落之后的单个 `<details>` 恢复独立卡片形态：
+
+<details>
+<summary>独立折叠块（不成组）</summary>
+
+因为与前面的折叠块之间隔了这段文字，所以保持独立卡片。
+
+</details>
+
 ## 代码标签组
 
 ### 单块写法

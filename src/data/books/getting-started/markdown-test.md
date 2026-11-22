@@ -61,6 +61,31 @@ order: 5
 - [ ] 另一个待办事项
 - [ ] 还有一个待办事项
 
+## 折叠块
+
+HTML 原生 `<details>/<summary>` 写法，连续排列会自动成组：
+
+<details>
+<summary>什么是折叠块</summary>
+
+点击标题展开或收起内容，适合收纳补充说明与长表格。
+
+</details>
+
+<details>
+<summary>组内支持什么</summary>
+
+展开区支持完整 Markdown：代码块、列表、表格均可。
+
+</details>
+
+<details>
+<summary>如何成组</summary>
+
+多个折叠块连续排列（中间不隔其他内容）即自动包进同一圆角卡片组。
+
+</details>
+
 ## 表格
 
 ### 基础表格
