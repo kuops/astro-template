@@ -16,7 +16,7 @@ export default defineAstroPaperConfig({
     locales: ["zh", "en"],
   },
   posts: {
-    perPage: 4,
+    perPage: 5,
     perIndex: 4,
     scheduledPostMargin: 15 * 60 * 1000,
   },
@@ -36,6 +36,12 @@ export default defineAstroPaperConfig({
     reading: "48rem",
     browse: "64rem",
     chrome: "80rem",
+  },
+  weather: {
+    // 访客本地天气的 Cloudflare Worker 代理（部署 workers/weather-proxy.js 后填入
+    // 其地址，如 https://weather-proxy.xxx.workers.dev）。留空：访客端走 Open-Meteo；
+    // 填写后国内城市优先走中国天气网官方数据（海外城市仍走 Open-Meteo）
+    proxy: "https://weather.kernel.fans",
   },
   socials: [
     { name: "github", url: "https://github.com/satnaing/astro-paper" },

@@ -50,7 +50,6 @@ export interface UIStrings {
     statsTags: string;
     browseBooks: string;
     welcomeTitle: string;
-    welcomeHello: string;
     welcomeLocalTime: string;
     welcomeWeather: string;
     welcomeHumidity: string;
@@ -58,8 +57,7 @@ export interface UIStrings {
     welcomeRange: string;
     welcomeLoading: string;
     welcomeFallback: string;
-    weatherSource: string;
-    weatherDataFrom: string;
+    weatherObserved: string;
   };
   footer: {
     copyright: string;

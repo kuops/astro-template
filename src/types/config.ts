@@ -64,12 +64,21 @@ interface ShareLink {
   linkTitle?: string;
 }
 
+/** 访客本地天气配置 */
+interface WeatherConfig {
+  /** Cloudflare Worker 代理地址（部署 workers/weather-proxy.js 后填，如
+      https://weather-proxy.xxx.workers.dev）：浏览器带城市名调它，Worker 以合法
+      Referer 抓中国天气网官方数据。留空则访客端走 Open-Meteo */
+  proxy?: string;
+}
+
 interface AstroPaperConfig {
   site: SiteConfig;
   i18n?: I18nConfig;
   posts?: PostsConfig;
   features?: FeaturesConfig;
   layout?: LayoutConfig;
+  weather?: WeatherConfig;
   socials?: SocialLink[];
   shareLinks?: ShareLink[];
 }
@@ -95,6 +104,7 @@ export interface ResolvedAstroPaperConfig {
   posts: Required<PostsConfig>;
   features: Required<FeaturesConfig>;
   layout: Required<LayoutConfig>;
+  weather: Required<WeatherConfig>;
   socials: SocialLink[];
   shareLinks: ShareLink[];
 }

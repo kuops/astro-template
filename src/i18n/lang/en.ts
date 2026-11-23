@@ -52,7 +52,6 @@ export default {
     statsTags: "tags",
     browseBooks: "Browse Books",
     welcomeTitle: "Now · Greeting",
-    welcomeHello: "Hello, friend from {{city}}",
     welcomeLocalTime: "Local time",
     welcomeWeather: "Today's weather",
     welcomeHumidity: "Humidity",
@@ -60,8 +59,7 @@ export default {
     welcomeRange: "Today {{min}} ~ {{max}}",
     welcomeLoading: "Fetching your local weather…",
     welcomeFallback: "Couldn't locate you; showing default city",
-    weatherSource: "Weather by Open-Meteo",
-    weatherDataFrom: "Data from {{provider}}",
+    weatherObserved: "Updated {{time}}",
   },
   footer: {
     copyright: "Copyright © {{year}}",

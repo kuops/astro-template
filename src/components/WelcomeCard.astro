@@ -1,73 +1,93 @@
 ---
 import { getLocaleFromPath, useTranslations } from "@/i18n";
+import config from "@/config";
 // 和风天气官方图标集（代码 MIT / 图标 CC BY 4.0）：字体 + CSS 自托管，运行时同源零外链
 import "qweather-icons/font/qweather-icons.css";
-import IconExternalLink from "@/assets/icons/IconExternalLink.svg";
+import IconLocation from "@/assets/icons/IconLocation.svg";
 
 const locale = getLocaleFromPath(Astro.url.pathname);
 const t = useTranslations(locale);
 const ds = {
   locale,
-  hello: t.home.welcomeHello,
   range: t.home.welcomeRange,
   humidity: t.home.welcomeHumidity,
   wind: t.home.welcomeWind,
   loading: t.home.welcomeLoading,
   fallback: t.home.welcomeFallback,
-  source: t.home.weatherSource,
-  dataFrom: t.home.weatherDataFrom,
+  observed: t.home.weatherObserved,
 };
 ---
 
 <section
   id="welcome-card"
-  class="flex flex-col rounded-lg border border-border bg-background p-5"
+  class="flex flex-col rounded-lg bg-background p-5"
   data-locale={ds.locale}
-  data-hello={ds.hello}
   data-range={ds.range}
   data-humidity={ds.humidity}
   data-wind={ds.wind}
   data-loading={ds.loading}
   data-fallback={ds.fallback}
-  data-source={ds.source}
-  data-from={ds.dataFrom}
+  data-observed={ds.observed}
+  data-proxy={config.weather?.proxy ?? ""}
   aria-live="polite"
 >
   <div class="flex items-start justify-between gap-3">
-    <div class="min-w-0">
-      <p id="wc-hello" class="wc-pending font-reading text-base leading-6 font-semibold text-foreground">{ds.loading}</p>
-      <p id="wc-date" class="mt-1 font-mono text-xs tabular-nums text-muted-foreground"></p>
-    </div>
-    <p id="wc-clock" class="font-mono text-sm leading-6 tabular-nums text-accent"></p>
+    <p
+      id="wc-date"
+      class="font-mono text-xs leading-6 text-muted-foreground tabular-nums"
+    >
+    </p>
+    <p
+      id="wc-clock"
+      class="font-mono text-sm leading-6 text-accent tabular-nums"
+    >
+    </p>
   </div>
 
   <div class="mt-6 flex flex-1 items-center gap-4">
-    <i id="wc-icon" class="wc-pending text-[3.5rem] leading-none text-accent" aria-hidden="true"></i>
+    <i
+      id="wc-icon"
+      class="wc-pending text-[3.5rem] leading-none text-accent"
+      aria-hidden="true"></i>
     <div class="min-w-0 flex-1">
       <div class="flex items-start gap-0.5">
-        <span id="wc-temp" class="font-mono text-6xl font-medium leading-none tabular-nums text-foreground">--</span>
-        <span class="mt-1.5 text-xl leading-none font-normal text-muted-foreground">°</span>
+        <span
+          id="wc-temp"
+          class="font-mono text-6xl leading-none font-medium text-foreground tabular-nums"
+          >--</span
+        >
+        <span
+          class="mt-1.5 text-xl leading-none font-normal text-muted-foreground"
+          >°</span
+        >
       </div>
-      <p id="wc-cond" class="mt-2 truncate text-base text-muted-foreground"></p>
     </div>
-    <div class="flex-none text-end font-mono text-xs leading-5 tabular-nums text-muted-foreground">
+    <div
+      class="flex-none text-end font-mono text-xs leading-5 text-muted-foreground tabular-nums"
+    >
       <p id="wc-range"></p>
       <p id="wc-humidity"></p>
       <p id="wc-wind"></p>
     </div>
   </div>
+  <p
+    id="wc-hello"
+    class="wc-pending mt-3 flex items-center gap-1.5 font-reading text-base text-muted-foreground"
+  >
+    <IconLocation class="size-4 flex-none" aria-hidden="true" />
+    <span id="wc-place">{ds.loading}</span>
+  </p>
 
-  <div class="flex items-center justify-end gap-2 pt-4 text-xs text-muted-foreground">
-    <span id="wc-from" class="flex-none"></span>
-    <a id="wc-source" class="focus-outline flex size-7 flex-none items-center justify-center rounded-md hover:text-accent" href="https://www.sojson.com/api/weather.html" target="_blank" rel="noopener noreferrer" title={ds.source} aria-label={ds.source}>
-      <IconExternalLink class="size-4" />
-    </a>
+  <div
+    class="flex items-center justify-end gap-2 pt-4 text-xs text-muted-foreground"
+  >
+    <span id="wc-updated" class="flex-none"></span>
   </div>
 </section>
 
 <style>
-  /* 语言切换是整页刷新（data-astro-reload），SSR 的 loading 文案会先于脚本被画出来而一闪而过。
-     先隐藏，600ms 后仍未就绪才显示（真实慢加载仍有反馈）；脚本命中缓存后立即填充并显示。 */
+  /* 语言切换走 ClientRouter 软导航：before-swap 时已用缓存预填新文档，
+     这里只是首次访问（无缓存）的兜底——先隐藏，600ms 后仍未就绪才显示 loading */
   #wc-hello.wc-pending {
     opacity: 0;
     animation: wc-pending-show 0s 0.6s forwards;
@@ -84,7 +104,24 @@ const ds = {
 </style>
 
 <script>
-  type Weather = { source?: string; city?: string; temp?: number | null; humidity?: number | null; weather?: string; windDir?: string; windPower?: string; min?: number | null; max?: number | null; notice?: string; ganmao?: string };
+  type Weather = {
+    source?: string;
+    city?: string;
+    temp?: number | null;
+    humidity?: number | null;
+    weather?: string;
+    weatherEn?: string;
+    windDir?: string;
+    windDirEn?: string;
+    windPower?: string;
+    min?: number | null;
+    max?: number | null;
+    code?: number;
+    windDeg?: number | null;
+    updateTime?: string;
+    notice?: string;
+    ganmao?: string;
+  };
   type Cache = { w: Weather; city: string; located: boolean; ts: number };
 
   // 天气/定位缓存：切语言等站内导航只换文案，不重新拉数据、不闪 loading
@@ -97,88 +134,429 @@ const ds = {
     } catch {}
     return null;
   };
-  const writeCache = (c: Cache) => { try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch {} };
+  const writeCache = (c: Cache) => {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(c));
+    } catch {}
+  };
 
-  const QI: Record<string, string> = { storm: "302", snow: "401", rain: "305", fog: "501", cloud: "104", cloudsun: "102", sun: "100" };
-  const iconOf = (w: string): string => /雷/.test(w) ? QI.storm : /雪/.test(w) ? QI.snow : /雨/.test(w) ? QI.rain : /雾|霾/.test(w) ? QI.fog : /阴/.test(w) ? QI.cloud : /多云/.test(w) ? QI.cloudsun : /晴/.test(w) ? QI.sun : "101";
+  const QI: Record<string, string> = {
+    storm: "302",
+    snow: "401",
+    rain: "305",
+    fog: "501",
+    cloud: "104",
+    cloudsun: "102",
+    sun: "100",
+  };
+  const iconOf = (w: string): string =>
+    /雷/.test(w)
+      ? QI.storm
+      : /雪/.test(w)
+        ? QI.snow
+        : /雨/.test(w)
+          ? QI.rain
+          : /雾|霾/.test(w)
+            ? QI.fog
+            : /阴/.test(w)
+              ? QI.cloud
+              : /多云/.test(w)
+                ? QI.cloudsun
+                : /晴/.test(w)
+                  ? QI.sun
+                  : "101";
+
+  // WMO 天气代码 → 文案（中/英两套，粒度与 scripts/fetch-weather.mjs 的备源映射一致）
+  const WMO_TEXT = (c: number, zh: boolean): string =>
+    zh
+      ? c === 0
+        ? "晴"
+        : c <= 2
+          ? "多云"
+          : c === 3
+            ? "阴"
+            : c <= 48
+              ? "雾"
+              : c <= 57
+                ? "毛毛雨"
+                : c <= 67
+                  ? "雨"
+                  : c <= 77
+                    ? "雪"
+                    : c <= 82
+                      ? "阵雨"
+                      : c <= 86
+                        ? "阵雪"
+                        : "雷阵雨"
+      : c === 0
+        ? "Clear"
+        : c <= 2
+          ? "Partly cloudy"
+          : c === 3
+            ? "Overcast"
+            : c <= 48
+              ? "Fog"
+              : c <= 57
+                ? "Drizzle"
+                : c <= 67
+                  ? "Rain"
+                  : c <= 77
+                    ? "Snow"
+                    : c <= 82
+                      ? "Rain showers"
+                      : c <= 86
+                        ? "Snow showers"
+                        : "Thunderstorm";
+  // 风向角度 → 方位（中文带"风"，英文用缩写）
+  const WIND_DIR = (deg: number, zh: boolean): string =>
+    zh
+      ? ["北", "东北", "东", "东南", "南", "西南", "西", "西北"][
+          Math.round(deg / 45) % 8
+        ] + "风"
+      : ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(deg / 45) % 8];
+  // WMO 代码 → 和风天气图标码（语言无关，code 存在时优先于中文文本正则）
+  const codeToIcon = (c: number): string =>
+    c === 0
+      ? "100"
+      : c <= 2
+        ? "102"
+        : c === 3
+          ? "104"
+          : c <= 48
+            ? "501"
+            : c <= 67
+              ? "305"
+              : c <= 77
+                ? "401"
+                : c <= 82
+                  ? "306"
+                  : c <= 86
+                    ? "407"
+                    : "302";
+
+  const getJSON = async (url: string, ms = 6000) => {
+    const ctl = new AbortController();
+    const to = window.setTimeout(() => ctl.abort(), ms);
+    try {
+      const r = await fetch(url, { signal: ctl.signal });
+      if (!r.ok) throw new Error(String(r.status));
+      return await r.json();
+    } finally {
+      window.clearTimeout(to);
+    }
+  };
+
+  // 访客城市：腾讯 r.inews.qq.com/api/ip2city（服务端按出口 IP 定位，免 key、无防盗链）。
+  // 该接口 CORS 仅对腾讯自家域开放，浏览器 fetch 不可用，故走 JSONP（<script> 加载 + 回调）。
+  // 国外 IP 也能定位（返回中文城市名与 country 字段，如 纽约/美国），用于后续分流。
+  type IpLoc = { city: string; domestic: boolean };
+  const ip2city = (timeoutMs = 6000): Promise<IpLoc | null> =>
+    new Promise(resolve => {
+      const cb = "__qqIp2city" + Math.random().toString(36).slice(2, 10);
+      const holder = window as unknown as Record<
+        string,
+        | ((data: { ret?: number; city?: string; country?: string }) => void)
+        | undefined
+      >;
+      const s = document.createElement("script");
+      let settled = false;
+      const finish = (loc: IpLoc | null) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        delete holder[cb];
+        s.remove();
+        resolve(loc);
+      };
+      const timer = window.setTimeout(() => finish(null), timeoutMs);
+      holder[cb] = data => {
+        if (!(data?.ret === 0 && typeof data.city === "string" && data.city))
+          return finish(null);
+        finish({
+          city: data.city.replace(/市$/, ""),
+          domestic: data.country === "中国",
+        });
+      };
+      s.onerror = () => finish(null);
+      s.src =
+        "https://r.inews.qq.com/api/ip2city?otype=jsonp&callback=" +
+        cb +
+        "&_=" +
+        Date.now();
+      document.head.appendChild(s);
+    });
+
+  // 城市名 → 坐标：国内走 Open-Meteo geocoding（中文名可靠，需去"市"后缀，language 必须 zh）；
+  // 海外城市 GeoNames 中文别名覆盖差（"纽约"查不到、"东京"会错命中中国同名地名、
+  // "伦敦"错给加拿大），改用 OSM Nominatim（大城市带 name:zh 标签，CORS 开放、免 key）。
+  const geocodeCoords = async (
+    city: string,
+    domestic: boolean
+  ): Promise<{ lat: number; lon: number; name: string } | null> => {
+    try {
+      if (domestic) {
+        const g = await getJSON(
+          "https://geocoding-api.open-meteo.com/v1/search?name=" +
+            encodeURIComponent(city) +
+            "&count=1&language=zh&format=json"
+        );
+        const hit = g?.results?.[0];
+        if (
+          !hit ||
+          typeof hit.latitude !== "number" ||
+          typeof hit.longitude !== "number"
+        )
+          return null;
+        return {
+          lat: hit.latitude,
+          lon: hit.longitude,
+          name: typeof hit.name === "string" && hit.name ? hit.name : city,
+        };
+      }
+      const n = await getJSON(
+        "https://nominatim.openstreetmap.org/search?q=" +
+          encodeURIComponent(city) +
+          "&format=jsonv2&limit=1&accept-language=zh"
+      );
+      const h = n?.[0];
+      if (
+        !h ||
+        !Number.isFinite(Number(h.lat)) ||
+        !Number.isFinite(Number(h.lon))
+      )
+        return null;
+      return { lat: Number(h.lat), lon: Number(h.lon), name: city };
+    } catch {
+      return null;
+    }
+  };
+
+  // 访客本地天气：城市名 → 坐标（geocodeCoords 按国内/海外分流）→ Open-Meteo forecast。
+  // 接口均免 key、CORS 开放；weather 用 WMO code、风向用角度存语言无关值，渲染时按 locale 转文案。
+  const fetchLocalWeather = async (
+    city: string,
+    domestic: boolean
+  ): Promise<Weather | null> => {
+    try {
+      const c = await geocodeCoords(city, domestic);
+      if (!c) return null;
+      const j = await getJSON(
+        "https://api.open-meteo.com/v1/forecast?latitude=" +
+          c.lat +
+          "&longitude=" +
+          c.lon +
+          "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1"
+      );
+      const cur = j?.current;
+      if (!cur) return null;
+      return {
+        source: "open-meteo",
+        city: c.name,
+        temp: Math.round(cur.temperature_2m),
+        humidity: Math.round(cur.relative_humidity_2m),
+        code: cur.weather_code,
+        windDeg: cur.wind_direction_10m ?? null,
+        windPower: Math.round(cur.wind_speed_10m) + " km/h",
+        min:
+          j?.daily?.temperature_2m_min?.[0] != null
+            ? Math.round(j.daily.temperature_2m_min[0])
+            : null,
+        max:
+          j?.daily?.temperature_2m_max?.[0] != null
+            ? Math.round(j.daily.temperature_2m_max[0])
+            : null,
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  // 官方代理（Cloudflare Worker，见 workers/weather-proxy.js）：Worker 以合法
+  // Referer 抓中国天气网，返回与快照同构的数据（含 weatherEn/windDirEn）。
+  // 仅覆盖国内城市；未部署/查询失败时回退 Open-Meteo 链
+  let PROXY = "";
+  const fetchProxyWeather = async (city: string): Promise<Weather | null> => {
+    if (!PROXY) return null;
+    try {
+      const j = await getJSON(
+        PROXY + "/weather?city=" + encodeURIComponent(city)
+      );
+      return j && j.source === "weather.com.cn" ? j : null;
+    } catch {
+      return null;
+    }
+  };
 
   // 渲染函数作用于"文档根"：既可以是当前 document，也可以是 ClientRouter 即将换入的 newDocument
-  const renderInto = (root: Document, card: HTMLElement, w: Weather | null, city: string | null) => {
+  const renderInto = (
+    root: Document,
+    card: HTMLElement,
+    w: Weather | null,
+    city: string | null
+  ) => {
     const d = card.dataset;
     const zh = (d.locale || "zh").startsWith("zh");
     const $ = (id: string) => root.getElementById(id);
-    const tpl = (s: string, v: Record<string, string | number>) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => String(v[k] ?? ""));
+    const tpl = (s: string, v: Record<string, string | number>) =>
+      s.replace(/\{\{(\w+)\}\}/g, (_, k) => String(v[k] ?? ""));
     const now = new Date();
-    const clock = $("wc-clock"); const date = $("wc-date");
-    if (clock) clock.textContent = now.toLocaleTimeString(zh ? "zh-CN" : "en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
-    if (date) date.textContent = now.toLocaleDateString(zh ? "zh-CN" : "en-US", { month: "long", day: "numeric", weekday: "long" });
+    const clock = $("wc-clock");
+    const date = $("wc-date");
+    if (clock)
+      clock.textContent = now.toLocaleTimeString(zh ? "zh-CN" : "en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+    if (date)
+      date.textContent = now.toLocaleDateString(zh ? "zh-CN" : "en-US", {
+        month: "long",
+        day: "numeric",
+        weekday: "long",
+      });
+    // 天气现象文案（code 存在按当前语言渲染；否则快照/Worker 的原文本，英文优先 weatherEn）
+    const condText = w
+      ? w.code != null
+        ? WMO_TEXT(w.code, zh)
+        : zh
+          ? (w.weather ?? "")
+          : ((w.weatherEn || w.weather) ?? "")
+      : "";
     if (city !== null) {
       const hello = $("wc-hello");
-      if (hello) { hello.textContent = tpl(d.hello || "", { city }); hello.classList.remove("wc-pending"); }
+      if (hello) hello.classList.remove("wc-pending");
+      const place = $("wc-place");
+      if (place)
+        place.textContent =
+          w && condText ? `${city}${zh ? "，" : ", "}${condText}` : city;
     }
     if (!w) return;
-    const icon = $("wc-icon"); if (icon) { icon.className = "qi-" + iconOf(w.weather || "") + " text-accent"; icon.style.fontSize = "3.5rem"; }
-    const temp = $("wc-temp"); if (temp) temp.textContent = String(w.temp ?? "--");
-    const cond = $("wc-cond"); if (cond) cond.textContent = w.weather ?? "";
-    const range = $("wc-range"); if (range && w.min != null) range.textContent = tpl(d.range || "", { min: w.min + "°", max: w.max + "°" });
-    const hum = $("wc-humidity"); if (hum && w.humidity != null) hum.textContent = `${d.humidity ?? ""} ${w.humidity}%`;
-    const wind = $("wc-wind"); if (wind) wind.textContent = `${w.windDir ?? ""}${w.windPower ?? ""}`.trim();
-    const provider = w.source === "open-meteo" ? "Open-Meteo" : "sojson";
-    const from = $("wc-from"); if (from) from.textContent = tpl(d.from || "", { provider });
-    const src = $("wc-source") as HTMLAnchorElement | null;
-    if (src) {
-      const label = d.source || "";
-      src.title = label; src.setAttribute("aria-label", label);
-      src.href = w.source === "open-meteo" ? "https://open-meteo.com/" : "https://www.sojson.com/api/weather.html";
+    const icon = $("wc-icon");
+    if (icon) {
+      icon.className =
+        "qi-" +
+        (w.code != null ? codeToIcon(w.code) : iconOf(w.weather || "")) +
+        " text-accent";
+      icon.style.fontSize = "3.5rem";
+    }
+    const temp = $("wc-temp");
+    if (temp) temp.textContent = String(w.temp ?? "--");
+    const range = $("wc-range");
+    if (range && w.min != null)
+      range.textContent = tpl(d.range || "", {
+        min: w.min + "°",
+        max: w.max + "°",
+      });
+    const hum = $("wc-humidity");
+    if (hum && w.humidity != null)
+      hum.textContent = `${d.humidity ?? ""} ${w.humidity}%`;
+    const wind = $("wc-wind");
+    if (wind)
+      wind.textContent =
+        w.windDeg != null
+          ? `${WIND_DIR(w.windDeg, zh)}${zh ? "" : " "}${w.windPower ?? ""}`.trim()
+          : zh
+            ? `${w.windDir ?? ""}${w.windPower ?? ""}`.trim()
+            : `${(w.windDirEn || w.windDir) ?? ""} ${String(w.windPower ?? "").replace(/(\d+(?:-\d+)?)级/, "$1 Bft")}`.trim();
+    // 实况观测时间（气象站发布时刻）：Worker/快照给 "HH:mm"；Open-Meteo 给 ISO 时间取其时分
+    const upd = $("wc-updated");
+    if (upd) {
+      const raw = String(w.updateTime ?? "");
+      const hhmm = raw.includes("T") ? raw.slice(11, 16) : raw;
+      upd.textContent = hhmm
+        ? tpl(d.observed || "{{time}}", { time: hhmm })
+        : "";
     }
   };
 
   let cleanup: (() => void) | null = null;
   const initWelcome = () => {
     const card = document.getElementById("welcome-card");
-    if (!card) { cleanup?.(); cleanup = null; return; }
+    if (!card) {
+      cleanup?.();
+      cleanup = null;
+      return;
+    }
     // 同一张卡已初始化（模块执行与 astro:page-load 各触发一次）：直接返回
     if (card.dataset.init === "1") return;
-    cleanup?.(); cleanup = null;
+    cleanup?.();
+    cleanup = null;
     card.dataset.init = "1";
+    PROXY = (card.dataset.proxy || "").replace(/\/+$/, "");
     const zh = (card.dataset.locale || "zh").startsWith("zh");
-    const getJSON = async (url: string, ms = 6000) => {
-      const ctl = new AbortController(); const to = window.setTimeout(() => ctl.abort(), ms);
-      try { const r = await fetch(url, { signal: ctl.signal }); if (!r.ok) throw new Error(String(r.status)); return await r.json(); } finally { window.clearTimeout(to); }
-    };
     // 时钟
-    const timer = window.setInterval(() => renderInto(document, card, null, null), 1000);
+    const timer = window.setInterval(
+      () => renderInto(document, card, null, null),
+      1000
+    );
 
     const cached = readCache();
     if (cached) renderInto(document, card, cached.w, cached.city);
     else {
       let alive = true;
       (async () => {
+        // 1) 先定位访客城市（腾讯 ip2city JSONP，免 key）
+        const loc = await ip2city();
+        if (!alive) return;
+
+        // 2) 定位成功：拉访客本地天气一步到位（Worker 官方代理优先，Open-Meteo 兜底）
+        if (loc) {
+          const ipCity = loc.city;
+          const local =
+            (await fetchProxyWeather(ipCity)) ??
+            (await fetchLocalWeather(ipCity, loc.domestic));
+          if (!alive) return;
+          if (local) {
+            const shown = local.city || ipCity;
+            renderInto(document, card, local, shown);
+            writeCache({
+              w: local,
+              city: shown,
+              located: true,
+              ts: Date.now(),
+            });
+            return;
+          }
+          // 天气源全挂：此时才请求构建时快照兜底（问候仍用访客城市）
+          let w: Weather | null = null;
+          try {
+            w = await getJSON("/weather.json");
+          } catch {}
+          if (!alive) return;
+          renderInto(document, card, w, w ? ipCity : null);
+          if (w)
+            writeCache({ w, city: ipCity, located: false, ts: Date.now() });
+          return;
+        }
+
+        // 3) 定位失败：用构建时快照（快照城市）
         let w: Weather | null = null;
-        try { w = await getJSON("/weather.json"); } catch {}
-        if (!alive) return;
-        renderInto(document, card, w, null);
-        let visitorCity = w?.city || (zh ? "杭州" : "Hangzhou"), located = false;
         try {
-          const j = await getJSON("https://restapi.amap.com/v3/ip?key=0113a13c88697dcea6a445584d535837");
-          const c = j?.city || j?.province;
-          if (j?.status === "1" && typeof c === "string" && c) { visitorCity = c.replace(/市$/, ""); located = true; }
+          w = await getJSON("/weather.json");
         } catch {}
-        if (!alive) return;
-        renderInto(document, card, null, visitorCity);
-        if (w) writeCache({ w, city: visitorCity, located, ts: Date.now() });
+        if (!alive || !w) return; // 快照也挂：保持 loading 态
+        const fb = (w.city || (zh ? "杭州" : "Hangzhou")).replace(/市$/, "");
+        renderInto(document, card, w, fb);
+        writeCache({ w, city: fb, located: false, ts: Date.now() });
       })();
-      cleanup = () => { alive = false; window.clearInterval(timer); };
+      cleanup = () => {
+        alive = false;
+        window.clearInterval(timer);
+      };
       return;
     }
-    cleanup = () => { window.clearInterval(timer); };
+    cleanup = () => {
+      window.clearInterval(timer);
+    };
   };
 
   initWelcome();
   document.addEventListener("astro:page-load", initWelcome);
   // 换页前：清理旧页定时器，并把缓存数据直接写进即将换入的新文档，页面出现时即为最终内容（零 loading 闪烁）
-  document.addEventListener("astro:before-swap", (e) => {
-    cleanup?.(); cleanup = null;
+  document.addEventListener("astro:before-swap", e => {
+    cleanup?.();
+    cleanup = null;
     const cached = readCache();
     if (!cached) return;
     const doc = e.newDocument;

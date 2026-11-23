@@ -52,7 +52,6 @@ export default {
     statsTags: "个标签",
     browseBooks: "浏览书籍",
     welcomeTitle: "此刻 · 问候",
-    welcomeHello: "你好，来自 {{city}} 的朋友",
     welcomeLocalTime: "本地时间",
     welcomeWeather: "今天天气",
     welcomeHumidity: "湿度",
@@ -60,8 +59,7 @@ export default {
     welcomeRange: "今日 {{min}} ~ {{max}}",
     welcomeLoading: "正在获取你当地的天气…",
     welcomeFallback: "未能定位，显示默认城市天气",
-    weatherSource: "天气数据 Open-Meteo",
-    weatherDataFrom: "数据来自 {{provider}}",
+    weatherObserved: "{{time}} 更新",
   },
   footer: {
     copyright: "© {{year}}",

@@ -47,6 +47,9 @@ const config: ResolvedAstroPaperConfig = {
     browse: userConfig.layout?.browse ?? "64rem",
     chrome: userConfig.layout?.chrome ?? "80rem",
   },
+  weather: {
+    proxy: userConfig.weather?.proxy ?? "",
+  },
   socials: userConfig.socials ?? [],
   shareLinks: userConfig.shareLinks ?? [],
 };
