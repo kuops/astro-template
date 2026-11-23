@@ -128,5 +128,17 @@ export default defineConfig({
       formats: ["woff2"],
       display: "swap",
     },
+    {
+      // 中文正文主字体：Noto Sans SC（思源黑体，OFL 许可，可合规自托管）。
+      // 构建期经 fontsource 本地子集化下载，运行时同源按需切片加载。
+      name: "Noto Sans SC",
+      cssVariable: "--font-noto-sans-sc",
+      provider: fontProviders.npm(),
+      fallbacks: [],
+      weights: [400, 500, 700],
+      styles: ["normal"],
+      formats: ["woff2"],
+      display: "swap",
+    },
   ],
 });
