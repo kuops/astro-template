@@ -237,7 +237,13 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 </style>
 
 <script>
-  import mermaid from "mermaid";
+  // 按需加载：仅当页面存在 mermaid 块时才动态 import mermaid（含 katex/
+  // cytoscape 等重型 chunk），无图文章页不再无条件下载数百 KB。
+  let mermaid: typeof import("mermaid").default | null = null;
+  async function loadMermaid() {
+    if (!mermaid) mermaid = (await import("mermaid")).default;
+    return mermaid;
+  }
 
   function getI18n(id: string) {
     return document.getElementById(id)?.dataset.label ?? "";
@@ -274,10 +280,10 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
     });
   }
 
-  function initMermaidConfig() {
+  function initMermaidConfig(m: NonNullable<typeof mermaid>) {
     const isDark =
       document.documentElement.getAttribute("data-theme") === "dark";
-    mermaid.initialize({
+    m.initialize({
       startOnLoad: false,
       theme: isDark ? "dark" : "default",
       themeVariables: isDark
@@ -599,7 +605,8 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
       return;
     }
 
-    initMermaidConfig();
+    const m = await loadMermaid();
+    initMermaidConfig(m);
 
     for (const pre of mermaidBlocks) {
       const code = pre.querySelector("code");
@@ -611,7 +618,7 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 
       const id = "mermaid-" + Math.random().toString(36).slice(2);
       try {
-        const { svg } = await mermaid.render(id, source);
+        const { svg } = await m.render(id, source);
         const wrapper = createMermaidWrapper(source, svg);
         const key = (block as HTMLElement | null)?.dataset.mermaidKey;
         if (key) wrapper.dataset.mermaidKey = key;
@@ -643,13 +650,14 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
     );
     if (containers.length === 0) return;
 
-    initMermaidConfig();
+    const m = await loadMermaid();
+    initMermaidConfig(m);
 
     for (const container of containers) {
       const source = (container as HTMLElement).dataset.mermaidSource || "";
       const id = "mermaid-" + Math.random().toString(36).slice(2);
       try {
-        const { svg } = await mermaid.render(id, source);
+        const { svg } = await m.render(id, source);
         container.innerHTML = svg;
         const wrapper = container.closest<HTMLElement>(".mermaid-wrapper");
         const key = wrapper?.dataset.mermaidKey;
