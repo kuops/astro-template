@@ -16,8 +16,13 @@ const books = await getAllBooks(locale);
 
 <Layout title={`${t.booksPage.title} | ${config.site.title}`} localeAlternates>
   <Header />
-  <Main pageTitle={t.booksPage.title} pageDesc={t.booksPage.description}>
-    <div class="grid gap-6 sm:grid-cols-2">
+  <Main
+    pageTitle={t.booksPage.title}
+    pageDesc={t.booksPage.description}
+    width="browse"
+    viewport
+  >
+    <div class="grid auto-rows-max gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {
         books.map(book => (
           <BookCard

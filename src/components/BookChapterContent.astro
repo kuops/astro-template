@@ -69,7 +69,7 @@ const translationHint =
 const sourceLabel = tplStr(t.language.sourceLabel, {
   language: t.language.names[sourceLocale],
 });
-const readingMetadata = getReadingMetadata(chapter.body, sourceLocale);
+const readingMetadata = getReadingMetadata(chapter.body);
 const readingLabel = tplStr(contentT.reading.metadata, {
   count: readingMetadata.count,
   minutes: readingMetadata.minutes,

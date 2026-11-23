@@ -1,5 +1,3 @@
-import type { Locale } from "@/types/config";
-
 const cjkCharacterPattern = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g;
 const latinWordPattern = /[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g;
 
@@ -21,8 +19,7 @@ const getReadableText = (body: string) =>
     .replace(/\{[^{}]*\}/g, " ");
 
 export const getReadingMetadata = (
-  body: string | undefined,
-  locale: Locale
+  body: string | undefined
 ): ReadingMetadata => {
   const text = getReadableText(body ?? "");
   const cjkCount = text.match(cjkCharacterPattern)?.length ?? 0;
@@ -30,7 +27,7 @@ export const getReadingMetadata = (
   const count = cjkCount + latinWordCount;
   const minutes = Math.max(
     1,
-    Math.ceil(cjkCount / 400 + latinWordCount / (locale === "zh" ? 200 : 200))
+    Math.ceil(cjkCount / 400 + latinWordCount / 200)
   );
 
   return { count, minutes };

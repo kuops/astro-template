@@ -12,6 +12,7 @@ import MermaidRenderer from "@/components/MermaidRenderer.astro";
 import ImageLightbox from "@/components/ImageLightbox.astro";
 import ReadingMetadata from "@/components/ReadingMetadata.astro";
 import config from "@/config";
+import { getLocaleFromPath } from "@/i18n";
 import type { SidebarGroup } from "@/types/books";
 import type { Locale } from "@/types/config";
 
@@ -53,6 +54,8 @@ const {
   translationHint,
   canonicalURL,
 } = Astro.props;
+
+const routeLocale = getLocaleFromPath(Astro.url.pathname);
 ---
 
 <Layout
@@ -61,7 +64,7 @@ const {
   contentLang={sourceLocaleMap?.[currentSlug]}
   {canonicalURL}
 >
-  <Header maxWidth="mx-auto w-full max-w-7xl px-4" {alternateUrl} />
+  <Header {alternateUrl} />
   <BookMobileNav
     {bookTitle}
     {bookSlug}
@@ -74,10 +77,11 @@ const {
   />
   <main
     id="main-content"
-    class="mx-auto w-full max-w-7xl px-4 py-12"
+    class="mx-auto w-full max-w-chrome px-4 py-12"
     data-pagefind-body={indexable ? "" : undefined}
     data-pagefind-ignore={indexable ? undefined : "all"}
     data-pagefind-filter="type:book"
+    data-pagefind-meta={`contentLang:${sourceLocaleMap?.[currentSlug] ?? routeLocale}`}
   >
     <div class="flex gap-8">
       <aside class="hidden w-64 flex-none lg:block">
@@ -128,7 +132,7 @@ const {
         }
         <article
           id="article"
-          class="app-prose w-full max-w-none prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+          class="app-prose w-full max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
         >
           <slot />
         </article>
@@ -149,7 +153,7 @@ const {
     <BackToTopButton />
     {headings.length > 0 && <MobileToc headings={headings} />}
   </main>
-  <Footer maxWidth="mx-auto w-full max-w-7xl px-4" />
+  <Footer />
 </Layout>
 
 <ArticleEnhancements />

@@ -8,6 +8,7 @@ import {
 
 const locale = getLocaleFromPath(Astro.url.pathname);
 const t = useTranslations(locale);
+const { wide = false } = Astro.props;
 const localize = (path: string) => getLocalizedPath(path, locale);
 
 const navLabels: Record<string, string> = {
@@ -100,7 +101,10 @@ if (segments[0] === "posts") {
 }
 ---
 
-<nav class="app-layout mt-8 mb-1" aria-label="breadcrumb">
+<nav
+  class:list={[wide ? "browse-layout" : "app-layout", "mt-8 mb-1"]}
+  aria-label="breadcrumb"
+>
   <ul class="font-light [&>li]:inline">
     <li>
       <a

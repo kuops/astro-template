@@ -52,6 +52,7 @@ const alternateUrl = alternateLocale
     pageTitle={[`${t.pages.tagTitle}:`, `${tagName}`]}
     titleTransition={tag}
     pageDesc={`${t.pages.tagDesc} "${tagName}".`}
+    width="browse"
   >
     <h1 slot="title" transition:name={tag}>{`${t.pages.tagTitle}:${tag}`}</h1>
     <ul>

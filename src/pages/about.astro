@@ -76,10 +76,10 @@ const { Content } = await render(about);
 >
   <Header {alternateUrl} />
 
-  <Breadcrumb />
+  <Breadcrumb wide />
 
-  <main id="main-content" class="app-layout">
-    <section class="app-prose mb-28 max-w-app prose-img:border-0">
+  <main id="main-content" class="browse-layout">
+    <section class="app-prose mb-28 max-w-browse prose-img:border-0">
       {
         isFallback && (
           <p class="mb-3 text-sm text-muted-foreground">{sourceLabel}</p>

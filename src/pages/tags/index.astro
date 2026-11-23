@@ -21,7 +21,11 @@ const t = useTranslations(locale);
 
 <Layout title={`${t.pages.tagsTitle} | ${config.site.title}`} localeAlternates>
   <Header />
-  <Main pageTitle={t.pages.tagsTitle} pageDesc={t.pages.tagsDesc}>
+  <Main
+    pageTitle={t.pages.tagsTitle}
+    pageDesc={t.pages.tagsDesc}
+    width="browse"
+  >
     <ul class="flex flex-wrap gap-6">
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} />)}
     </ul>

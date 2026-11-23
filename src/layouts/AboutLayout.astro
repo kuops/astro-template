@@ -13,9 +13,9 @@ const { frontmatter } = Astro.props;
 
 <Layout title={`${frontmatter.title} | ${config.site.title}`}>
   <Header />
-  <Breadcrumb />
-  <main id="main-content" class="app-layout">
-    <section id="about" class="app-prose mb-28 max-w-app prose-img:border-0">
+  <Breadcrumb wide />
+  <main id="main-content" class="browse-layout">
+    <section id="about" class="app-prose mb-28 max-w-browse prose-img:border-0">
       <h1 class="text-[1.75rem] leading-9 font-semibold sm:text-3xl">
         {frontmatter.title}
       </h1>

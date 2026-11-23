@@ -73,7 +73,7 @@ const {
 } = post.data;
 
 const { Content, headings: allHeadings } = await render(post);
-const readingMetadata = getReadingMetadata(post.body, sourceLocale);
+const readingMetadata = getReadingMetadata(post.body);
 const readingLabel = tplStr(contentT.reading.metadata, {
   count: readingMetadata.count,
   minutes: readingMetadata.minutes,
@@ -125,12 +125,17 @@ const layoutProps = {
 ---
 
 <Layout {...layoutProps}>
-  <Header maxWidth="mx-auto w-full max-w-5xl px-4" {alternateUrl} />
+  <Header {alternateUrl} />
   <main
     id="main-content"
-    class:list={["mx-auto w-full max-w-5xl px-4 pb-12", "post-enter"]}
+    class:list={[
+      "mx-auto w-full max-w-browse px-4 pb-12",
+      { "max-w-app": tocHeadings.length === 0 },
+      "post-enter",
+    ]}
     data-pagefind-body
     data-pagefind-filter="type:blog"
+    data-pagefind-meta={`contentLang:${sourceLocale}`}
   >
     <BackButton />
     <div class="flex gap-8">
@@ -255,7 +260,7 @@ const layoutProps = {
   </main>
   <BackToTopButton />
   {tocHeadings.length > 0 && <MobileToc headings={tocHeadings} />}
-  <Footer maxWidth="mx-auto w-full max-w-5xl px-4" />
+  <Footer />
 </Layout>
 
 <ArticleEnhancements />

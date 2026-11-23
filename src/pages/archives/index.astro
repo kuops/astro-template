@@ -42,7 +42,11 @@ const publishDate = (post: CollectionEntry<"blog">) =>
   localeAlternates
 >
   <Header />
-  <Main pageTitle={t.pages.archivesTitle} pageDesc={t.pages.archivesDesc}>
+  <Main
+    pageTitle={t.pages.archivesTitle}
+    pageDesc={t.pages.archivesDesc}
+    width="browse"
+  >
     {
       Object.entries(
         getPostsByGroupCondition(posts, post => publishDate(post).year())

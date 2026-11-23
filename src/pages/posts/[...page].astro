@@ -38,7 +38,11 @@ const alternateUrl = alternateLocale
 
 <Layout title={`${t.pages.postsTitle} | ${config.site.title}`} localeAlternates>
   <Header {alternateUrl} />
-  <Main pageTitle={t.pages.postsTitle} pageDesc={t.pages.postsDesc}>
+  <Main
+    pageTitle={t.pages.postsTitle}
+    pageDesc={t.pages.postsDesc}
+    width="browse"
+  >
     <ul>
       {page.data.map(data => <Card requestedLocale={locale} {...data} />)}
     </ul>
