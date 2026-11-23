@@ -31,6 +31,12 @@ export default defineAstroPaperConfig({
     },
     search: "pagefind",
   },
+  layout: {
+    // 布局宽度三档（CSS 长度）：阅读栏 / 浏览栏 / 导航带
+    reading: "48rem",
+    browse: "64rem",
+    chrome: "80rem",
+  },
   socials: [
     { name: "github", url: "https://github.com/satnaing/astro-paper" },
     { name: "x", url: "https://x.com/username" },

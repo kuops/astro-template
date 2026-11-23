@@ -16,6 +16,7 @@ const config: ResolvedAstroPaperConfig = {
   site: {
     ...userConfig.site,
     ogImage: userConfig.site.ogImage ?? DEFAULT_OG_IMAGE,
+    accent: userConfig.site.accent,
     lang: defaultLocale,
     timezone: userConfig.site.timezone ?? "UTC",
     dir: userConfig.site.dir ?? "ltr",
@@ -33,12 +34,18 @@ const config: ResolvedAstroPaperConfig = {
   },
   features: {
     lightAndDarkMode: userConfig.features?.lightAndDarkMode ?? true,
+    initialColorScheme: userConfig.features?.initialColorScheme ?? "",
     dynamicOgImage: userConfig.features?.dynamicOgImage ?? true,
     showArchives: userConfig.features?.showArchives ?? true,
     showBackButton: userConfig.features?.showBackButton ?? true,
     toc: userConfig.features?.toc ?? true,
     editPost: userConfig.features?.editPost ?? { enabled: false },
     search: userConfig.features?.search ?? "pagefind",
+  },
+  layout: {
+    reading: userConfig.layout?.reading ?? "48rem",
+    browse: userConfig.layout?.browse ?? "64rem",
+    chrome: userConfig.layout?.chrome ?? "80rem",
   },
   socials: userConfig.socials ?? [],
   shareLinks: userConfig.shareLinks ?? [],

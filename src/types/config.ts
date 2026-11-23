@@ -9,6 +9,8 @@ interface SiteConfig {
   avatar?: string;
   profile?: string;
   ogImage?: string;
+  /** 品牌强调色（链接/标题/激活态）。留空用 theme.css 默认；可分明暗覆盖 */
+  accent?: string | { light?: string; dark?: string };
   lang?: Locale;
   timezone?: string;
   dir?: "ltr" | "rtl";
@@ -27,6 +29,8 @@ interface PostsConfig {
 
 interface FeaturesConfig {
   lightAndDarkMode?: boolean;
+  /** 站点默认主题；留空则跟随用户系统偏好（prefers-color-scheme） */
+  initialColorScheme?: "" | "light" | "dark";
   dynamicOgImage?: boolean;
   showArchives?: boolean;
   showBackButton?: boolean;
@@ -38,6 +42,14 @@ interface FeaturesConfig {
       }
     | { enabled: false };
   search?: "pagefind" | false;
+}
+
+/** 布局宽度档位（CSS 长度，如 "48rem" / "768px"）。
+    阅读栏=长文与首页；浏览栏=列表/卡片网格页；导航带=header/footer 恒定宽度 */
+interface LayoutConfig {
+  reading?: string;
+  browse?: string;
+  chrome?: string;
 }
 
 interface SocialLink {
@@ -57,6 +69,7 @@ interface AstroPaperConfig {
   i18n?: I18nConfig;
   posts?: PostsConfig;
   features?: FeaturesConfig;
+  layout?: LayoutConfig;
   socials?: SocialLink[];
   shareLinks?: ShareLink[];
 }
@@ -74,13 +87,14 @@ type ResolvedSiteConfig = Required<
     | "ogImage"
   >
 > &
-  Pick<SiteConfig, "profile" | "googleVerification" | "avatar">;
+  Pick<SiteConfig, "profile" | "googleVerification" | "avatar" | "accent">;
 
 export interface ResolvedAstroPaperConfig {
   site: ResolvedSiteConfig;
   i18n: Required<I18nConfig>;
   posts: Required<PostsConfig>;
   features: Required<FeaturesConfig>;
+  layout: Required<LayoutConfig>;
   socials: SocialLink[];
   shareLinks: ShareLink[];
 }
@@ -95,6 +109,7 @@ export type {
   Locale,
   PostsConfig,
   FeaturesConfig,
+  LayoutConfig,
   SocialLink,
   ShareLink,
   AstroPaperConfig,

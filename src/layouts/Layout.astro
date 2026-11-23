@@ -27,6 +27,19 @@ type Props = {
   contentLang?: string;
 };
 
+const accentLight =
+  typeof config.site.accent === "string"
+    ? config.site.accent
+    : config.site.accent?.light;
+const accentDark =
+  typeof config.site.accent === "object" ? config.site.accent?.dark : undefined;
+const accentCss = [
+  accentLight
+    ? `:root,html[data-theme="light"]{--accent:${accentLight};}`
+    : "",
+  accentDark ? `html[data-theme="dark"]{--accent:${accentDark};}` : "",
+].join("");
+
 const {
   title = config.site.title,
   author = config.site.author,
@@ -43,6 +56,17 @@ const {
 
 const socialImageURL = new URL(ogImage, Astro.url);
 const locale = getLocaleFromPath(Astro.url.pathname);
+
+// 布局宽度档位覆盖：仅接受安全的 CSS 长度值，注入 :root 变量
+const CSS_LEN = /^-?\d*\.?\d+(rem|px|em|ch|vw|vh|svh|dvh|%|cqw)$/;
+const widthVars = Object.entries({
+  "--w-reading": config.layout?.reading,
+  "--w-browse": config.layout?.browse,
+  "--w-chrome": config.layout?.chrome,
+})
+  .filter(([, v]) => v && CSS_LEN.test(v))
+  .map(([k, v]) => `${k}:${v}`)
+  .join(";");
 const resolvedAlternateURLs = localeAlternates
   ? Object.fromEntries(
       config.i18n.locales.map(alternateLocale => [
@@ -77,6 +101,14 @@ const structuredData = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {accentCss && <style is:inline set:html={accentCss} />}
+    {widthVars && (
+      <style is:inline set:html={`:root:root{${widthVars}}`} />
+    )}
+    <script is:inline define:vars={{ initialColorScheme: config.features.initialColorScheme }}>
+      // 同步注入 config 的初始主题，供下方 inline 主题脚本读取（单一来源 config.features.initialColorScheme）
+      window.__initialColorScheme = initialColorScheme;
+    </script>
     <link rel="canonical" href={canonicalURL} />
     {
       Object.entries(resolvedAlternateURLs).map(([alternateLocale, href]) => (
@@ -90,6 +122,8 @@ const structuredData = {
     <meta name="generator" content={Astro.generator} />
 
     <Font cssVariable="--font-google-sans-code" preload />
+    {/* Noto 为百级切片字体，不能 preload（会全量预载）；按页面字符按需加载 */}
+    <Font cssVariable="--font-noto-sans-sc" />
 
     <!-- General Meta Tags -->
     <title>{title}</title>
@@ -356,7 +390,7 @@ const structuredData = {
 
     <script is:inline>
       (function () {
-        const initialColorScheme = ""; // "light" | "dark"
+        const initialColorScheme = window.__initialColorScheme || ""; // 来自 config.features.initialColorScheme
         const currentTheme = localStorage.getItem("theme");
 
         function getPreferTheme() {

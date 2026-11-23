@@ -1,11 +1,13 @@
 // Constants
+import config from "@/config";
+
 const THEME = "theme";
 const LIGHT = "light";
 const DARK = "dark";
 
-// Initial color scheme
-// Can be "light", "dark", or empty string for system's prefers-color-scheme
-const initialColorScheme = "";
+// Initial color scheme — single source: config.features.initialColorScheme
+// ("light" | "dark" | "" for system's prefers-color-scheme)
+const initialColorScheme = config.features.initialColorScheme;
 
 function getPreferTheme(): string {
   // get theme data from local storage (user's explicit choice)
