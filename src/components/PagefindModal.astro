@@ -1,5 +1,10 @@
 ---
-import { getLocaleFromPath, useTranslations } from "@/i18n";
+import config from "@/config";
+import {
+  getAlternateLocale,
+  getLocaleFromPath,
+  useTranslations,
+} from "@/i18n";
 import { getAllBooks } from "@/utils/books";
 
 const locale = getLocaleFromPath(Astro.url.pathname);
@@ -19,7 +24,12 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
   data-hint-close={t.a11y.searchHintClose}
   data-clear-search={t.a11y.clearSearch}
   data-articles={t.nav.posts}
-  data-books={t.nav.books}></span>
+  data-books={t.nav.books}
+  data-locale={locale}
+  data-other-locale={getAlternateLocale(locale) ?? ""}
+  data-default-locale={config.site.lang}
+  data-source-label={t.language.sourceLabel}
+  data-lang-names={JSON.stringify(t.language.names)}></span>
 <span class="hidden" id="book-titles" data-map={JSON.stringify(bookMap)}></span>
 
 <dialog id="search-modal" aria-label={t.a11y.searchPlaceholder}>
@@ -127,9 +137,32 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
       if (pagefind) return true;
       if (!pagefindPromise) {
         pagefindPromise = import("/pagefind/pagefind.js")
-          .then(module => {
-            pagefind = { search: module.search };
-            return true;
+          .then(async module => {
+            // 双语回退可发现：Pagefind 按页面 lang 分索引，默认只查与 query
+            // 同系的 bundle。这里以当前语言为主索引，再 mergeIndex 其余语言
+            // （basePath 用不带尾斜杠的 "/pagefind" 以避开同路径自跳过），
+            // 使任一语言 query 都能命中两种语言的内容（含未翻译回退原文）。
+            const i18n = document.getElementById("i18n-pagefind")?.dataset || {};
+            const langs = [
+              ...new Set(
+                [i18n.locale, i18n.otherLocale, i18n.defaultLocale].filter(
+                  Boolean
+                )
+              ),
+            ];
+            try {
+              await module.options({ language: langs[0], basePath: "/pagefind/" });
+              await module.init();
+              // 其余语言用构建期生成的独立副本路径合并（mergeIndex 会跳过
+              // 与主索引同路径的索引，故必须用互不相同的 /pagefind/<lang>/）
+              for (const lang of langs.slice(1)) {
+                await module.mergeIndex(`/pagefind/${lang}/`, { language: lang });
+              }
+              pagefind = { search: q => module.search(q) };
+              return true;
+            } catch {
+              return false;
+            }
           })
           .catch(() => false);
       }
@@ -165,53 +198,116 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
         .replace(/"/g, "&quot;");
     }
 
+    // 功能词：参与 AND 校验但不主导摘要开窗/扩展/子节排序
+    const STOP = new Set(["a", "an", "the", "of", "to", "in", "on", "at", "is", "it", "and", "or"]);
+
     // 字符级高亮细化：Pagefind 按"词"标 mark（CJK 分词粒度），
-    // 这里把摘要重写为"以首个命中点为中心的开窗文本 + 字符级 mark"，
-    // 子串精确高亮，且保证高亮落在 CSS 截断前的可视区。
+    // 这里把摘要重写为"覆盖查询词的开窗文本 + 字符级 mark"。
+    // 多词查询（全词 AND）时以内容词为锚、尽量把其余查询词收进同一窗口，
+    // 避免功能词（a/the）抢占窗口导致实质词被截掉；拉丁词按词边界高亮，
+    // 不会把单词内部的字母（如 "sample" 里的 a）误标。
     // 词干匹配（文本中无查询字面子串）时保留 Pagefind 原摘要兜底。
-    function refineExcerpt(html, query) {
-      const terms = [...new Set(query.trim().split(/\s+/).filter(Boolean))];
+    function refineExcerpt(html, ordered, srcText) {
+      const terms = [...new Set(ordered.filter(Boolean))];
       if (terms.length === 0) return html;
       const holder = document.createElement("div");
       holder.innerHTML = html; // Pagefind 输出已转义，仅含 <mark>
-      const text = holder.textContent || "";
+      // 子节传入按标题切出的段落全文重建窗口（Pagefind 自带窗口可能不含实质词）；
+      // 主条目用其自身摘要文本。
+      const text = srcText || holder.textContent || "";
       const lowered = text.toLowerCase();
-      const loweredTerms = terms.map(t => t.toLowerCase());
+      const isCjk = t => /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(t);
+      // 词边界命中位置（拉丁）/ 子串命中位置（CJK）。
+      // 拉丁整词不中时退而求其次：前缀命中更长词（bool→boolean）或
+      // ≥3 字符整词前缀（tests→test），返回实际命中位置与词长，
+      // 高亮时只标查询前缀部分。
+      const findAt = (t, from) => {
+        if (isCjk(t)) {
+          const idx = lowered.indexOf(t, from);
+          return idx === -1 ? null : { idx, len: t.length };
+        }
+        const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const whole = new RegExp("\\b" + esc + "\\b", "g");
+        whole.lastIndex = from;
+        let m = whole.exec(lowered);
+        if (m) return { idx: m.index, len: t.length };
+        const longer = new RegExp("\\b" + esc + "\\w+", "g");
+        longer.lastIndex = from;
+        m = longer.exec(lowered);
+        if (m) return { idx: m.index, len: t.length };
+        for (let n = t.length - 1; n >= 3; n--) {
+          const re = new RegExp("\\b" + esc.slice(0, n) + "\\b", "g");
+          re.lastIndex = from;
+          m = re.exec(lowered);
+          if (m) return { idx: m.index, len: n };
+        }
+        return null;
+      };
 
-      // 定位最早出现的命中
+      // 锚点：以文本中首个内容词命中为锚；无内容词时退回首词
       let hit = -1;
       let hitLen = 0;
-      for (const t of loweredTerms) {
-        const idx = lowered.indexOf(t);
-        if (idx !== -1 && (hit === -1 || idx < hit)) {
-          hit = idx;
-          hitLen = t.length;
+      for (const t of terms) {
+        const f = findAt(t, 0);
+        if (f) {
+          hit = f.idx;
+          hitLen = f.len;
+          break;
         }
       }
       if (hit === -1) return html; // 词干匹配场景，保留原高亮
 
-      // 以命中点为中心开窗
+      // 开窗：锚点前后基础留白；再尝试把其余"内容词"收进同一窗口，
+      // 但只认锚点附近的命中（停用词 a/the 不参与扩展，避免窗口被
+      // 全文首处的功能词撑爆）
       const BEFORE = 24;
       const AFTER = 56;
-      const start = Math.max(0, hit - BEFORE);
-      const end = Math.min(text.length, hit + hitLen + AFTER);
+      let start = Math.max(0, hit - BEFORE);
+      let end = Math.min(text.length, hit + hitLen + AFTER);
+      for (const t of terms) {
+        if (STOP.has(t)) continue;
+        const f = findAt(t, 0);
+        if (!f || Math.abs(f.idx - hit) > 160) continue;
+        if (f.idx < start) start = Math.max(0, f.idx - 8);
+        if (f.idx + f.len > end) end = Math.min(text.length, f.idx + f.len + 8);
+      }
       const windowed =
         (start > 0 ? "…" : "") +
         text.slice(start, end) +
         (end < text.length ? "…" : "");
 
-      // 窗口内全部命中包 mark
+      // 窗口内全部命中包 mark（拉丁按词边界/前缀，CJK 按子串）
       const frag = document.createDocumentFragment();
       const wLower = windowed.toLowerCase();
+      const findIn = (t, from) => {
+        if (isCjk(t)) {
+          const idx = wLower.indexOf(t, from);
+          return idx === -1 ? null : { idx, len: t.length };
+        }
+        const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        for (const pat of ["\\b" + esc + "\\b", "\\b" + esc + "\\w+"]) {
+          const re = new RegExp(pat, "g");
+          re.lastIndex = from;
+          const m = re.exec(wLower);
+          if (m) return { idx: m.index, len: t.length };
+        }
+        for (let n = t.length - 1; n >= 3; n--) {
+          const re = new RegExp("\\b" + esc.slice(0, n) + "\\b", "g");
+          re.lastIndex = from;
+          const m = re.exec(wLower);
+          if (m) return { idx: m.index, len: n };
+        }
+        return null;
+      };
       let i = 0;
       while (i < windowed.length) {
         let pos = -1;
         let posLen = 0;
-        for (const t of loweredTerms) {
-          const idx = wLower.indexOf(t.toLowerCase(), i);
-          if (idx !== -1 && (pos === -1 || idx < pos)) {
-            pos = idx;
-            posLen = t.length;
+        for (const t of terms) {
+          const f = findIn(t, i);
+          if (f && (pos === -1 || f.idx < pos)) {
+            pos = f.idx;
+            posLen = f.len;
           }
         }
         if (pos === -1) {
@@ -262,14 +358,91 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
         return;
       }
 
-      const limit = Math.min(search.results.length, MAX_RESULTS);
+      const i18nDs = document.getElementById("i18n-pagefind")?.dataset || {};
+      const currentLocale = i18nDs.locale || "";
+      const defaultLocale = i18nDs.defaultLocale || currentLocale;
+      let langNames = {};
+      try {
+        langNames = JSON.parse(i18nDs.langNames || "{}");
+      } catch {}
+      const sourceLabelTpl = i18nDs.sourceLabel || "{{language}}";
+      // 翻译键 = 去掉路由语言前缀的路径：同内容的 zh/en 路由共享它
+      const tKeyOf = u => (u || "").replace(/^\/[a-z]{2}(?:-[A-Za-z]+)?\//, "/");
+
+      // 词干/前缀匹配噪声过滤：Pagefind 英文索引会把 "about" 命中到冠词 "a"。
+      // 以页面全文做字面校验：CJK 用子串；拉丁词要求全文含该词整词、
+      // 或该词的 ≥3 字符整词前缀（保留 tests→test 这类词干命中）、
+      // 或该词作为更长词的前缀（js→JSX）。摘要窗口不全，故用 content 全文。
+      const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // 多词查询语义 = 全词 AND：每个词都须字面命中（整词/词干/前缀规则见下）。
+      // 冠词类短词（a/the）虽参与 AND，但不主导摘要开窗与排序。
+      const terms = query.trim().split(/\s+/).filter(Boolean);
+      const termRes = terms.map(t => {
+        const low = t.toLowerCase();
+        if (/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(t))
+          return { cjk: true, low, content: true };
+        const prefixes = [];
+        for (let n = 3; n < low.length; n++) prefixes.push(low.slice(0, n));
+        return {
+          cjk: false,
+          low,
+          content: !STOP.has(low) && low.length >= 2,
+          whole: new RegExp("\\b" + escRe(low) + "\\b", "i"),
+          longer: new RegExp("\\b" + escRe(low) + "\\w+", "i"),
+          stems: prefixes.map(p => new RegExp("\\b" + escRe(p) + "\\b", "i")),
+        };
+      });
+      // 供摘要开窗/高亮使用的词列表：内容词在前，功能词殿后
+      const orderedTerms = [...termRes]
+        .sort((x, y) => Number(y.content) - Number(x.content))
+        .map(tr => tr.low);
+      const contentLows = termRes.filter(tr => tr.content).map(tr => tr.low);
+      // 子节排序键：内容词字面命中优先（Pagefind 自身分会被功能词噪声带偏，
+      // 把含实质词的子节挤出 top4）；其次任意查询词命中
+      const subScore = ex => {
+        const low = (ex || "").toLowerCase();
+        const c = contentLows.some(t => low.includes(t)) ? 2 : 0;
+        const a = orderedTerms.some(t => low.includes(t)) ? 1 : 0;
+        return c + a;
+      };
+      const contentMatches = d => {
+        const text = ((d.content || "") + " " + (d.meta?.title || "")).toLowerCase();
+        return termRes.every(tr => {
+          if (tr.cjk) return text.includes(tr.low);
+          if (tr.whole.test(text) || tr.longer.test(text)) return true;
+          return tr.stems.some(re => re.test(text));
+        });
+      };
+
+      // 同内容同语言的路由镜像去重（优先保留当前路由前缀的那条）；
+      // 跨语言回退原文保留，交由徽标标明
+      const routePrefix = currentLocale === defaultLocale ? "" : "/" + currentLocale;
+      const byKeyLang = new Map();
+      for (const r of search.results) {
+        const d = await r.data();
+        if (currentVersion !== searchVersion) return;
+        if (!contentMatches(d)) continue;
+        const cl = d.meta?.contentLang || currentLocale;
+        const key = tKeyOf(d.url) + "|" + cl;
+        const prev = byKeyLang.get(key);
+        const score = u => (u.startsWith(routePrefix + "/") ? 1 : 0);
+        if (!prev || score(d.url) > score(prev.d.url))
+          byKeyLang.set(key, { r, d });
+      }
+      const deduped = [...byKeyLang.values()];
+
+      if (deduped.length === 0) {
+        emptyText.textContent = zeroResults.replace("[SEARCH_TERM]", query);
+        emptyEl.hidden = false;
+        return;
+      }
+
+      const limit = Math.min(deduped.length, MAX_RESULTS);
       const fragment = document.createDocumentFragment();
 
       const groupEls = [];
       for (let i = 0; i < limit; i++) {
-        const result = search.results[i];
-        const data = await result.data();
-        if (currentVersion !== searchVersion) return;
+        const { d: data } = deduped[i];
         const pageTitle = data.meta?.title || data.title || "";
         const bookMatch = data.url?.match(/^\/(?:zh\/|en\/)?books\/([^/]+)\//);
         const prefix = bookMatch
@@ -284,37 +457,96 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
         mainItem.className = "search-result";
         // 页级摘要以命中点为中心，必定包含查询字符——保证每组至少有一条"看得见为什么命中"
         const mainRefined = data.excerpt
-          ? refineExcerpt(data.excerpt, query)
+          ? refineExcerpt(data.excerpt, orderedTerms)
           : "";
         // 摘要含查询字面 = 内容命中（对齐"永不命中标题"的语义）；
         // 纯标题命中的组在展示层沉底。
         // 主条目只显示面包屑→标题：命中的内容统一由子条目摘要展示，
         // 避免主条目摘要与首个子条目摘要重复（主流文档站同款布局）
         const mainHasMatch = mainRefined.includes("<mark");
+        // 徽标按"内容语言"而非路由前缀：/en/ 路由下的回退页内容仍是中文，
+        // 内容语言由构建期 data-pagefind-meta=contentLang 写入索引
+        const resLang = data.meta?.contentLang || currentLocale;
+        const isFallback = resLang !== currentLocale;
+        // 翻译键用于把"原生 + 回退原文"排成相邻一对
+        const tKey = tKeyOf(data.url);
+        const badge = isFallback
+          ? '<span class="search-result-source" title="' +
+            escapeHtml(
+              sourceLabelTpl.replace(
+                "{{language}}",
+                langNames[resLang] || resLang
+              )
+            ) +
+            '">' +
+            escapeHtml(resLang.toUpperCase()) +
+            "</span>"
+          : "";
+        // 子节段落切分：Pagefind 的 locations 词偏移在 zh 逐字分词下与
+        // content 词表错位，不可靠；改用标题文本单调定位（每个子节从上一
+        // 子节标题之后找自己的标题，天然跳过目录里的同名条目），切出
+        // [标题, 下一标题) 的段落全文，供摘要重建（VitePress 整段摘要的静态等价）
+        const subsRaw = data.sub_results || [];
+        const orderedSubs = [...subsRaw].sort(
+          (a, b) => (a.anchor?.location ?? 0) - (b.anchor?.location ?? 0)
+        );
+        const fullText = data.content || "";
+        const headPos = new Map();
+        let searchFrom = 0;
+        for (const sub of orderedSubs) {
+          const head = sub.anchor?.text || sub.title || "";
+          const p = head ? fullText.indexOf(head, searchFrom) : -1;
+          headPos.set(sub, p);
+          if (p !== -1) searchFrom = p + head.length;
+        }
+        const subs = subsRaw
+          .map(sub => {
+            const p = headPos.get(sub) ?? -1;
+            let sectionText = "";
+            if (p !== -1) {
+              const head = sub.anchor?.text || sub.title || "";
+              let next = fullText.length;
+              for (const other of orderedSubs) {
+                const q = headPos.get(other) ?? -1;
+                if (q > p && q < next) next = q;
+              }
+              sectionText = fullText.slice(p + head.length, next);
+            }
+            const refined =
+              sub.excerpt && sub.excerpt.trim()
+                ? refineExcerpt(
+                    sub.excerpt,
+                    orderedTerms,
+                    sectionText || undefined
+                  )
+                : "";
+            return { ...sub, refined, hasMatch: refined.includes("<mark") };
+          })
+          // 内容词字面命中的子节排前（避免功能词噪声把实质子节挤出 top4），
+          // 其次任意查询词命中，避免"匹配了但摘要没有查询字"的展示
+          .sort((a, b) => subScore(b.refined) - subScore(a.refined));
+        const subLimit = Math.min(subs.length, 4);
+        const renderableSubs = subs
+          .slice(0, subLimit)
+          .filter(sub => sub.title && sub.url !== data.url);
         mainItem.innerHTML =
           '<span class="search-result-title">' +
           '<span class="search-result-prefix">' +
           prefix +
           " › </span>" +
           escapeHtml(pageTitle) +
-          "</span>";
+          badge +
+          "</span>" +
+          // 无子节（短文章/无 TOC）时主条目自带摘要，避免"只有标题"的秃行；
+          // 有子节时摘要统一由子条目展示，避免重复
+          (renderableSubs.length === 0 && mainRefined
+            ? '<span class="search-result-excerpt">' + mainRefined + "</span>"
+            : "");
         group.appendChild(mainItem);
 
-        const subs = (data.sub_results || [])
-          .map(sub => {
-            const refined =
-              sub.excerpt && sub.excerpt.trim()
-                ? refineExcerpt(sub.excerpt, query)
-                : "";
-            return { ...sub, refined, hasMatch: refined.includes("<mark") };
-          })
-          // 命中查询字符的子节排前面，避免出现"匹配了但摘要没有查询字"的展示
-          .sort((a, b) => Number(b.hasMatch) - Number(a.hasMatch));
-        const subLimit = Math.min(subs.length, 4);
-        for (let j = 0; j < subLimit; j++) {
-          const sub = subs[j];
-          if (!sub.title || sub.url === data.url) continue;
-          const isSubLast = j === subLimit - 1;
+        for (let j = 0; j < renderableSubs.length; j++) {
+          const sub = renderableSubs[j];
+          const isSubLast = j === renderableSubs.length - 1;
 
           const item = document.createElement("a");
           item.href = sub.url;
@@ -331,11 +563,17 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
           group.appendChild(item);
         }
 
-        groupEls.push({ group, mainHasMatch });
+        groupEls.push({ group, mainHasMatch, isFallback, tKey });
       }
 
+      // 同内容（translationKey）的原生与回退原文相邻成对、原生在前；
       // 内容命中的组在前，纯标题命中的组沉底
-      groupEls.sort((a, b) => Number(b.mainHasMatch) - Number(a.mainHasMatch));
+      groupEls.sort(
+        (a, b) =>
+          Number(b.mainHasMatch) - Number(a.mainHasMatch) ||
+          (a.tKey < b.tKey ? -1 : a.tKey > b.tKey ? 1 : 0) ||
+          Number(a.isFallback) - Number(b.isFallback)
+      );
       for (const { group } of groupEls) fragment.appendChild(group);
       // 重新编号，保证键盘导航的 data-index 与 DOM 顺序一致
       fragment
@@ -368,15 +606,38 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
       }
     }
 
+    // 中文输入法：拼音组合阶段不搜索，等候选字落屏（compositionend）再搜
+    let composing = false;
+    function scheduleSearch() {
+      searchVersion++;
+      clearTimeout(debounceTimer);
+      clearState();
+      const query = input.value;
+      clearBtn.classList.toggle("visible", query.length > 0);
+      debounceTimer = setTimeout(() => performSearch(query), DEBOUNCE_MS);
+    }
+    input.addEventListener(
+      "compositionstart",
+      () => {
+        composing = true;
+        searchVersion++;
+        clearTimeout(debounceTimer);
+      },
+      { signal: controller.signal }
+    );
+    input.addEventListener(
+      "compositionend",
+      () => {
+        composing = false;
+        scheduleSearch();
+      },
+      { signal: controller.signal }
+    );
     input.addEventListener(
       "input",
       () => {
-        searchVersion++;
-        clearTimeout(debounceTimer);
-        clearState();
-        const query = input.value;
-        clearBtn.classList.toggle("visible", query.length > 0);
-        debounceTimer = setTimeout(() => performSearch(query), DEBOUNCE_MS);
+        if (composing) return;
+        scheduleSearch();
       },
       { signal: controller.signal }
     );
@@ -775,7 +1036,7 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
 
   .search-result-excerpt {
     font-size: 12px;
-    opacity: 0.5;
+    opacity: 0.62;
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
@@ -783,9 +1044,25 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
   }
 
   .search-result-prefix {
-    opacity: 0.5;
+    opacity: 0.62;
     font-weight: 400;
     font-size: 0.85em;
+  }
+
+  /* 回退原文徽标：pill 胶囊 + 语言代码 EN/ZH（uppercase），
+     完整"××原文"文案放 title 悬停提示 */
+  .search-result-source {
+    flex-shrink: 0;
+    margin-inline-start: 2px;
+    padding: 0 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .search-result mark {

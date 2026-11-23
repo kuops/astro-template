@@ -18,7 +18,7 @@
 - **内容目录沿用旧结构**：上游后续把内容目录切换到了 `src/content/`，而这个模板延续了较早版本的 `src/data/` 组织方式，并按 `blog`、`books`、`pages` 分开管理。
 - **书籍内容系统**：除了博客，还新增了文件系统驱动的 `books` 集合，支持 `index.md`、`_index.md`、章节分组和书籍目录页。
 - **阅读体验补充**：增加了书籍导航、返回按钮、回到顶部、目录体验优化、图片灯箱等能力。
-- **搜索实现调整**：从上游的默认搜索 UI 调整为 `@pagefind/component-ui` 方案，并在构建后生成静态搜索索引。
+- **搜索实现调整**：自研搜索 modal（`PagefindModal.astro`）+ Pagefind 静态索引；支持中英双语言索引合并，未翻译的回退原文也可被搜到并带"原文"徽标。
 - **字体与代码展示调整**：增加 Google Sans Code、Noto Sans SC、自定义代码块文件名与高亮 transformer，更适合中英文混排和技术写作。
 
 ## 项目结构（Project Structure）
