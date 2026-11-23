@@ -43,7 +43,9 @@ const tagCount = new Set(sortedPosts.flatMap(({ data }) => data.tags ?? []))
   <Header />
   <main id="main-content" data-layout="index" class="browse-layout">
     <section id="hero" class:list={["pt-8 pb-8", "border-b border-border"]}>
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch">
+      <div
+        class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch"
+      >
         {/* 左：身份 + 社交 + 统计/入口，与右卡等高时底部对齐 */}
         <div class="flex min-w-0 flex-col gap-6">
           <div class="flex items-center gap-5 sm:gap-6">
@@ -96,17 +98,36 @@ const tagCount = new Set(sortedPosts.flatMap(({ data }) => data.tags ?? []))
             )
           }
 
-          <div class="mt-auto flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div
+            class="mt-auto flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
+          >
             <div class="flex gap-x-8 sm:gap-x-10">
               {
                 [
-                  { n: sortedPosts.length, label: t.home.statsPosts, href: getLocalizedPath("/posts/", locale) },
-                  { n: bookCount, label: t.home.statsBooks, href: getLocalizedPath("/books/", locale) },
-                  { n: tagCount, label: t.home.statsTags, href: getLocalizedPath("/tags/", locale) },
+                  {
+                    n: sortedPosts.length,
+                    label: t.home.statsPosts,
+                    href: getLocalizedPath("/posts/", locale),
+                  },
+                  {
+                    n: bookCount,
+                    label: t.home.statsBooks,
+                    href: getLocalizedPath("/books/", locale),
+                  },
+                  {
+                    n: tagCount,
+                    label: t.home.statsTags,
+                    href: getLocalizedPath("/tags/", locale),
+                  },
                 ].map(({ n, label, href }) => (
-                  <a href={href} class="focus-outline rounded-xs leading-none hover:text-accent">
+                  <a
+                    href={href}
+                    class="focus-outline rounded-xs leading-none hover:text-accent"
+                  >
                     <div class="text-2xl font-bold tabular-nums">{n}</div>
-                    <div class="mt-1.5 text-xs text-muted-foreground">{label}</div>
+                    <div class="mt-1.5 text-xs text-muted-foreground">
+                      {label}
+                    </div>
                   </a>
                 ))
               }

@@ -1,10 +1,6 @@
 ---
 import config from "@/config";
-import {
-  getAlternateLocale,
-  getLocaleFromPath,
-  useTranslations,
-} from "@/i18n";
+import { getAlternateLocale, getLocaleFromPath, useTranslations } from "@/i18n";
 import { getAllBooks } from "@/utils/books";
 
 const locale = getLocaleFromPath(Astro.url.pathname);
@@ -142,7 +138,8 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
             // 同系的 bundle。这里以当前语言为主索引，再 mergeIndex 其余语言
             // （basePath 用不带尾斜杠的 "/pagefind" 以避开同路径自跳过），
             // 使任一语言 query 都能命中两种语言的内容（含未翻译回退原文）。
-            const i18n = document.getElementById("i18n-pagefind")?.dataset || {};
+            const i18n =
+              document.getElementById("i18n-pagefind")?.dataset || {};
             const langs = [
               ...new Set(
                 [i18n.locale, i18n.otherLocale, i18n.defaultLocale].filter(
@@ -151,12 +148,17 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
               ),
             ];
             try {
-              await module.options({ language: langs[0], basePath: "/pagefind/" });
+              await module.options({
+                language: langs[0],
+                basePath: "/pagefind/",
+              });
               await module.init();
               // 其余语言用构建期生成的独立副本路径合并（mergeIndex 会跳过
               // 与主索引同路径的索引，故必须用互不相同的 /pagefind/<lang>/）
               for (const lang of langs.slice(1)) {
-                await module.mergeIndex(`/pagefind/${lang}/`, { language: lang });
+                await module.mergeIndex(`/pagefind/${lang}/`, {
+                  language: lang,
+                });
               }
               pagefind = { search: q => module.search(q) };
               return true;
@@ -199,7 +201,20 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
     }
 
     // 功能词：参与 AND 校验但不主导摘要开窗/扩展/子节排序
-    const STOP = new Set(["a", "an", "the", "of", "to", "in", "on", "at", "is", "it", "and", "or"]);
+    const STOP = new Set([
+      "a",
+      "an",
+      "the",
+      "of",
+      "to",
+      "in",
+      "on",
+      "at",
+      "is",
+      "it",
+      "and",
+      "or",
+    ]);
 
     // 字符级高亮细化：Pagefind 按"词"标 mark（CJK 分词粒度），
     // 这里把摘要重写为"覆盖查询词的开窗文本 + 字符级 mark"。
@@ -367,7 +382,8 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
       } catch {}
       const sourceLabelTpl = i18nDs.sourceLabel || "{{language}}";
       // 翻译键 = 去掉路由语言前缀的路径：同内容的 zh/en 路由共享它
-      const tKeyOf = u => (u || "").replace(/^\/[a-z]{2}(?:-[A-Za-z]+)?\//, "/");
+      const tKeyOf = u =>
+        (u || "").replace(/^\/[a-z]{2}(?:-[A-Za-z]+)?\//, "/");
 
       // 词干/前缀匹配噪声过滤：Pagefind 英文索引会把 "about" 命中到冠词 "a"。
       // 以页面全文做字面校验：CJK 用子串；拉丁词要求全文含该词整词、
@@ -406,7 +422,11 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
         return c + a;
       };
       const contentMatches = d => {
-        const text = ((d.content || "") + " " + (d.meta?.title || "")).toLowerCase();
+        const text = (
+          (d.content || "") +
+          " " +
+          (d.meta?.title || "")
+        ).toLowerCase();
         return termRes.every(tr => {
           if (tr.cjk) return text.includes(tr.low);
           if (tr.whole.test(text) || tr.longer.test(text)) return true;
@@ -416,7 +436,8 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
 
       // 同内容同语言的路由镜像去重（优先保留当前路由前缀的那条）；
       // 跨语言回退原文保留，交由徽标标明
-      const routePrefix = currentLocale === defaultLocale ? "" : "/" + currentLocale;
+      const routePrefix =
+        currentLocale === defaultLocale ? "" : "/" + currentLocale;
       const byKeyLang = new Map();
       for (const r of search.results) {
         const d = await r.data();

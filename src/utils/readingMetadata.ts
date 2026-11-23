@@ -25,10 +25,7 @@ export const getReadingMetadata = (
   const cjkCount = text.match(cjkCharacterPattern)?.length ?? 0;
   const latinWordCount = text.match(latinWordPattern)?.length ?? 0;
   const count = cjkCount + latinWordCount;
-  const minutes = Math.max(
-    1,
-    Math.ceil(cjkCount / 400 + latinWordCount / 200)
-  );
+  const minutes = Math.max(1, Math.ceil(cjkCount / 400 + latinWordCount / 200));
 
   return { count, minutes };
 };

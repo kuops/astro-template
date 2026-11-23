@@ -34,9 +34,7 @@ const accentLight =
 const accentDark =
   typeof config.site.accent === "object" ? config.site.accent?.dark : undefined;
 const accentCss = [
-  accentLight
-    ? `:root,html[data-theme="light"]{--accent:${accentLight};}`
-    : "",
+  accentLight ? `:root,html[data-theme="light"]{--accent:${accentLight};}` : "",
   accentDark ? `html[data-theme="dark"]{--accent:${accentDark};}` : "",
 ].join("");
 
@@ -102,10 +100,11 @@ const structuredData = {
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {accentCss && <style is:inline set:html={accentCss} />}
-    {widthVars && (
-      <style is:inline set:html={`:root:root{${widthVars}}`} />
-    )}
-    <script is:inline define:vars={{ initialColorScheme: config.features.initialColorScheme }}>
+    {widthVars && <style is:inline set:html={`:root:root{${widthVars}}`} />}
+    <script
+      is:inline
+      define:vars={{ initialColorScheme: config.features.initialColorScheme }}
+    >
       // 同步注入 config 的初始主题，供下方 inline 主题脚本读取（单一来源 config.features.initialColorScheme）
       window.__initialColorScheme = initialColorScheme;
     </script>
