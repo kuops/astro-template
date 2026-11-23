@@ -9,13 +9,10 @@ type ArrayTitle = { pageTitle: [string, string]; titleTransition: string };
 type Props = (StringTitle | ArrayTitle) & {
   pageDesc?: string;
   width?: "read" | "browse";
-  /** 单屏模式：页面锁定一屏，slot 区域内部滚动（书籍库等多卡片浏览页） */
-  viewport?: boolean;
 };
 
 const { props } = Astro;
 const wide = props.width === "browse";
-const viewport = props.viewport === true;
 
 const backUrl = config.features.showBackButton ? Astro.url.pathname : "/";
 ---
@@ -24,12 +21,7 @@ const backUrl = config.features.showBackButton ? Astro.url.pathname : "/";
 <main
   data-backUrl={backUrl}
   id="main-content"
-  data-viewport-lock={viewport ? "" : undefined}
-  class:list={[
-    wide ? "browse-layout" : "app-layout",
-    "pb-4",
-    viewport && "flex min-h-0 flex-1 flex-col",
-  ]}
+  class:list={[wide ? "browse-layout" : "app-layout", "pb-4"]}
 >
   {
     "titleTransition" in props ? (
@@ -44,15 +36,7 @@ const backUrl = config.features.showBackButton ? Astro.url.pathname : "/";
     )
   }
   <p class="mt-2 mb-6 font-reading text-muted-foreground">{props.pageDesc}</p>
-  {
-    viewport ? (
-      <div class="browse-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4 pr-1">
-        <slot />
-      </div>
-    ) : (
-      <slot />
-    )
-  }
+  <slot />
 </main>
 <BackToTopButton />
 

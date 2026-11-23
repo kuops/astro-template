@@ -65,11 +65,6 @@
   body {
     @apply flex min-h-svh flex-col bg-background font-app text-foreground selection:bg-accent/75 selection:text-background;
   }
-  /* 单屏浏览页（书籍库）：整页锁定一屏，滚动只发生在 .browse-scroll 内部，
-     不产生全局滚动条；不支持 :has 的旧浏览器回退为普通页面滚动 */
-  body:has(#main-content[data-viewport-lock]) {
-    @apply h-svh overflow-hidden;
-  }
   a,
   button {
     @apply outline-offset-1 outline-accent focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
@@ -531,38 +526,33 @@ pre.code-scroll::-webkit-scrollbar-thumb:hover {
   .toc-scroll,
   .sidebar-scroll,
   .mobile-toc-list,
-  .book-dialog-panels,
-  .browse-scroll {
+  .book-dialog-panels {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) transparent;
   }
   .toc-scroll::-webkit-scrollbar,
   .sidebar-scroll::-webkit-scrollbar,
   .mobile-toc-list::-webkit-scrollbar,
-  .book-dialog-panels::-webkit-scrollbar,
-  .browse-scroll::-webkit-scrollbar {
+  .book-dialog-panels::-webkit-scrollbar {
     width: 6px;
   }
   .toc-scroll::-webkit-scrollbar-track,
   .sidebar-scroll::-webkit-scrollbar-track,
   .mobile-toc-list::-webkit-scrollbar-track,
-  .book-dialog-panels::-webkit-scrollbar-track,
-  .browse-scroll::-webkit-scrollbar-track {
+  .book-dialog-panels::-webkit-scrollbar-track {
     background: transparent;
   }
   .toc-scroll::-webkit-scrollbar-thumb,
   .sidebar-scroll::-webkit-scrollbar-thumb,
   .mobile-toc-list::-webkit-scrollbar-thumb,
-  .book-dialog-panels::-webkit-scrollbar-thumb,
-  .browse-scroll::-webkit-scrollbar-thumb {
+  .book-dialog-panels::-webkit-scrollbar-thumb {
     border-radius: 999px;
     background: var(--scrollbar-thumb);
   }
   .toc-scroll::-webkit-scrollbar-thumb:hover,
   .sidebar-scroll::-webkit-scrollbar-thumb:hover,
   .mobile-toc-list::-webkit-scrollbar-thumb:hover,
-  .book-dialog-panels::-webkit-scrollbar-thumb:hover,
-  .browse-scroll::-webkit-scrollbar-thumb:hover {
+  .book-dialog-panels::-webkit-scrollbar-thumb:hover {
     background: var(--scrollbar-thumb-hover);
   }
 }
