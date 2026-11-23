@@ -1,0 +1,37 @@
+name: Refresh weather snapshot
+
+# 定时把 sojson（失败时 Open-Meteo）天气抓成同源 public/weather.json 并提交。
+# 页面只读同源快照，浏览器零跨域、零运行时服务器（纯静态 Astro 适用）。
+on:
+  schedule:
+    - cron: "0 */2 * * *" # 每 2 小时
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch weather snapshot
+        run: node scripts/fetch-weather.mjs
+        env:
+          WEATHER_CITYKEY: "101210101"
+          WEATHER_CITY: "杭州"
+          WEATHER_PROVINCE: "浙江"
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/weather.json
+          if git diff --cached --quiet; then
+            echo "weather unchanged"
+          else
+            git commit -m "chore(weather): refresh snapshot"
+            git push
+          fi

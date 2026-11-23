@@ -1,0 +1,51 @@
+{
+  "source": "sojson",
+  "city": "杭州",
+  "province": "浙江",
+  "temp": 12,
+  "humidity": 71,
+  "weather": "小雨",
+  "windDir": "西南风",
+  "windPower": "1级",
+  "min": 11,
+  "max": 14,
+  "aqi": 52,
+  "quality": "优",
+  "pm25": 24,
+  "ganmao": "各类人群可自由活动",
+  "notice": "雨虽小，注意保暖别感冒",
+  "sunrise": "06:31",
+  "sunset": "16:59",
+  "week": "星期一",
+  "forecast": [
+    {
+      "ymd": "2026-11-23",
+      "week": "星期一",
+      "type": "小雨",
+      "high": 14,
+      "low": 11,
+      "fx": "西南风",
+      "fl": "1级"
+    },
+    {
+      "ymd": "2026-11-24",
+      "week": "星期二",
+      "type": "多云",
+      "high": 13,
+      "low": 7,
+      "fx": "西北风",
+      "fl": "2级"
+    },
+    {
+      "ymd": "2026-11-25",
+      "week": "星期三",
+      "type": "多云",
+      "high": 12,
+      "low": 4,
+      "fx": "南风",
+      "fl": "1级"
+    }
+  ],
+  "updateTime": "16:26",
+  "fetchedAt": "2026-11-23T12:08:08.240Z"
+}
