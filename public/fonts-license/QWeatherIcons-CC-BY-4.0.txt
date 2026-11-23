@@ -1,0 +1,11 @@
+QWeather Icons (和风天气图标)
+https://icons.qweather.com/
+https://github.com/qweather-icons/icons
+
+Copyright (c) QWeather 和风天气
+
+Code: MIT License
+Icons: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+本站点天气卡片使用了 QWeather Icons 图标（字体形式自托管）。

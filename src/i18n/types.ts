@@ -49,6 +49,17 @@ export interface UIStrings {
     statsBooks: string;
     statsTags: string;
     browseBooks: string;
+    welcomeTitle: string;
+    welcomeHello: string;
+    welcomeLocalTime: string;
+    welcomeWeather: string;
+    welcomeHumidity: string;
+    welcomeWind: string;
+    welcomeRange: string;
+    welcomeLoading: string;
+    welcomeFallback: string;
+    weatherSource: string;
+    weatherDataFrom: string;
   };
   footer: {
     copyright: string;
