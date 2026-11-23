@@ -13,14 +13,16 @@
  *   ① D1 新鲜命中（<30 分钟）→ 毫秒级返回
  *   ② miss / 过期 → 实时抓 d1 → 返回并落库
  *   ③ 上游失败 → 返回 D1 旧数据（响应头 x-cache: d1-stale）容灾
- *   Cron 每 30 分钟预热热门城市并清理 24h 前旧行
+ *   Cron 每 10 分钟触发一次，分批轮转预热热门城市（30 分钟覆盖全部）并清理 24h 前旧行
+ *   GET /status                       （最近一次 cron 的执行时间与结果）
+ *   GET /warm?key=<WARM_KEY>          （手动预热一批，排障用）
  *
  * 部署（Dashboard）：
  *   1. Workers & Pages → Create Worker → 粘贴本文件 → Deploy
  *   2. Worker → Settings → Bindings → Add → D1 database：
  *      Variable name 必须填 DB，选中你建的数据库
  *   3. Worker → Settings → Trigger Events → Cron Triggers：
- *      添加 "0,30 * * * *"（每 30 分钟预热）
+ *      添加每 10 分钟一次的表达式（分批轮转，30 分钟覆盖全部预热城市）
  *   4. 把 Worker 地址填进 astro-paper.config.ts 的 weather.proxy
  *   （表结构首次运行自动创建，无需手工执行 SQL）
  *
@@ -105,27 +107,63 @@ async function fetchUpstream(code) {
   return normalize(extractVar(skRaw, "dataSK"), extractVar(idxRaw, "fc"), extractVar(idxRaw, "dataZS"), "");
 }
 
-// Cron：串行预热热门城市（并发会触发上游限流），并清理 24h 前的旧行
-async function warmup(env) {
-  await ensureTable(env);
+// Cron：分批轮转预热热门城市（免费版每次调用仅 10ms CPU，41 城一次跑有超限风险），
+// 每次处理一批，由 cron 每 10 分钟触发一次，30 分钟覆盖全部；并清理 24h 前的旧行。
+// 上游（d1）对短时高频请求会限流/超时，故城市间节流 + 单城重试退避
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const BATCH_SIZE = 15;
+const BATCH_INTERVAL_MS = 10 * 60 * 1000;
+
+function planBatches() {
   const codes = HOT_NAMES.map(n => CITY[n]).filter(Boolean);
+  const batches = [];
+  for (let i = 0; i < codes.length; i += BATCH_SIZE) batches.push(codes.slice(i, i + BATCH_SIZE));
+  return batches;
+}
+
+async function warmBatch(env, codes) {
+  await ensureTable(env);
   let written = 0;
+  const failed = [];
   for (const code of codes) {
-    try {
-      const data = await fetchUpstream(code);
-      if (data && data.city) {
+    let data = null;
+    for (let attempt = 0; attempt < 3 && !data; attempt++) {
+      try {
+        data = await fetchUpstream(code);
+        if (!data || !data.city) data = null;
+      } catch {
+        data = null;
+      }
+      if (!data) await sleep(600 * (attempt + 1)); // 退避后重试
+    }
+    if (data) {
+      try {
         await upsertStmt(env, code, data.city, data).run();
         written++;
+      } catch {
+        failed.push(code);
       }
-    } catch {
-      // 单城失败跳过，下一轮 cron 再试
+    } else {
+      failed.push(code);
     }
+    await sleep(250); // 城市间节流，降低上游压力
   }
   await env.DB.prepare("DELETE FROM weather WHERE updated_at < ?1")
     .bind(Date.now() - 24 * 3600 * 1000)
     .run()
     .catch(() => {});
-  return written;
+  return { written, failed };
+}
+
+// 当前时间片应处理第几批（每 10 分钟推进一批，循环覆盖）
+const currentBatchIndex = () => Math.floor(Date.now() / BATCH_INTERVAL_MS) % planBatches().length;
+
+// Cron 执行日志：复用 weather 表存一行特殊记录，供 /status 查询（城市名永远匹配不到它）
+const CRON_LOG_CODE = "__cron__";
+async function logCron(env, batch, totalBatches, result) {
+  try {
+    await upsertStmt(env, CRON_LOG_CODE, "cron", { at: new Date().toISOString(), batch, totalBatches, ...result }).run();
+  } catch {}
 }
 
 // 气象局天气现象代码 → 中文（fc.f[].fa/fb 为白天/夜间代码）
@@ -237,6 +275,43 @@ export default {
 
     const url = new URL(request.url);
     if (url.pathname === "/health") return json({ ok: true }, 200, cors);
+
+    // 手动预热（Cron 排查/兜底）：GET /warm?key=<WARM_KEY>[&batch=N]。
+    // 需在 Worker 的 Variables and Secrets 里配置 Secret 型变量 WARM_KEY；不传 batch 跑当前时间片该跑的那批
+    if (url.pathname === "/warm") {
+      if (!env.WARM_KEY) return json({ error: "WARM_KEY secret not configured" }, 503, cors);
+      if (url.searchParams.get("key") !== env.WARM_KEY) return json({ error: "forbidden" }, 403, cors);
+      const batches = planBatches();
+      const b = url.searchParams.get("batch");
+      const idx = b == null ? currentBatchIndex() : Math.max(0, Math.min(batches.length - 1, Number(b) || 0));
+      try {
+        const r = await warmBatch(env, batches[idx]);
+        return json({ ok: true, batch: idx, totalBatches: batches.length, ...r }, 200, cors);
+      } catch (e) {
+        return json({ error: "warmup: " + e.message }, 500, cors);
+      }
+    }
+
+    // Cron 可观测性：最近一次 cron 的执行时间与结果（无需密钥，不含敏感信息）
+    if (url.pathname === "/status") {
+      try {
+        await ensureTable(env);
+        const row = await env.DB.prepare("SELECT data, updated_at FROM weather WHERE code = ?1").bind(CRON_LOG_CODE).first();
+        return json(
+          {
+            cron: row ? { ...JSON.parse(row.data), lastRun: new Date(row.updated_at).toISOString() } : null,
+            currentBatch: currentBatchIndex(),
+            totalBatches: planBatches().length,
+            now: new Date().toISOString(),
+          },
+          200,
+          cors
+        );
+      } catch (e) {
+        return json({ error: "status: " + e.message }, 500, cors);
+      }
+    }
+
     if (url.pathname !== "/weather") {
       return json({ error: "usage: GET /weather?city=<城市名或区县名>" }, 404, cors);
     }
@@ -292,8 +367,14 @@ export default {
     return reply(data, { "x-cache": "miss" });
   },
 
-  // Cron Triggers 入口（Dashboard 配置 "0,30 * * * *"）：预热热门城市 + 清理旧行
+  // Cron Triggers 入口（Dashboard 配置每 10 分钟一次，分批轮转）：预热一批热门城市并记录执行日志
   async scheduled(_event, env, ctx) {
-    ctx.waitUntil(warmup(env));
+    const batches = planBatches();
+    const idx = currentBatchIndex();
+    ctx.waitUntil(
+      warmBatch(env, batches[idx])
+        .then(r => logCron(env, idx, batches.length, r))
+        .catch(e => logCron(env, idx, batches.length, { written: 0, failed: [], error: String(e && e.message) }))
+    );
   },
 };
