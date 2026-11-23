@@ -155,8 +155,8 @@ async function warmBatch(env, codes) {
   return { written, failed };
 }
 
-// 当前时间片应处理第几批（每 10 分钟推进一批，循环覆盖）
-const currentBatchIndex = () => Math.floor(Date.now() / BATCH_INTERVAL_MS) % planBatches().length;
+// 当前时间片应处理第几批（每 10 分钟推进一批，循环覆盖）；cron 传入 controller.scheduledTime 更严谨
+const currentBatchIndex = (t = Date.now()) => Math.floor(t / BATCH_INTERVAL_MS) % planBatches().length;
 
 // Cron 执行日志：复用 weather 表存一行特殊记录，供 /status 查询（城市名永远匹配不到它）
 const CRON_LOG_CODE = "__cron__";
@@ -367,14 +367,17 @@ export default {
     return reply(data, { "x-cache": "miss" });
   },
 
-  // Cron Triggers 入口（Dashboard 配置每 10 分钟一次，分批轮转）：预热一批热门城市并记录执行日志
-  async scheduled(_event, env, ctx) {
+  // Cron Triggers 入口（Dashboard 配置每 10 分钟一次，分批轮转）：预热一批热门城市并记录执行日志。
+  // 官方推荐：单个异步任务直接 await（运行时会等 handler 的 promise 完成，上限 15 分钟）
+  async scheduled(controller, env) {
     const batches = planBatches();
-    const idx = currentBatchIndex();
-    ctx.waitUntil(
-      warmBatch(env, batches[idx])
-        .then(r => logCron(env, idx, batches.length, r))
-        .catch(e => logCron(env, idx, batches.length, { written: 0, failed: [], error: String(e && e.message) }))
-    );
+    const idx = currentBatchIndex(controller.scheduledTime);
+    const base = { cron: controller.cron, scheduledTime: new Date(controller.scheduledTime).toISOString() };
+    try {
+      const r = await warmBatch(env, batches[idx]);
+      await logCron(env, idx, batches.length, { ...base, ...r });
+    } catch (e) {
+      await logCron(env, idx, batches.length, { ...base, written: 0, failed: [], error: String(e && e.message) });
+    }
   },
 };
