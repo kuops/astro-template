@@ -65,7 +65,12 @@ export interface UIStrings {
   };
   pages: {
     tagTitle: string;
+    /** 标签页标题里「标签」和标签名之间的连接符（中文全角冒号，英文冒号加空格） */
+    tagTitleSep: string;
+    /** 标签页描述，{{count}} 为该标签下的文章总数 */
     tagDesc: string;
+    /** 标签下只有 1 篇文章时的描述。给需要区分单复数的语言用，不填则用 tagDesc */
+    tagDescOne?: string;
     tagsTitle: string;
     tagsDesc: string;
     postsTitle: string;

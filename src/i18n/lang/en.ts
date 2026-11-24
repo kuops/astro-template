@@ -67,7 +67,9 @@ export default {
   },
   pages: {
     tagTitle: "Tag",
-    tagDesc: "All the articles with the tag",
+    tagTitleSep: ": ",
+    tagDesc: "{{count}} posts with this tag.",
+    tagDescOne: "{{count}} post with this tag.",
     tagsTitle: "Tags",
     tagsDesc: "All the tags used in posts.",
     postsTitle: "Posts",

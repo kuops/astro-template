@@ -14,8 +14,9 @@
  * 动画期间 main 带 transform，其内部固定定位的后代会以 main 为包含块而错位，
  * 所以浮动按钮（回到顶部、目录）这类固定定位的元素要放在 main 外面。
  *
- * 无 JS 时没有 fonts-wait 标记，动画照常直接播放；
- * 系统要求减少动效时不播动画，也就不需要等。
+ * 开关和等待上限在 astro-paper.config.ts 的 features.enterAnimation；
+ * 关闭时 <Layout /> 不输出这里的脚本，也就不会打 enter-anim 标记，下面的样式全部不匹配，
+ * 正文直接显示。
  *
  * 页面不在顶部时（刷新后恢复滚动位置、带锚点）只淡入不上移，见下方样式里的说明。
  */
@@ -31,6 +32,9 @@
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         return;
       }
+      // enter-anim：进场动画的样式只在这个标记下生效（模块只要被引用，样式就会进主样式表，
+      // 关闭功能时靠没有这个标记来让它们落空）
+      root.classList.add("enter-anim");
       root.classList.add("fonts-wait");
       window.__fontWaitStart = performance.now();
     };
@@ -64,24 +68,26 @@
     }
   }
   /* 不保留末帧（不用 forwards/both）：动画结束后 main 上不留 transform，
-     否则它会一直充当固定定位后代的包含块 */
-  main {
+     否则它会一直充当固定定位后代的包含块。
+     全部规则都挂在 html.enter-anim 下：没有这个标记（功能关闭、无 JS、系统要求减少动效）
+     就不播动画，正文直接显示 */
+  html.enter-anim main {
     animation: enter-fade-in-down 0.4s ease-out;
   }
   /* 页面不在顶部时（刷新后恢复滚动位置、带锚点）只淡入、不上移：位移会和布局里
      「保持滚动位置」的逻辑互相拉扯——那套逻辑每 30ms 把锚点钉回原位，滚动位置就跟着
      位移来回变，滚动条和吸顶的侧栏也跟着抖。enter-in-place 由放行脚本添加。
      这条必须写在下面的等待规则之前（特异度相同，靠先后顺序让等待规则覆盖它） */
-  html.enter-in-place main {
+  html.enter-anim.enter-in-place main {
     animation-name: enter-fade-in;
   }
-  /* 等待正文字体期间正文不可见。fonts-wait 由脚本添加，无 JS 时不存在这个类 */
-  html.fonts-wait main {
+  /* 等待正文字体期间正文不可见。fonts-wait 由脚本添加并撤掉 */
+  html.enter-anim.fonts-wait main {
     animation: none;
     opacity: 0;
   }
   @media (prefers-reduced-motion: reduce) {
-    main {
+    html.enter-anim main {
       animation: none;
     }
   }

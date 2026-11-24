@@ -30,6 +30,11 @@ export default defineAstroPaperConfig({
       enabled: false,
     },
     search: "pagefind",
+    // 进场动画：正文淡入上移，等首屏字体就绪后再播。写 false 关闭；
+    // maxFontWait 是等字体的上限（毫秒），超时先显示正文
+    enterAnimation: {
+      maxFontWait: 600,
+    },
   },
   layout: {
     // 布局宽度三档（CSS 长度）：阅读栏 / 浏览栏 / 导航带

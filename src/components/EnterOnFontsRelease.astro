@@ -4,14 +4,22 @@
  * 必须放在页面的 <main> 之后——那时正文已经解析完，才知道要等哪些字。
  * 说明见 EnterOnFonts.astro。
  */
+
+type Props = {
+  /** 等字体的上限（毫秒），来自配置 features.enterAnimation.maxFontWait */
+  maxWait?: number;
+};
+
+const { maxWait = 600 } = Astro.props;
+const MAX_WAIT = Math.max(0, Math.round(maxWait));
 ---
 
-<script is:inline data-astro-rerun>
+<script is:inline data-astro-rerun define:vars={{ MAX_WAIT }}>
   (() => {
     const root = document.documentElement;
     if (!root.classList.contains("fonts-wait")) return;
-    // 等待上限：字体迟迟不到就不再等（此后切换字体仍可能被看到）
-    const MAX_WAIT = 600;
+    // 等待上限 MAX_WAIT（毫秒，由 define:vars 注入）：字体迟迟不到就不再等，
+    // 此后切换字体仍可能被看到
     let done = false;
     const release = () => {
       if (done) return;

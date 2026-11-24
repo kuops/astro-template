@@ -10,7 +10,12 @@ import Pagination from "@/components/Pagination.astro";
 import getUniqueTags from "@/utils/getUniqueTags";
 import getPostsByTag from "@/utils/getPostsByTag";
 import config from "@/config";
-import { getLocaleFromPath, getLocalizedPath, useTranslations } from "@/i18n";
+import {
+  getLocaleFromPath,
+  getLocalizedPath,
+  tplStr,
+  useTranslations,
+} from "@/i18n";
 import { resolveLocalizedEntries } from "@/utils/localizedContent";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
@@ -41,20 +46,26 @@ const tagPath =
 const alternateUrl = alternateLocale
   ? getLocalizedPath(tagPath, alternateLocale)
   : undefined;
+
+// 标题形如「标签：astro」。连接符随语言走（中文全角冒号，英文冒号加空格），
+// Main 的数组标题在两段之间不留空白
+const heading = `${t.pages.tagTitle}${t.pages.tagTitleSep}`;
+
+// 描述里的文章数是该标签下的总数（不分页）；只有 1 篇时用单数文案（有的语言要区分）
+const pageDesc = tplStr(
+  page.total === 1 && t.pages.tagDescOne ? t.pages.tagDescOne : t.pages.tagDesc,
+  { count: page.total }
+);
 ---
 
-<Layout
-  title={`${t.pages.tagTitle}: ${tagName} | ${config.site.title}`}
-  localeAlternates
->
+<Layout title={`${heading}${tagName} | ${config.site.title}`} localeAlternates>
   <Header {alternateUrl} />
   <Main
-    pageTitle={[`${t.pages.tagTitle}:`, `${tagName}`]}
+    pageTitle={[heading, tagName]}
     titleTransition={tag}
-    pageDesc={`${t.pages.tagDesc} "${tagName}".`}
+    pageDesc={pageDesc}
     width="browse"
   >
-    <h1 slot="title" transition:name={tag}>{`${t.pages.tagTitle}:${tag}`}</h1>
     <ul>
       {page.data.map(data => <Card requestedLocale={locale} {...data} />)}
     </ul>

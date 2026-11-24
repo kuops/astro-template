@@ -29,6 +29,7 @@ import {
 import { transformerFileName } from "./src/utils/transformers/fileName";
 import { transformerCodeScroll } from "./src/utils/transformers/codeScroll";
 import { transformerMermaidHidden } from "./src/utils/transformers/mermaidHidden";
+import { devFontCache } from "./src/utils/devFontCache";
 import config from "./astro-paper.config";
 
 const defaultLocale = config.site.lang ?? "en";
@@ -99,7 +100,8 @@ export default defineConfig({
     svgOptimizer: svgoOptimizer(),
   },
   vite: {
-    plugins: [tailwindcss()],
+    // devFontCache：开发时让浏览器缓存字体文件（Astro 默认每次刷新都重新下载）
+    plugins: [tailwindcss(), devFontCache()],
     optimizeDeps: {
       exclude: ["@resvg/resvg-js"],
     },
@@ -135,6 +137,7 @@ export default defineConfig({
     {
       // 中文正文主字体：Noto Sans SC（思源黑体，OFL 许可，可合规自托管）。
       // 构建期经 fontsource 本地子集化下载，运行时同源按需切片加载。
+      // 它的声明不内联进页面，而是输出成外部样式表，见 src/utils/fontStylesheet.ts
       name: "Noto Sans SC",
       cssVariable: "--font-noto-sans-sc",
       provider: fontProviders.npm(),

@@ -3,8 +3,10 @@ import type { ResolvedAstroPaperConfig } from "./types/config";
 import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 
 const DEFAULT_OG_IMAGE = "og.png";
+const DEFAULT_ENTER_MAX_FONT_WAIT = 600;
 const defaultLocale = userConfig.site.lang ?? "en";
 const locales = userConfig.i18n?.locales ?? [defaultLocale];
+const enterAnimation = userConfig.features?.enterAnimation;
 
 if (!locales.includes(defaultLocale)) {
   throw new Error(
@@ -41,6 +43,15 @@ const config: ResolvedAstroPaperConfig = {
     toc: userConfig.features?.toc ?? true,
     editPost: userConfig.features?.editPost ?? { enabled: false },
     search: userConfig.features?.search ?? "pagefind",
+    enterAnimation:
+      enterAnimation === false
+        ? false
+        : {
+            maxFontWait:
+              (typeof enterAnimation === "object"
+                ? enterAnimation.maxFontWait
+                : undefined) ?? DEFAULT_ENTER_MAX_FONT_WAIT,
+          },
   },
   layout: {
     reading: userConfig.layout?.reading ?? "48rem",

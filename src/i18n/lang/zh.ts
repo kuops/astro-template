@@ -67,7 +67,8 @@ export default {
   },
   pages: {
     tagTitle: "标签",
-    tagDesc: "该标签下的所有文章",
+    tagTitleSep: "：",
+    tagDesc: "该标签下共有 {{count}} 篇文章。",
     tagsTitle: "标签",
     tagsDesc: "文章中使用的所有标签。",
     postsTitle: "文章",

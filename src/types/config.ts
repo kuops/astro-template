@@ -27,10 +27,19 @@ interface PostsConfig {
   scheduledPostMargin?: number;
 }
 
+/** 进场动画的可调项 */
+interface EnterAnimationConfig {
+  /** 等首屏字体就绪的最长时间（毫秒），超时先显示正文。默认 600 */
+  maxFontWait?: number;
+}
+
 interface FeaturesConfig {
   lightAndDarkMode?: boolean;
   /** 站点默认主题；留空则跟随用户系统偏好（prefers-color-scheme） */
   initialColorScheme?: "" | "light" | "dark";
+  /** 进场动画：正文淡入上移，并等首屏字体就绪后再播，避免看到字体切换。
+      false 关闭；传对象为开启，并可调整等待上限 */
+  enterAnimation?: boolean | EnterAnimationConfig;
   dynamicOgImage?: boolean;
   showArchives?: boolean;
   showBackButton?: boolean;
@@ -98,11 +107,17 @@ type ResolvedSiteConfig = Required<
 > &
   Pick<SiteConfig, "profile" | "googleVerification" | "avatar" | "accent">;
 
+type ResolvedFeaturesConfig = Required<
+  Omit<FeaturesConfig, "enterAnimation">
+> & {
+  enterAnimation: false | Required<EnterAnimationConfig>;
+};
+
 export interface ResolvedAstroPaperConfig {
   site: ResolvedSiteConfig;
   i18n: Required<I18nConfig>;
   posts: Required<PostsConfig>;
-  features: Required<FeaturesConfig>;
+  features: ResolvedFeaturesConfig;
   layout: Required<LayoutConfig>;
   weather: Required<WeatherConfig>;
   socials: SocialLink[];
@@ -118,6 +133,7 @@ export type {
   I18nConfig,
   Locale,
   PostsConfig,
+  EnterAnimationConfig,
   FeaturesConfig,
   LayoutConfig,
   SocialLink,

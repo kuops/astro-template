@@ -11,6 +11,7 @@ import CustomHead from "@/custom/Head.astro";
 import CustomBodyEnd from "@/custom/BodyEnd.astro";
 import EnterOnFonts from "@/components/EnterOnFonts.astro";
 import EnterOnFontsRelease from "@/components/EnterOnFontsRelease.astro";
+import { fontStylesheetHref } from "@/utils/fontStylesheet";
 
 type Props = {
   title?: string;
@@ -76,6 +77,13 @@ const resolvedAlternateURLs = localeAlternates
     )
   : alternateURLs;
 
+// 进场动画（features.enterAnimation）：关闭时不加载脚本和样式，正文直接显示
+const enterEnabled = config.features.enterAnimation !== false;
+const enterMaxWait =
+  config.features.enterAnimation === false
+    ? 0
+    : config.features.enterAnimation.maxFontWait;
+
 const structuredData = {
   "@context": "https://schema.org",
   "@type": pubDatetime ? "BlogPosting" : "WebPage",
@@ -122,9 +130,20 @@ const structuredData = {
     }
     <meta name="generator" content={Astro.generator} />
 
-    <Font cssVariable="--font-google-sans-code" preload />
-    {/* Noto 为百级切片字体，不能 preload（会全量预载）；按页面字符按需加载 */}
-    <Font cssVariable="--font-noto-sans-sc" />
+    {
+      /* 只预载常规体，不预载首屏用不到的斜体。Google Sans Code 是可变字体，5 个字重共用
+        同一个文件。这里只能按样式过滤、不能按字重：构建时同一个文件只记一条预载数据，
+        记的是最先遇到的那条（300 字重），按 400 过滤会一条都匹配不上 */
+    }
+    <Font
+      cssVariable="--font-google-sans-code"
+      preload={[{ style: "normal" }]}
+    />
+    {
+      /* Noto Sans SC 的切片声明有约 270KB，不内联进每个页面，改为外部样式表
+        （src/pages/fonts.css.ts）。它是百级切片字体，同样不能 preload（会全量预载） */
+    }
+    <link rel="stylesheet" href={fontStylesheetHref} />
 
     <!-- General Meta Tags -->
     <title>{title}</title>
@@ -424,9 +443,9 @@ const structuredData = {
     <script is:inline>
       window.__injectMermaidHeights?.();
     </script>
-    <EnterOnFonts />
+    {enterEnabled && <EnterOnFonts />}
     <slot />
-    <EnterOnFontsRelease />
+    {enterEnabled && <EnterOnFontsRelease maxWait={enterMaxWait} />}
 
     <script is:inline>
       (() => {
