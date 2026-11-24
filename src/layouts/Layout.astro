@@ -9,6 +9,8 @@ import "@/styles/global.css";
 import PagefindModal from "@/components/PagefindModal.astro";
 import CustomHead from "@/custom/Head.astro";
 import CustomBodyEnd from "@/custom/BodyEnd.astro";
+import EnterOnFonts from "@/components/EnterOnFonts.astro";
+import EnterOnFontsRelease from "@/components/EnterOnFontsRelease.astro";
 
 type Props = {
   title?: string;
@@ -422,7 +424,9 @@ const structuredData = {
     <script is:inline>
       window.__injectMermaidHeights?.();
     </script>
+    <EnterOnFonts />
     <slot />
+    <EnterOnFontsRelease />
 
     <script is:inline>
       (() => {

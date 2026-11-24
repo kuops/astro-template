@@ -150,9 +150,12 @@ const routeLocale = getLocaleFromPath(Astro.url.pathname);
         )
       }
     </div>
-    <BackToTopButton />
-    {headings.length > 0 && <MobileToc headings={headings} />}
   </main>
+  {
+    /* 浮动按钮放在 main 外：进场动画期间 main 带 transform，固定定位的后代会错位 */
+  }
+  <BackToTopButton />
+  {headings.length > 0 && <MobileToc headings={headings} />}
   <Footer />
 </Layout>
 

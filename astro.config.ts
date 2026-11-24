@@ -122,6 +122,10 @@ export default defineConfig({
       name: "Google Sans Code",
       cssVariable: "--font-google-sans-code",
       provider: fontProviders.google(),
+      // 注意：这里不要配 fallbacks（如 ["monospace"]）。Astro 生成的校准回退会把通用族
+      // （monospace）一起追加进 --font-google-sans-code，排在 global.css 里手写的中文回退
+      // 之前——于是所有走该变量的汉字（标题、导航、目录、标签页、书籍目录…）在 Windows 上
+      // 全部变成 NSimSun。回退校准由 global.css 里手写的 "GSC Fallback" 负责
       fallbacks: [],
       weights: [300, 400, 500, 600, 700],
       styles: ["normal", "italic"],
@@ -134,6 +138,10 @@ export default defineConfig({
       name: "Noto Sans SC",
       cssVariable: "--font-noto-sans-sc",
       provider: fontProviders.npm(),
+      // 注意：这里不要配 fallbacks（如 ["sans-serif"]）。Astro 的自动校准按"平均字符宽度"
+      // 算缩放比，而思源黑体按全角字符报告该值，生成的回退会把 Arial 放大到 197%——
+      // 字体到达前正文里的英文数字被画成约两倍宽（实测同一段文字 253px → 511px）。
+      // 正文回退不校准：汉字宽度在各中文字体里都是 1em，本身不跳版
       fallbacks: [],
       weights: [400, 500, 700],
       styles: ["normal"],

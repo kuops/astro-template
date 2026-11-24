@@ -1,0 +1,88 @@
+---
+/**
+ * 进场动画（起点）：全站每页的正文区域（main）淡入上移，并等正文字体就绪后再播。
+ *
+ * web 字体到达前文字先用回退字体显示，到达后再切换。若此时正文可见，就会看到字形
+ * 在一行里分批变化（思源黑体是按字符切片加载的）。这里让动画从「字体就绪」那一刻
+ * 才开始：切换发生在正文不可见期间，看到的是带着最终字体的淡入。
+ *
+ * 在全局布局里分两处放置：
+ *   <EnterOnFonts />             放在 <slot /> 之前（越早越好）
+ *   <slot />                     页面的 <main>…
+ *   <EnterOnFontsRelease />      放在 <slot /> 之后（正文此时已解析完）
+ *
+ * 动画期间 main 带 transform，其内部固定定位的后代会以 main 为包含块而错位，
+ * 所以浮动按钮（回到顶部、目录）这类固定定位的元素要放在 main 外面。
+ *
+ * 无 JS 时没有 fonts-wait 标记，动画照常直接播放；
+ * 系统要求减少动效时不播动画，也就不需要等。
+ *
+ * 页面不在顶部时（刷新后恢复滚动位置、带锚点）只淡入不上移，见下方样式里的说明。
+ */
+---
+
+<script is:inline>
+  // 常驻脚本，首次加载执行一次，负责给 <html> 打「等待」标记，让 main 暂不可见；
+  // 撤标记见 <EnterOnFontsRelease />。
+  (() => {
+    if (window.__enterOnFonts) return;
+    window.__enterOnFonts = true;
+    const mark = root => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+      root.classList.add("fonts-wait");
+      window.__fontWaitStart = performance.now();
+    };
+    // 首次加载 / 刷新：此刻 main 还没解析到
+    mark(document.documentElement);
+    // 站内跳转（ClientRouter）：新页面的脚本要等它的 DOM 换入之后才执行，而 main 的
+    // 动画在换入那一刻就会开始。所以标记要提前在换入之前打到新文档上，随属性一起换入
+    document.addEventListener("astro:before-swap", event => {
+      if (event.newDocument) mark(event.newDocument.documentElement);
+    });
+  })();
+</script>
+
+<style is:global>
+  @keyframes enter-fade-in-down {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes enter-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  /* 不保留末帧（不用 forwards/both）：动画结束后 main 上不留 transform，
+     否则它会一直充当固定定位后代的包含块 */
+  main {
+    animation: enter-fade-in-down 0.4s ease-out;
+  }
+  /* 页面不在顶部时（刷新后恢复滚动位置、带锚点）只淡入、不上移：位移会和布局里
+     「保持滚动位置」的逻辑互相拉扯——那套逻辑每 30ms 把锚点钉回原位，滚动位置就跟着
+     位移来回变，滚动条和吸顶的侧栏也跟着抖。enter-in-place 由放行脚本添加。
+     这条必须写在下面的等待规则之前（特异度相同，靠先后顺序让等待规则覆盖它） */
+  html.enter-in-place main {
+    animation-name: enter-fade-in;
+  }
+  /* 等待正文字体期间正文不可见。fonts-wait 由脚本添加，无 JS 时不存在这个类 */
+  html.fonts-wait main {
+    animation: none;
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    main {
+      animation: none;
+    }
+  }
+</style>

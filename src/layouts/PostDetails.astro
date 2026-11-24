@@ -131,7 +131,6 @@ const layoutProps = {
     class:list={[
       "mx-auto w-full max-w-browse px-4 pb-12",
       { "max-w-app": tocHeadings.length === 0 },
-      "post-enter",
     ]}
     data-pagefind-body
     data-pagefind-filter="type:blog"
@@ -258,6 +257,7 @@ const layoutProps = {
       }
     </div>
   </main>
+
   <BackToTopButton />
   {tocHeadings.length > 0 && <MobileToc headings={tocHeadings} />}
   <Footer />
@@ -268,24 +268,3 @@ const layoutProps = {
 <MermaidRenderer />
 
 <ImageLightbox />
-
-<style>
-  @keyframes post-fade-in-down {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  .post-enter {
-    animation: post-fade-in-down 0.4s ease-out both;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .post-enter {
-      animation: none;
-    }
-  }
-</style>

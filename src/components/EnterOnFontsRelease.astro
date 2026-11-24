@@ -1,0 +1,77 @@
+---
+/**
+ * 进场动画（放行）：等正文字体就绪，再撤掉 <EnterOnFonts /> 打的 fonts-wait 标记。
+ * 必须放在页面的 <main> 之后——那时正文已经解析完，才知道要等哪些字。
+ * 说明见 EnterOnFonts.astro。
+ */
+---
+
+<script is:inline data-astro-rerun>
+  (() => {
+    const root = document.documentElement;
+    if (!root.classList.contains("fonts-wait")) return;
+    // 等待上限：字体迟迟不到就不再等（此后切换字体仍可能被看到）
+    const MAX_WAIT = 600;
+    let done = false;
+    const release = () => {
+      if (done) return;
+      done = true;
+      // 页面不在顶部（刷新后恢复滚动位置）或带锚点时只淡入、不上移，
+      // 原因见 EnterOnFonts.astro 的样式说明
+      if (window.scrollY > 0 || window.location.hash) {
+        root.classList.add("enter-in-place");
+      }
+      root.classList.remove("fonts-wait");
+    };
+    if (!document.fonts || typeof document.fonts.load !== "function") {
+      release();
+      return;
+    }
+    // 只等「动画期间看得到」的文字：页头、面包屑 + 首屏正文；首屏以下的字体在后台照常
+    // 加载，不必等它们到齐。字体族名取自 <Font /> 生成的变量。
+    // 逐个读取文本位置会强制布局：正文需要的字体此刻就开始下载，不必等浏览器自己布局
+    const main = document.querySelector("main");
+    const chromeText = [
+      ...document.querySelectorAll('header, nav[aria-label="breadcrumb"]'),
+    ]
+      .map(el => el.textContent || "")
+      .join("");
+    const visibleText = [];
+    if (main) {
+      const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        range.selectNodeContents(node);
+        const rect = range.getBoundingClientRect();
+        if (rect.height > 0 && rect.top < window.innerHeight) {
+          visibleText.push(node.textContent);
+        }
+      }
+    }
+    const text = chromeText + visibleText.join("");
+    const computed = getComputedStyle(root);
+    const families = ["--font-noto-sans-sc", "--font-google-sans-code"]
+      .map(name => computed.getPropertyValue(name).trim())
+      .filter(Boolean);
+    const loads = [];
+    for (const family of families) {
+      for (const fontStyle of ["normal", "italic"]) {
+        // 面包屑用的是 300 字重
+        for (const weight of [300, 400, 500, 600, 700]) {
+          loads.push(
+            document.fonts
+              .load(`${fontStyle} ${weight} 1em ${family}`, text)
+              .catch(() => [])
+          );
+        }
+      }
+    }
+    // 这里只等上面这批字体，不再叠加 document.fonts.ready：后者要等「全页面没有任何字体
+    // 在加载」并依赖渲染时机，实测首屏字体早已到齐后还会再拖 300ms 以上
+    Promise.all(loads).then(release, release);
+    // 时长从打标记时算起
+    const elapsed =
+      performance.now() - (window.__fontWaitStart || performance.now());
+    window.setTimeout(release, Math.max(0, MAX_WAIT - elapsed));
+  })();
+</script>
