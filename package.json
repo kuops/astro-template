@@ -23,7 +23,7 @@
     "astro": "^7.4.13",
     "dayjs": "^1.11.21",
     "lodash.kebabcase": "^4.1.1",
-    "mermaid": "^11.15.0",
+    "mermaid": "^12.3.0",
     "photoswipe": "^5.4.4",
     "qweather-icons": "^1.8.0",
     "satori": "^0.26.0",
