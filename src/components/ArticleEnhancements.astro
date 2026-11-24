@@ -9,7 +9,8 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
   id="i18n-copy"
   data-copy={t.post.copyCode}
   data-copied={t.post.copied}
-  data-heading-anchor={t.a11y.headingAnchor}></span>
+  data-heading-anchor={t.a11y.headingAnchor}
+></span>
 
 <script is:inline data-astro-rerun>
   window.__articleEnhancementsCleanup?.();

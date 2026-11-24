@@ -27,17 +27,13 @@ const sourceLabel = tplStr(t.language.sourceLabel, {
 >
   <h2 class="text-xl font-semibold text-foreground group-hover:text-accent">
     {title}
-    {
-      isFallback && (
-        <span class="ms-2 align-middle text-xs font-normal text-muted-foreground">
-          ({sourceLabel})
-        </span>
-      )
-    }
+    {isFallback && (
+      <span class="ms-2 align-middle text-xs font-normal text-muted-foreground">
+        ({sourceLabel})
+      </span>
+    )}
   </h2>
-  <p
-    class="mt-2 line-clamp-2 min-h-10 font-reading text-sm leading-5 text-muted-foreground"
-  >
+  <p class="mt-2 line-clamp-2 min-h-10 font-reading text-sm leading-5 text-muted-foreground">
     {description}
   </p>
   <span class="mt-auto inline-flex items-center gap-1 pt-4 text-sm text-accent">

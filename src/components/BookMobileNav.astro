@@ -45,9 +45,7 @@ const minDepth =
 
 <div class="book-mobile-nav lg:hidden" data-book-mobile-nav>
   <div class="book-mobile-bar">
-    <div
-      class="mx-auto grid h-[52px] w-full max-w-chrome grid-cols-[44px_minmax(0,1fr)] items-center px-1 sm:px-4"
-    >
+    <div class="mx-auto grid h-[52px] w-full max-w-chrome grid-cols-[44px_minmax(0,1fr)] items-center px-1 sm:px-4">
       <button
         type="button"
         class="focus-outline flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent active:bg-foreground/10"
@@ -117,22 +115,20 @@ const minDepth =
         >
           {t.book.chapters}
         </button>
-        {
-          headings.length > 0 && (
-            <button
-              id="book-page-tab"
-              type="button"
-              class="book-dialog-tab"
-              role="tab"
-              aria-selected="false"
-              aria-controls="book-page-panel"
-              tabindex="-1"
-              data-book-tab="page"
-            >
-              {t.book.onThisPage}
-            </button>
-          )
-        }
+        {headings.length > 0 && (
+          <button
+            id="book-page-tab"
+            type="button"
+            class="book-dialog-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="book-page-panel"
+            tabindex="-1"
+            data-book-tab="page"
+          >
+            {t.book.onThisPage}
+          </button>
+        )}
       </div>
 
       <div class="book-dialog-panels">
@@ -154,48 +150,46 @@ const minDepth =
           />
         </div>
 
-        {
-          headings.length > 0 && (
-            <div
-              id="book-page-panel"
-              class="book-dialog-panel p-3"
-              role="tabpanel"
-              aria-labelledby="book-page-tab"
-              data-book-panel="page"
-              hidden
-            >
-              <nav aria-label={t.book.onThisPage}>
-                <ul class="space-y-0.5 text-sm">
-                  {headings.map(({ depth, slug, text }) => {
-                    const indent = depth - minDepth;
-                    const isTop = indent === 0;
-                    return (
-                      <li>
-                        <a
-                          href={`#${slug}`}
-                          class:list={[
-                            "book-page-link block min-h-11 rounded-md pr-1 hover:text-accent",
-                            isTop
-                              ? "text-[13.5px] text-foreground/85"
-                              : "text-[12.5px] text-muted-foreground",
-                          ]}
-                          data-book-heading={slug}
+        {headings.length > 0 && (
+          <div
+            id="book-page-panel"
+            class="book-dialog-panel p-3"
+            role="tabpanel"
+            aria-labelledby="book-page-tab"
+            data-book-panel="page"
+            hidden
+          >
+            <nav aria-label={t.book.onThisPage}>
+              <ul class="space-y-0.5 text-sm">
+                {headings.map(({ depth, slug, text }) => {
+                  const indent = depth - minDepth;
+                  const isTop = indent === 0;
+                  return (
+                    <li>
+                      <a
+                        href={`#${slug}`}
+                        class:list={[
+                          "book-page-link block min-h-11 rounded-md pr-1 hover:text-accent",
+                          isTop
+                            ? "text-[13.5px] text-foreground/85"
+                            : "text-[12.5px] text-muted-foreground",
+                        ]}
+                        data-book-heading={slug}
+                      >
+                        <span
+                          class="book-page-label"
+                          style={`padding-inline-start: ${indent * 0.875}rem`}
                         >
-                          <span
-                            class="book-page-label"
-                            style={`padding-inline-start: ${indent * 0.875}rem`}
-                          >
-                            {text}
-                          </span>
-                        </a>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-            </div>
-          )
-        }
+                          {text}
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </div>
+        )}
       </div>
     </div>
   </dialog>

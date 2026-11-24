@@ -85,9 +85,7 @@ const routeLocale = getLocaleFromPath(Astro.url.pathname);
   >
     <div class="flex gap-8">
       <aside class="hidden w-64 flex-none lg:block">
-        <div
-          class="sidebar-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
-        >
+        <div class="sidebar-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain">
           <BookSidebar
             {bookSlug}
             {sidebar}
@@ -99,37 +97,33 @@ const routeLocale = getLocaleFromPath(Astro.url.pathname);
         </div>
       </aside>
       <div class="min-w-0 flex-1">
-        {
-          translationHint && alternateUrl && (
-            <p class="mb-3 text-sm text-muted-foreground">
-              <a
-                href={alternateUrl}
-                class="underline decoration-dashed underline-offset-4 hover:text-accent"
-              >
-                {translationHint}
-              </a>
-            </p>
-          )
-        }
+        {translationHint && alternateUrl && (
+          <p class="mb-3 text-sm text-muted-foreground">
+            <a
+              href={alternateUrl}
+              class="underline decoration-dashed underline-offset-4 hover:text-accent"
+            >
+              {translationHint}
+            </a>
+          </p>
+        )}
         <h1
           class="mb-8 text-[1.75rem] leading-9 font-bold text-accent sm:text-3xl"
           data-pagefind-meta="title"
         >
           {title}
         </h1>
-        {
-          (sourceLabel || readingLabel) && (
-            <div class="mb-8 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-              {sourceLabel && <span>{sourceLabel}</span>}
-              {sourceLabel && readingLabel && (
-                <span aria-hidden="true" class="text-foreground/40">
-                  ·
-                </span>
-              )}
-              {readingLabel && <ReadingMetadata label={readingLabel} />}
-            </div>
-          )
-        }
+        {(sourceLabel || readingLabel) && (
+          <div class="mb-8 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            {sourceLabel && <span>{sourceLabel}</span>}
+            {sourceLabel && readingLabel && (
+              <span aria-hidden="true" class="text-foreground/40">
+                ·
+              </span>
+            )}
+            {readingLabel && <ReadingMetadata label={readingLabel} />}
+          </div>
+        )}
         <article
           id="article"
           class="app-prose w-full max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
@@ -137,23 +131,19 @@ const routeLocale = getLocaleFromPath(Astro.url.pathname);
           <slot />
         </article>
       </div>
-      {
-        headings.length > 0 && (
-          <aside class="hidden w-64 flex-none xl:block">
-            <div
-              data-toc-scroll
-              class="toc-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
-            >
-              <TableOfContents {headings} />
-            </div>
-          </aside>
-        )
-      }
+      {headings.length > 0 && (
+        <aside class="hidden w-64 flex-none xl:block">
+          <div
+            data-toc-scroll
+            class="toc-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
+          >
+            <TableOfContents {headings} />
+          </div>
+        </aside>
+      )}
     </div>
   </main>
-  {
-    /* 浮动按钮放在 main 外：进场动画期间 main 带 transform，固定定位的后代会错位 */
-  }
+  {/* 浮动按钮放在 main 外：进场动画期间 main 带 transform，固定定位的后代会错位 */}
   <BackToTopButton />
   {headings.length > 0 && <MobileToc headings={headings} />}
   <Footer />

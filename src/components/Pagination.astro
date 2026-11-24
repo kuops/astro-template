@@ -30,64 +30,62 @@ const IDLE = "text-foreground hover:border-accent hover:text-accent";
 const OFF = "cursor-default text-muted-foreground opacity-45";
 ---
 
-{
-  variant ? (
-    <div
-      class:list={[
-        "items-center justify-center",
-        variant === "full" ? "hidden gap-2 sm:flex" : "flex gap-1.5 sm:hidden",
-      ]}
+{variant ? (
+  <div
+    class:list={[
+      "items-center justify-center",
+      variant === "full" ? "hidden gap-2 sm:flex" : "flex gap-1.5 sm:hidden",
+    ]}
+  >
+    <LinkButton
+      disabled={!page.url.prev}
+      href={page.url.prev ?? undefined}
+      class:list={[BTN, page.url.prev ? IDLE : OFF]}
+      aria-label={t.a11y.goToPreviousPage}
     >
-      <LinkButton
-        disabled={!page.url.prev}
-        href={page.url.prev ?? undefined}
-        class:list={[BTN, page.url.prev ? IDLE : OFF]}
-        aria-label={t.a11y.goToPreviousPage}
-      >
-        <IconArrowLeft class="size-4 rtl:rotate-180" />
-      </LinkButton>
-      {getPageItems(current, total, variant).map(item =>
-        item === "ellipsis" ? (
-          <span aria-hidden="true" class="px-0.5 text-muted-foreground">
-            …
-          </span>
-        ) : item === current ? (
-          <span
-            aria-current="page"
-            class:list={[BTN, "border-accent bg-accent text-accent-foreground"]}
-          >
-            {item}
-          </span>
-        ) : (
-          <a
-            href={urlOf(item)}
-            class:list={[BTN, IDLE]}
-            aria-label={tplStr(t.a11y.goToPage, { page: item })}
-          >
-            {item}
-          </a>
-        )
-      )}
-      <LinkButton
-        disabled={!page.url.next}
-        href={page.url.next ?? undefined}
-        class:list={[BTN, page.url.next ? IDLE : OFF]}
-        aria-label={t.a11y.goToNextPage}
-      >
-        <IconArrowRight class="size-4 rtl:rotate-180" />
-      </LinkButton>
-    </div>
-  ) : (
-    page.lastPage > 1 && (
-      <nav
-        class="mt-auto mb-8"
-        role="navigation"
-        aria-label="Pagination Navigation"
-      >
-        {/* 桌面：首尾页 + 当前页前后各一页；手机：只有当前页前后各一页 */}
-        <Astro.self {page} variant="full" />
-        <Astro.self {page} variant="compact" />
-      </nav>
-    )
+      <IconArrowLeft class="size-4 rtl:rotate-180" />
+    </LinkButton>
+    {getPageItems(current, total, variant).map(item =>
+      item === "ellipsis" ? (
+        <span aria-hidden="true" class="px-0.5 text-muted-foreground">
+          …
+        </span>
+      ) : item === current ? (
+        <span
+          aria-current="page"
+          class:list={[BTN, "border-accent bg-accent text-accent-foreground"]}
+        >
+          {item}
+        </span>
+      ) : (
+        <a
+          href={urlOf(item)}
+          class:list={[BTN, IDLE]}
+          aria-label={tplStr(t.a11y.goToPage, { page: item })}
+        >
+          {item}
+        </a>
+      )
+    )}
+    <LinkButton
+      disabled={!page.url.next}
+      href={page.url.next ?? undefined}
+      class:list={[BTN, page.url.next ? IDLE : OFF]}
+      aria-label={t.a11y.goToNextPage}
+    >
+      <IconArrowRight class="size-4 rtl:rotate-180" />
+    </LinkButton>
+  </div>
+) : (
+  page.lastPage > 1 && (
+    <nav
+      class="mt-auto mb-8"
+      role="navigation"
+      aria-label="Pagination Navigation"
+    >
+      {/* 桌面：首尾页 + 当前页前后各一页；手机：只有当前页前后各一页 */}
+      <Astro.self {page} variant="full" />
+      <Astro.self {page} variant="compact" />
+    </nav>
   )
-}
+)}

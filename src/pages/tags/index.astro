@@ -27,7 +27,9 @@ const t = useTranslations(locale);
     width="browse"
   >
     <ul class="flex flex-wrap gap-6">
-      {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} />)}
+      {tags.map(({ tag, tagName }) => (
+        <Tag {tag} {tagName} />
+      ))}
     </ul>
   </Main>
   <Footer />

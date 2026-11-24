@@ -20,32 +20,30 @@ function getSocialIcon(name: string) {
 }
 ---
 
-{
-  config.shareLinks.length > 0 && (
-    <div class="flex flex-none flex-col items-center justify-center gap-1 md:items-start">
-      <span class="italic">{t.post.sharePostIntro}</span>
-      <div class="text-center">
-        {config.shareLinks.map(social => {
-          const Icon = getSocialIcon(social.name);
-          const linkTitle =
-            social.linkTitle ??
-            (social.name.toLowerCase() === "email"
-              ? t.post.sharePostViaEmail
-              : tplStr(t.post.sharePostOn, { platform: social.name }));
-          return (
-            Icon && (
-              <LinkButton
-                href={`${social.url + URL}`}
-                class="scale-90 p-2 hover:rotate-6 sm:p-1"
-                title={linkTitle}
-              >
-                <Icon class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
-                <span class="sr-only">{linkTitle}</span>
-              </LinkButton>
-            )
-          );
-        })}
-      </div>
+{config.shareLinks.length > 0 && (
+  <div class="flex flex-none flex-col items-center justify-center gap-1 md:items-start">
+    <span class="italic">{t.post.sharePostIntro}</span>
+    <div class="text-center">
+      {config.shareLinks.map(social => {
+        const Icon = getSocialIcon(social.name);
+        const linkTitle =
+          social.linkTitle ??
+          (social.name.toLowerCase() === "email"
+            ? t.post.sharePostViaEmail
+            : tplStr(t.post.sharePostOn, { platform: social.name }));
+        return (
+          Icon && (
+            <LinkButton
+              href={`${social.url + URL}`}
+              class="scale-90 p-2 hover:rotate-6 sm:p-1"
+              title={linkTitle}
+            >
+              <Icon class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
+              <span class="sr-only">{linkTitle}</span>
+            </LinkButton>
+          )
+        );
+      })}
     </div>
-  )
-}
+  </div>
+)}

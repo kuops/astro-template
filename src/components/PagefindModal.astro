@@ -25,7 +25,8 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
   data-other-locale={getAlternateLocale(locale) ?? ""}
   data-default-locale={config.site.lang}
   data-source-label={t.language.sourceLabel}
-  data-lang-names={JSON.stringify(t.language.names)}></span>
+  data-lang-names={JSON.stringify(t.language.names)}
+></span>
 <span class="hidden" id="book-titles" data-map={JSON.stringify(bookMap)}></span>
 
 <dialog id="search-modal" aria-label={t.a11y.searchPlaceholder}>
@@ -72,7 +73,9 @@ const bookMap = Object.fromEntries(books.map(b => [b.slug, b.title]));
           <path d="m6 6 12 12"></path>
         </svg>
       </button>
-      <kbd class="search-esc" aria-hidden="true">esc</kbd>
+      <kbd class="search-esc" aria-hidden="true">
+        esc
+      </kbd>
     </div>
 
     <div id="search-body" class="search-body">

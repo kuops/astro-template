@@ -67,7 +67,9 @@ const pageDesc = tplStr(
     width="browse"
   >
     <ul>
-      {page.data.map(data => <Card requestedLocale={locale} {...data} />)}
+      {page.data.map(data => (
+        <Card requestedLocale={locale} {...data} />
+      ))}
     </ul>
   </Main>
 

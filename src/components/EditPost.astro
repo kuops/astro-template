@@ -21,19 +21,17 @@ const showEditPost =
   config.features.editPost.enabled && !hideEditPost && href.trim() !== "";
 ---
 
-{
-  showEditPost && (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      class:list={[
-        "flex justify-baseline gap-1.5 opacity-80 hover:text-accent",
-        className,
-      ]}
-    >
-      <IconEdit class="inline-block" />
-      <span>{t.post.editPage}</span>
-    </a>
-  )
-}
+{showEditPost && (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    class:list={[
+      "flex justify-baseline gap-1.5 opacity-80 hover:text-accent",
+      className,
+    ]}
+  >
+    <IconEdit class="inline-block" />
+    <span>{t.post.editPage}</span>
+  </a>
+)}

@@ -22,18 +22,16 @@ const books = await getAllBooks(locale);
     width="browse"
   >
     <div class="grid auto-rows-max gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        books.map(book => (
-          <BookCard
-            slug={book.slug}
-            title={book.title}
-            description={book.description}
-            href={book.href}
-            sourceLocale={book.sourceLocale}
-            requestedLocale={locale}
-          />
-        ))
-      }
+      {books.map(book => (
+        <BookCard
+          slug={book.slug}
+          title={book.title}
+          description={book.description}
+          href={book.href}
+          sourceLocale={book.sourceLocale}
+          requestedLocale={locale}
+        />
+      ))}
     </div>
   </Main>
   <Footer />

@@ -139,25 +139,21 @@ const layoutProps = {
     <BackButton />
     <div class="flex gap-8">
       <div class="min-w-0 flex-1">
-        {
-          isFallback && (
-            <p class="mb-3 text-sm text-muted-foreground">{sourceLabel}</p>
-          )
-        }
-        {
-          !isFallback && translationAvailable && alternateUrl && (
-            <p class="mb-3 text-sm text-muted-foreground">
-              <a
-                href={alternateUrl}
-                class="underline decoration-dashed underline-offset-4 hover:text-accent"
-              >
-                {tplStr(t.language.readIn, {
-                  language: t.language.names[locale === "zh" ? "en" : "zh"],
-                })}
-              </a>
-            </p>
-          )
-        }
+        {isFallback && (
+          <p class="mb-3 text-sm text-muted-foreground">{sourceLabel}</p>
+        )}
+        {!isFallback && translationAvailable && alternateUrl && (
+          <p class="mb-3 text-sm text-muted-foreground">
+            <a
+              href={alternateUrl}
+              class="underline decoration-dashed underline-offset-4 hover:text-accent"
+            >
+              {tplStr(t.language.readIn, {
+                language: t.language.names[locale === "zh" ? "en" : "zh"],
+              })}
+            </a>
+          </p>
+        )}
         <h1
           transition:name={toTransitionName(String(post.id))}
           class="inline-block text-[1.75rem] leading-9 font-bold text-accent sm:text-3xl"
@@ -172,8 +168,10 @@ const layoutProps = {
             class:list={[
               "max-sm:hidden",
               { hidden: !config.features.editPost.enabled || hideEditPost },
-            ]}>|</span
+            ]}
           >
+            |
+          </span>
           <EditPost {hideEditPost} {post} class="max-sm:hidden" />
         </div>
         <article
@@ -183,18 +181,16 @@ const layoutProps = {
           <Content />
         </article>
       </div>
-      {
-        tocHeadings.length > 0 && (
-          <aside class="hidden w-64 flex-none xl:block">
-            <div
-              data-toc-scroll
-              class="toc-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
-            >
-              <TableOfContents headings={tocHeadings} />
-            </div>
-          </aside>
-        )
-      }
+      {tocHeadings.length > 0 && (
+        <aside class="hidden w-64 flex-none xl:block">
+          <div
+            data-toc-scroll
+            class="toc-scroll sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain"
+          >
+            <TableOfContents headings={tocHeadings} />
+          </div>
+        </aside>
+      )}
     </div>
 
     <hr class="my-8 border-dashed" />
@@ -202,7 +198,9 @@ const layoutProps = {
     <EditPost class="sm:hidden" {hideEditPost} {post} />
 
     <ul class="mt-4 mb-8 flex flex-wrap gap-4 sm:my-8">
-      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />)}
+      {tags.map(tag => (
+        <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />
+      ))}
     </ul>
 
     <ShareLinks />
@@ -213,48 +211,42 @@ const layoutProps = {
 
     <!-- Previous/Next Post Buttons（与书籍章节导航同款布局） -->
     <div data-pagefind-ignore class="grid grid-cols-2 gap-3 sm:gap-6">
-      {
-        prevPost && (
-          <a
-            href={getLocalizedPath(
-              getPath(prevPost.id, prevPost.filePath),
-              locale
-            )}
-            class="group flex min-h-14 w-full min-w-0 items-center gap-1 rounded-md py-2 text-sm leading-5 hover:bg-foreground/5"
-          >
-            <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
-            <div class="min-w-0">
-              <span class="text-sm text-muted-foreground">
-                {t.post.previousPost}
-              </span>
-              <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
-                {prevPost.data.title}
-              </div>
+      {prevPost && (
+        <a
+          href={getLocalizedPath(
+            getPath(prevPost.id, prevPost.filePath),
+            locale
+          )}
+          class="group flex min-h-14 w-full min-w-0 items-center gap-1 rounded-md py-2 text-sm leading-5 hover:bg-foreground/5"
+        >
+          <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
+          <div class="min-w-0">
+            <span class="text-sm text-muted-foreground">
+              {t.post.previousPost}
+            </span>
+            <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
+              {prevPost.data.title}
             </div>
-          </a>
-        )
-      }
-      {
-        nextPost && (
-          <a
-            href={getLocalizedPath(
-              getPath(nextPost.id, nextPost.filePath),
-              locale
-            )}
-            class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end text-sm leading-5 hover:bg-foreground/5"
-          >
-            <div class="min-w-0">
-              <span class="text-sm text-muted-foreground">
-                {t.post.nextPost}
-              </span>
-              <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
-                {nextPost.data.title}
-              </div>
+          </div>
+        </a>
+      )}
+      {nextPost && (
+        <a
+          href={getLocalizedPath(
+            getPath(nextPost.id, nextPost.filePath),
+            locale
+          )}
+          class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end text-sm leading-5 hover:bg-foreground/5"
+        >
+          <div class="min-w-0">
+            <span class="text-sm text-muted-foreground">{t.post.nextPost}</span>
+            <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
+              {nextPost.data.title}
             </div>
-            <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
-          </a>
-        )
-      }
+          </div>
+          <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
+        </a>
+      )}
     </div>
   </main>
 

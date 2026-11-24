@@ -99,73 +99,69 @@ const readingLabel = tplStr(contentT.reading.metadata, {
   <hr class="my-8 border-dashed" />
 
   <div data-pagefind-ignore class="grid grid-cols-2 gap-3 sm:gap-6">
-    {
-      prevSlug ? (
+    {prevSlug ? (
+      <a
+        href={hrefMap[prevSlug]}
+        class="group flex min-h-14 w-full min-w-0 items-center gap-1 rounded-md py-2 hover:bg-foreground/5"
+      >
+        <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
+        <div class="min-w-0">
+          <span class="text-sm text-muted-foreground">
+            {t.book.previousChapter}
+          </span>
+          <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
+            {titleMap[prevSlug] || prevSlug}
+          </div>
+        </div>
+      </a>
+    ) : (
+      nextSlug && (
         <a
-          href={hrefMap[prevSlug]}
+          href={getLocalizedPath("/books", locale)}
           class="group flex min-h-14 w-full min-w-0 items-center gap-1 rounded-md py-2 hover:bg-foreground/5"
         >
           <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
-          <div class="min-w-0">
-            <span class="text-sm text-muted-foreground">
-              {t.book.previousChapter}
-            </span>
-            <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
-              {titleMap[prevSlug] || prevSlug}
-            </div>
-          </div>
-        </a>
-      ) : (
-        nextSlug && (
-          <a
-            href={getLocalizedPath("/books", locale)}
-            class="group flex min-h-14 w-full min-w-0 items-center gap-1 rounded-md py-2 hover:bg-foreground/5"
-          >
-            <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
-            <span class="text-sm font-medium text-accent">
-              {t.book.backToBooks}
-            </span>
-          </a>
-        )
-      )
-    }
-    {
-      nextSlug ? (
-        <a
-          href={hrefMap[nextSlug]}
-          class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end hover:bg-foreground/5"
-        >
-          <div class="min-w-0">
-            <span class="text-sm text-muted-foreground">
-              {t.book.nextChapter}
-            </span>
-            <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
-              {titleMap[nextSlug] || nextSlug}
-            </div>
-          </div>
-          <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
-        </a>
-      ) : prevSlug ? (
-        <a
-          href={getLocalizedPath("/books", locale)}
-          class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end hover:bg-foreground/5"
-        >
-          <span class="text-sm font-medium text-accent">
-            {t.book.backToBooks}
-          </span>
-          <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
-        </a>
-      ) : (
-        <a
-          href={getLocalizedPath("/books", locale)}
-          class="group col-span-2 flex min-h-14 w-full items-center justify-center gap-1 rounded-md py-2 hover:bg-foreground/5"
-        >
-          <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
           <span class="text-sm font-medium text-accent">
             {t.book.backToBooks}
           </span>
         </a>
       )
-    }
+    )}
+    {nextSlug ? (
+      <a
+        href={hrefMap[nextSlug]}
+        class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end hover:bg-foreground/5"
+      >
+        <div class="min-w-0">
+          <span class="text-sm text-muted-foreground">
+            {t.book.nextChapter}
+          </span>
+          <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
+            {titleMap[nextSlug] || nextSlug}
+          </div>
+        </div>
+        <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
+      </a>
+    ) : prevSlug ? (
+      <a
+        href={getLocalizedPath("/books", locale)}
+        class="group flex min-h-14 w-full min-w-0 items-center justify-end gap-1 rounded-md py-2 text-end hover:bg-foreground/5"
+      >
+        <span class="text-sm font-medium text-accent">
+          {t.book.backToBooks}
+        </span>
+        <IconChevronRight class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:translate-x-0.5 rtl:rotate-180" />
+      </a>
+    ) : (
+      <a
+        href={getLocalizedPath("/books", locale)}
+        class="group col-span-2 flex min-h-14 w-full items-center justify-center gap-1 rounded-md py-2 hover:bg-foreground/5"
+      >
+        <IconChevronLeft class="inline-block flex-none motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:group-hover:-translate-x-0.5 rtl:rotate-180" />
+        <span class="text-sm font-medium text-accent">
+          {t.book.backToBooks}
+        </span>
+      </a>
+    )}
   </div>
 </BookLayout>

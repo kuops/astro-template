@@ -43,28 +43,22 @@ const tagCount = new Set(sortedPosts.flatMap(({ data }) => data.tags ?? []))
   <Header />
   <main id="main-content" data-layout="index" class="browse-layout">
     <section id="hero" class:list={["pt-8 pb-8", "border-b border-border"]}>
-      <div
-        class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch"
-      >
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch">
         {/* 左：身份 + 社交 + 统计/入口，与右卡等高时底部对齐 */}
         <div class="flex min-w-0 flex-col gap-6">
           <div class="flex items-center gap-5 sm:gap-6">
-            {
-              config.site.avatar && (
-                <img
-                  src={config.site.avatar}
-                  alt={config.site.author}
-                  width="112"
-                  height="112"
-                  class="size-24 flex-none rounded-[var(--surface-radius)] border border-border object-cover sm:size-28"
-                  loading="eager"
-                />
-              )
-            }
+            {config.site.avatar && (
+              <img
+                src={config.site.avatar}
+                alt={config.site.author}
+                width="112"
+                height="112"
+                class="size-24 flex-none rounded-[var(--surface-radius)] border border-border object-cover sm:size-28"
+                loading="eager"
+              />
+            )}
             <div class="min-w-0">
-              <h1
-                class="flex flex-wrap items-center gap-x-2.5 text-2xl font-bold sm:text-3xl"
-              >
+              <h1 class="flex flex-wrap items-center gap-x-2.5 text-2xl font-bold sm:text-3xl">
                 {config.site.author}
                 <a
                   target="_blank"
@@ -87,50 +81,44 @@ const tagCount = new Set(sortedPosts.flatMap(({ data }) => data.tags ?? []))
             </div>
           </div>
 
-          {
-            config.socials.length > 0 && (
-              <div class="flex items-center">
-                <span class="me-2 text-sm whitespace-nowrap text-muted-foreground">
-                  {t.home.socialLinks}
-                </span>
-                <Socials />
-              </div>
-            )
-          }
+          {config.socials.length > 0 && (
+            <div class="flex items-center">
+              <span class="me-2 text-sm whitespace-nowrap text-muted-foreground">
+                {t.home.socialLinks}
+              </span>
+              <Socials />
+            </div>
+          )}
 
-          <div
-            class="mt-auto flex flex-wrap items-end justify-between gap-x-8 gap-y-4"
-          >
+          <div class="mt-auto flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
             <div class="flex gap-x-8 sm:gap-x-10">
-              {
-                [
-                  {
-                    n: sortedPosts.length,
-                    label: t.home.statsPosts,
-                    href: getLocalizedPath("/posts/", locale),
-                  },
-                  {
-                    n: bookCount,
-                    label: t.home.statsBooks,
-                    href: getLocalizedPath("/books/", locale),
-                  },
-                  {
-                    n: tagCount,
-                    label: t.home.statsTags,
-                    href: getLocalizedPath("/tags/", locale),
-                  },
-                ].map(({ n, label, href }) => (
-                  <a
-                    href={href}
-                    class="focus-outline rounded-xs leading-none hover:text-accent"
-                  >
-                    <div class="text-2xl font-bold tabular-nums">{n}</div>
-                    <div class="mt-1.5 text-xs text-muted-foreground">
-                      {label}
-                    </div>
-                  </a>
-                ))
-              }
+              {[
+                {
+                  n: sortedPosts.length,
+                  label: t.home.statsPosts,
+                  href: getLocalizedPath("/posts/", locale),
+                },
+                {
+                  n: bookCount,
+                  label: t.home.statsBooks,
+                  href: getLocalizedPath("/books/", locale),
+                },
+                {
+                  n: tagCount,
+                  label: t.home.statsTags,
+                  href: getLocalizedPath("/tags/", locale),
+                },
+              ].map(({ n, label, href }) => (
+                <a
+                  href={href}
+                  class="focus-outline rounded-xs leading-none hover:text-accent"
+                >
+                  <div class="text-2xl font-bold tabular-nums">{n}</div>
+                  <div class="mt-1.5 text-xs text-muted-foreground">
+                    {label}
+                  </div>
+                </a>
+              ))}
             </div>
             <div class="flex items-center gap-2">
               <LinkButton
@@ -156,44 +144,38 @@ const tagCount = new Set(sortedPosts.flatMap(({ data }) => data.tags ?? []))
       </div>
     </section>
 
-    {
-      featuredPosts.length > 0 && (
-        <section
-          id="featured"
-          class:list={[
-            "pt-12 pb-6",
-            { "border-b border-border": recentPosts.length > 0 },
-          ]}
-        >
-          <h2 class="text-2xl font-semibold tracking-wide">
-            {t.home.featured}
-          </h2>
-          <ul>
-            {featuredPosts.map(data => (
-              <Card variant="h3" requestedLocale={locale} {...data} />
-            ))}
-          </ul>
-        </section>
-      )
-    }
+    {featuredPosts.length > 0 && (
+      <section
+        id="featured"
+        class:list={[
+          "pt-12 pb-6",
+          { "border-b border-border": recentPosts.length > 0 },
+        ]}
+      >
+        <h2 class="text-2xl font-semibold tracking-wide">{t.home.featured}</h2>
+        <ul>
+          {featuredPosts.map(data => (
+            <Card variant="h3" requestedLocale={locale} {...data} />
+          ))}
+        </ul>
+      </section>
+    )}
 
-    {
-      recentPosts.length > 0 && (
-        <section id="recent-posts" class="pt-12 pb-6">
-          <h2 class="text-2xl font-semibold tracking-wide">
-            {t.home.recentPosts}
-          </h2>
-          <ul>
-            {recentPosts.map(
-              (data, index) =>
-                index < config.posts.perIndex && (
-                  <Card variant="h3" requestedLocale={locale} {...data} />
-                )
-            )}
-          </ul>
-        </section>
-      )
-    }
+    {recentPosts.length > 0 && (
+      <section id="recent-posts" class="pt-12 pb-6">
+        <h2 class="text-2xl font-semibold tracking-wide">
+          {t.home.recentPosts}
+        </h2>
+        <ul>
+          {recentPosts.map(
+            (data, index) =>
+              index < config.posts.perIndex && (
+                <Card variant="h3" requestedLocale={locale} {...data} />
+              )
+          )}
+        </ul>
+      </section>
+    )}
 
     <div class="my-8 text-center">
       <LinkButton href={getLocalizedPath("/posts/", locale)}>

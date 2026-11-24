@@ -35,36 +35,33 @@ const ds = {
     <p
       id="wc-date"
       class="font-mono text-xs leading-6 text-muted-foreground tabular-nums"
-    >
-    </p>
+    ></p>
     <p
       id="wc-clock"
       class="font-mono text-sm leading-6 text-accent tabular-nums"
-    >
-    </p>
+    ></p>
   </div>
 
   <div class="mt-6 flex flex-1 items-center gap-4">
     <i
       id="wc-icon"
       class="wc-pending text-[3.5rem] leading-none text-accent"
-      aria-hidden="true"></i>
+      aria-hidden="true"
+    ></i>
     <div class="min-w-0 flex-1">
       <div class="flex items-start gap-0.5">
         <span
           id="wc-temp"
           class="font-mono text-6xl leading-none font-medium text-foreground tabular-nums"
-          >--</span
         >
-        <span
-          class="mt-1.5 text-xl leading-none font-normal text-muted-foreground"
-          >°</span
-        >
+          --
+        </span>
+        <span class="mt-1.5 text-xl leading-none font-normal text-muted-foreground">
+          °
+        </span>
       </div>
     </div>
-    <div
-      class="flex-none text-end font-mono text-xs leading-5 text-muted-foreground tabular-nums"
-    >
+    <div class="flex-none text-end font-mono text-xs leading-5 text-muted-foreground tabular-nums">
       <p id="wc-range"></p>
       <p id="wc-humidity"></p>
       <p id="wc-wind"></p>
@@ -78,9 +75,7 @@ const ds = {
     <span id="wc-place">{ds.loading}</span>
   </p>
 
-  <div
-    class="flex items-center justify-end gap-2 pt-4 text-xs text-muted-foreground"
-  >
+  <div class="flex items-center justify-end gap-2 pt-4 text-xs text-muted-foreground">
     <span id="wc-updated" class="flex-none"></span>
   </div>
 </section>

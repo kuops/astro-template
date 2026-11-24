@@ -33,58 +33,55 @@ const {
   data-book-chapter-nav={bookSlug}
   aria-label={t.book.chapterNav}
 >
-  {
-    sidebar.map(group => {
-      const isActive = group.items.includes(currentSlug);
-      const links = group.items.map(item => {
-        const href =
-          hrefMap[item] ??
-          getLocalizedPath(`/books/${bookSlug}/${item}`, locale);
-        const sourceLocale = sourceLocaleMap[item] ?? getLocaleFromPath(href);
-        const isFallback = sourceLocale !== locale;
-        const isCurrent = currentSlug === item;
-        const label = titleMap[item] || item;
-        return (
-          <a
-            href={href}
-            class:list={["book-chapter-link", { active: isCurrent }]}
-            aria-current={isCurrent ? "page" : undefined}
-            data-current-chapter={isCurrent ? "true" : undefined}
-          >
-            <span class="book-chapter-label" title={label}>
-              {label}
-            </span>
-            {isFallback && (
-              <span class="ms-1 flex-none text-[0.6875rem] text-muted-foreground uppercase">
-                ({sourceLocale})
-              </span>
-            )}
-          </a>
-        );
-      });
-
-      if (!group.text) {
-        return <div class="book-group-body ungrouped space-y-0.5">{links}</div>;
-      }
-
+  {sidebar.map(group => {
+    const isActive = group.items.includes(currentSlug);
+    const links = group.items.map(item => {
+      const href =
+        hrefMap[item] ?? getLocalizedPath(`/books/${bookSlug}/${item}`, locale);
+      const sourceLocale = sourceLocaleMap[item] ?? getLocaleFromPath(href);
+      const isFallback = sourceLocale !== locale;
+      const isCurrent = currentSlug === item;
+      const label = titleMap[item] || item;
       return (
-        <details
-          open={isActive}
-          class="book-group group"
-          data-book-group={group.text}
+        <a
+          href={href}
+          class:list={["book-chapter-link", { active: isCurrent }]}
+          aria-current={isCurrent ? "page" : undefined}
+          data-current-chapter={isCurrent ? "true" : undefined}
         >
-          <summary class="book-group-title">
-            <span>{group.text}</span>
-            <IconChevronRight
-              class="book-group-arrow size-4"
-              aria-hidden="true"
-            />
-          </summary>
-          <div class="book-group-body">{links}</div>
-        </details>
+          <span class="book-chapter-label" title={label}>
+            {label}
+          </span>
+          {isFallback && (
+            <span class="ms-1 flex-none text-[0.6875rem] text-muted-foreground uppercase">
+              ({sourceLocale})
+            </span>
+          )}
+        </a>
       );
-    })
-  }
+    });
+
+    if (!group.text) {
+      return <div class="book-group-body ungrouped space-y-0.5">{links}</div>;
+    }
+
+    return (
+      <details
+        open={isActive}
+        class="book-group group"
+        data-book-group={group.text}
+      >
+        <summary class="book-group-title">
+          <span>{group.text}</span>
+          <IconChevronRight
+            class="book-group-arrow size-4"
+            aria-hidden="true"
+          />
+        </summary>
+        <div class="book-group-body">{links}</div>
+      </details>
+    );
+  })}
 </nav>
 
 <script is:inline data-astro-rerun>

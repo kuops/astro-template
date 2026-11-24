@@ -158,40 +158,35 @@ const isCurrentPage = (path: string) => currentPath === path;
             {t.nav.about}
           </a>
         </li>
-        {
-          config.features.showArchives && (
-            <li class="order-4 col-span-3 md:order-1">
-              <a
-                href={localizedPath("/archives")}
-                class:list={{ "active-nav": isActive("/archives") }}
-                aria-current={isCurrentPage("/archives") ? "page" : undefined}
-              >
-                {t.nav.archives}
-              </a>
-            </li>
-          )
-        }
+        {config.features.showArchives && (
+          <li class="order-4 col-span-3 md:order-1">
+            <a
+              href={localizedPath("/archives")}
+              class:list={{ "active-nav": isActive("/archives") }}
+              aria-current={isCurrentPage("/archives") ? "page" : undefined}
+            >
+              {t.nav.archives}
+            </a>
+          </li>
+        )}
         <li
           aria-hidden="true"
           class="order-3 col-span-3 my-1 border-t border-border md:order-2 md:my-0 md:h-5 md:w-px md:border-s md:border-t-0"
-        >
-        </li>
-        {
-          alternateLocale && languageHref && targetLanguage && (
-            <li class="order-1 flex items-center justify-self-end md:order-3">
-              <a
-                href={languageHref}
-                class="focus-outline flex min-w-12 justify-center !p-3 md:min-w-0 md:!p-1"
-                title={`${t.language.switchLanguage}: ${targetLanguage}`}
-                aria-label={`${t.language.switchLanguage}: ${targetLanguage}`}
-                lang={alternateLocale}
-                hreflang={alternateLocale}
-              >
-                <IconLanguage />
-              </a>
-            </li>
-          )
-        }
+        ></li>
+        {alternateLocale && languageHref && targetLanguage && (
+          <li class="order-1 flex items-center justify-self-end md:order-3">
+            <a
+              href={languageHref}
+              class="focus-outline flex min-w-12 justify-center !p-3 md:min-w-0 md:!p-1"
+              title={`${t.language.switchLanguage}: ${targetLanguage}`}
+              aria-label={`${t.language.switchLanguage}: ${targetLanguage}`}
+              lang={alternateLocale}
+              hreflang={alternateLocale}
+            >
+              <IconLanguage />
+            </a>
+          </li>
+        )}
         <li class="hidden items-center md:order-4 md:flex">
           <button
             id="search-btn"
@@ -203,22 +198,20 @@ const isCurrentPage = (path: string) => currentPath === path;
             <span class="sr-only">{t.nav.search}</span>
           </button>
         </li>
-        {
-          config.features.lightAndDarkMode && (
-            <li class="order-2 flex items-center md:order-5">
-              <button
-                id="theme-btn"
-                class="focus-outline relative size-12 p-4 hover:text-accent md:size-8"
-                title={t.a11y.toggleTheme}
-                aria-label="auto"
-                aria-live="polite"
-              >
-                <IconMoon class="icon-moon absolute top-[50%] left-[50%] -translate-[50%] scale-100 rotate-0 dark:scale-0 dark:-rotate-90 [.theme-ready_&]:motion-safe:transition-transform [.theme-ready_&]:motion-safe:duration-300" />
-                <IconSunHigh class="icon-sun absolute top-[50%] left-[50%] -translate-[50%] scale-0 rotate-90 dark:scale-100 dark:rotate-0 [.theme-ready_&]:motion-safe:transition-transform [.theme-ready_&]:motion-safe:duration-300" />
-              </button>
-            </li>
-          )
-        }
+        {config.features.lightAndDarkMode && (
+          <li class="order-2 flex items-center md:order-5">
+            <button
+              id="theme-btn"
+              class="focus-outline relative size-12 p-4 hover:text-accent md:size-8"
+              title={t.a11y.toggleTheme}
+              aria-label="auto"
+              aria-live="polite"
+            >
+              <IconMoon class="icon-moon absolute top-[50%] left-[50%] -translate-[50%] scale-100 rotate-0 dark:scale-0 dark:-rotate-90 [.theme-ready_&]:motion-safe:transition-transform [.theme-ready_&]:motion-safe:duration-300" />
+              <IconSunHigh class="icon-sun absolute top-[50%] left-[50%] -translate-[50%] scale-0 rotate-90 dark:scale-100 dark:rotate-0 [.theme-ready_&]:motion-safe:transition-transform [.theme-ready_&]:motion-safe:duration-300" />
+            </button>
+          </li>
+        )}
       </ul>
     </nav>
   </div>

@@ -4,17 +4,30 @@ import { getLocaleFromPath, useTranslations } from "@/i18n";
 const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 ---
 
-<span id="i18n-mermaid-preview" class="hidden" data-label={t.mermaid.preview}
+<span
+  id="i18n-mermaid-preview"
+  class="hidden"
+  data-label={t.mermaid.preview}
 ></span>
-<span id="i18n-mermaid-source" class="hidden" data-label={t.mermaid.source}
+<span
+  id="i18n-mermaid-source"
+  class="hidden"
+  data-label={t.mermaid.source}
 ></span>
-<span id="i18n-mermaid-copy" class="hidden" data-label={t.mermaid.copySource}
+<span
+  id="i18n-mermaid-copy"
+  class="hidden"
+  data-label={t.mermaid.copySource}
 ></span>
 <span
   id="i18n-mermaid-fullscreen"
   class="hidden"
-  data-label={t.mermaid.fullscreen}></span>
-<span id="i18n-mermaid-close" class="hidden" data-label={t.mermaid.close}
+  data-label={t.mermaid.fullscreen}
+></span>
+<span
+  id="i18n-mermaid-close"
+  class="hidden"
+  data-label={t.mermaid.close}
 ></span>
 
 <noscript>

@@ -47,54 +47,52 @@ const publishDate = (post: CollectionEntry<"blog">) =>
     pageDesc={t.pages.archivesDesc}
     width="browse"
   >
-    {
-      Object.entries(
-        getPostsByGroupCondition(posts, post => publishDate(post).year())
-      )
-        .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
-        .map(([year, yearGroup]) => (
-          <div>
-            <span class="text-2xl font-bold">{year}</span>
-            <span class="ms-2 inline-flex items-center rounded-full bg-muted/60 px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
-              {yearGroup.length}
-            </span>
-            {Object.entries(
-              getPostsByGroupCondition(
-                yearGroup,
-                post => publishDate(post).month() + 1
-              )
+    {Object.entries(
+      getPostsByGroupCondition(posts, post => publishDate(post).year())
+    )
+      .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
+      .map(([year, yearGroup]) => (
+        <div>
+          <span class="text-2xl font-bold">{year}</span>
+          <span class="ms-2 inline-flex items-center rounded-full bg-muted/60 px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
+            {yearGroup.length}
+          </span>
+          {Object.entries(
+            getPostsByGroupCondition(
+              yearGroup,
+              post => publishDate(post).month() + 1
             )
-              .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
-              .map(([month, monthGroup]) => (
-                <div class="flex flex-col sm:flex-row">
-                  <div class="mt-6 min-w-36 text-lg sm:my-6">
-                    <span class="font-bold">
-                      {monthFormatter.format(new Date(2024, Number(month) - 1))}
-                    </span>
-                    <span class="ms-2 inline-flex items-center rounded-full bg-muted/60 px-1.5 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
-                      {monthGroup.length}
-                    </span>
-                  </div>
-                  <ul>
-                    {monthGroup
-                      .sort(
-                        (a, b) =>
-                          Math.floor(
-                            new Date(b.data.pubDatetime).getTime() / 1000
-                          ) -
-                          Math.floor(
-                            new Date(a.data.pubDatetime).getTime() / 1000
-                          )
-                      )
-                      .map(data => (
-                        <Card requestedLocale={locale} {...data} />
-                      ))}
-                  </ul>
+          )
+            .sort(([monthA], [monthB]) => Number(monthB) - Number(monthA))
+            .map(([month, monthGroup]) => (
+              <div class="flex flex-col sm:flex-row">
+                <div class="mt-6 min-w-36 text-lg sm:my-6">
+                  <span class="font-bold">
+                    {monthFormatter.format(new Date(2024, Number(month) - 1))}
+                  </span>
+                  <span class="ms-2 inline-flex items-center rounded-full bg-muted/60 px-1.5 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
+                    {monthGroup.length}
+                  </span>
                 </div>
-              ))}
-          </div>
-        ))
-    }
+                <ul>
+                  {monthGroup
+                    .sort(
+                      (a, b) =>
+                        Math.floor(
+                          new Date(b.data.pubDatetime).getTime() / 1000
+                        ) -
+                        Math.floor(
+                          new Date(a.data.pubDatetime).getTime() / 1000
+                        )
+                    )
+                    .map(data => (
+                      <Card requestedLocale={locale} {...data} />
+                    ))}
+                </ul>
+              </div>
+            ))}
+        </div>
+      ))}
   </Main>
   <Footer />
 </Layout>

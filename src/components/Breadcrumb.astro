@@ -110,35 +110,36 @@ if (segments[0] === "posts") {
       <a
         href={localize("/")}
         class="text-muted-foreground transition-colors hover:text-accent"
-        >{t.nav.home}</a
       >
-      <span aria-hidden="true" class="mx-2.5 opacity-80">&raquo;</span>
+        {t.nav.home}
+      </a>
+      <span aria-hidden="true" class="mx-2.5 opacity-80">
+        &raquo;
+      </span>
     </li>
-    {
-      breadcrumbList.map((item, index) =>
-        index + 1 === breadcrumbList.length ? (
-          <li>
-            <span
-              class:list={["capitalize", { lowercase: index > 0 }]}
-              aria-current="page"
-            >
-              {item.label}
-            </span>
-          </li>
-        ) : (
-          <li>
-            <a
-              href={item.href}
-              class="text-muted-foreground capitalize transition-colors hover:text-accent"
-            >
-              {item.label}
-            </a>
-            <span aria-hidden="true" class="mx-2.5">
-              &raquo;
-            </span>
-          </li>
-        )
+    {breadcrumbList.map((item, index) =>
+      index + 1 === breadcrumbList.length ? (
+        <li>
+          <span
+            class:list={["capitalize", { lowercase: index > 0 }]}
+            aria-current="page"
+          >
+            {item.label}
+          </span>
+        </li>
+      ) : (
+        <li>
+          <a
+            href={item.href}
+            class="text-muted-foreground capitalize transition-colors hover:text-accent"
+          >
+            {item.label}
+          </a>
+          <span aria-hidden="true" class="mx-2.5">
+            &raquo;
+          </span>
+        </li>
       )
-    }
+    )}
   </ul>
 </nav>

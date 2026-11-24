@@ -45,13 +45,11 @@ const sourceLabel = tplStr(t.language.sourceLabel, {
   >
     <Heading style={{ viewTransitionName: toTransitionName(id) }}>
       {title}
-      {
-        isFallback && (
-          <span class="ms-2 align-middle text-xs font-normal text-muted-foreground">
-            ({sourceLabel})
-          </span>
-        )
-      }
+      {isFallback && (
+        <span class="ms-2 align-middle text-xs font-normal text-muted-foreground">
+          ({sourceLabel})
+        </span>
+      )}
     </Heading>
   </a>
   <Datetime {...props} />

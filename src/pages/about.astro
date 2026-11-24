@@ -80,25 +80,21 @@ const { Content } = await render(about);
 
   <main id="main-content" class="browse-layout">
     <section class="app-prose mb-28 max-w-browse prose-img:border-0">
-      {
-        isFallback && (
-          <p class="mb-3 text-sm text-muted-foreground">{sourceLabel}</p>
-        )
-      }
-      {
-        !isFallback && alternateEntry && alternateUrl && (
-          <p class="mb-3 text-sm text-muted-foreground">
-            <a
-              href={alternateUrl}
-              class="underline decoration-dashed underline-offset-4 hover:text-accent"
-            >
-              {tplStr(t.language.readIn, {
-                language: t.language.names[alternateLocale!],
-              })}
-            </a>
-          </p>
-        )
-      }
+      {isFallback && (
+        <p class="mb-3 text-sm text-muted-foreground">{sourceLabel}</p>
+      )}
+      {!isFallback && alternateEntry && alternateUrl && (
+        <p class="mb-3 text-sm text-muted-foreground">
+          <a
+            href={alternateUrl}
+            class="underline decoration-dashed underline-offset-4 hover:text-accent"
+          >
+            {tplStr(t.language.readIn, {
+              language: t.language.names[alternateLocale!],
+            })}
+          </a>
+        </p>
+      )}
       <h1 class="text-[1.75rem] leading-9 font-semibold sm:text-3xl">
         {about.data.title}
       </h1>

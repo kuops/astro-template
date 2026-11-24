@@ -18,23 +18,21 @@ function getSocialIcon(name: string) {
 ---
 
 <div class="flex flex-wrap items-center gap-1">
-  {
-    config.socials.map(social => {
-      const Icon = getSocialIcon(social.name);
-      const linkTitle =
-        social.linkTitle ?? `${config.site.title} on ${social.name}`;
-      return (
-        Icon && (
-          <LinkButton
-            href={social.url}
-            class="p-2 hover:rotate-6 sm:p-1"
-            title={linkTitle}
-          >
-            <Icon class="inline-block size-5 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
-            <span class="sr-only">{linkTitle}</span>
-          </LinkButton>
-        )
-      );
-    })
-  }
+  {config.socials.map(social => {
+    const Icon = getSocialIcon(social.name);
+    const linkTitle =
+      social.linkTitle ?? `${config.site.title} on ${social.name}`;
+    return (
+      Icon && (
+        <LinkButton
+          href={social.url}
+          class="p-2 hover:rotate-6 sm:p-1"
+          title={linkTitle}
+        >
+          <Icon class="inline-block size-5 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
+          <span class="sr-only">{linkTitle}</span>
+        </LinkButton>
+      )
+    );
+  })}
 </div>
