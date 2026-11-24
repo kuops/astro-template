@@ -315,7 +315,12 @@ const isCurrentPage = (path: string) => currentPath === path;
           { once: true }
         );
         target.focus();
-        target.scrollIntoView({ behavior: "smooth" });
+        // 开启"减少动态效果"时直接跳转，不做平滑滚动（与 BackToTopButton 同款判断）
+        const behavior = window.matchMedia("(prefers-reduced-motion: reduce)")
+          .matches
+          ? "instant"
+          : "smooth";
+        target.scrollIntoView({ behavior });
       }
     });
   }
