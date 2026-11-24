@@ -4,42 +4,90 @@ import type { CollectionEntry } from "astro:content";
 import IconArrowLeft from "@/assets/icons/IconArrowLeft.svg";
 import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import LinkButton from "./LinkButton.astro";
-import { getLocaleFromPath, useTranslations } from "@/i18n";
-const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
+import { getLocaleFromPath, tplStr, useTranslations } from "@/i18n";
+import { getPageItems } from "@/utils/pagination";
 
 type Props = {
   page: Page<CollectionEntry<"blog">>;
+  /** 渲染哪一种排法；不传时输出外层容器，并在里面各放一种（靠断点切换显示） */
+  variant?: "full" | "compact";
 };
 
-const { page } = Astro.props;
+const { page, variant } = Astro.props;
+const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
+
+const current = page.currentPage;
+const total = page.lastPage;
+
+// 第 1 页就是列表本身（/posts），其余页在后面接页码（/posts/2）。
+// paginate() 生成的分页一定有第 1 页；类型上 first 可能为空，兜底退回当前页
+const first = (page.url.first ?? page.url.current).replace(/\/+$/, "");
+const urlOf = (n: number) => (n === 1 ? first : `${first}/${n}`);
+
+const BTN =
+  "inline-flex h-10 min-w-10 items-center justify-center rounded-md border border-border px-2 text-sm leading-none";
+const IDLE = "text-foreground hover:border-accent hover:text-accent";
+const OFF = "cursor-default text-muted-foreground opacity-45";
 ---
 
 {
-  page.lastPage > 1 && (
-    <nav
-      class="mt-auto mb-8 flex justify-center"
-      role="navigation"
-      aria-label="Pagination Navigation"
+  variant ? (
+    <div
+      class:list={[
+        "items-center justify-center",
+        variant === "full" ? "hidden gap-2 sm:flex" : "flex gap-1.5 sm:hidden",
+      ]}
     >
       <LinkButton
         disabled={!page.url.prev}
-        href={page.url.prev as string}
-        class:list={["me-4 select-none", { "opacity-50": !page.url.prev }]}
+        href={page.url.prev ?? undefined}
+        class:list={[BTN, page.url.prev ? IDLE : OFF]}
         aria-label={t.a11y.goToPreviousPage}
       >
-        <IconArrowLeft class="me-1 inline-block rtl:rotate-180" />
-        {t.pagination.prev}
+        <IconArrowLeft class="size-4 rtl:rotate-180" />
       </LinkButton>
-      {page.currentPage} / {page.lastPage}
+      {getPageItems(current, total, variant).map(item =>
+        item === "ellipsis" ? (
+          <span aria-hidden="true" class="px-0.5 text-muted-foreground">
+            …
+          </span>
+        ) : item === current ? (
+          <span
+            aria-current="page"
+            class:list={[BTN, "border-accent bg-accent text-accent-foreground"]}
+          >
+            {item}
+          </span>
+        ) : (
+          <a
+            href={urlOf(item)}
+            class:list={[BTN, IDLE]}
+            aria-label={tplStr(t.a11y.goToPage, { page: item })}
+          >
+            {item}
+          </a>
+        )
+      )}
       <LinkButton
         disabled={!page.url.next}
-        href={page.url.next as string}
-        class:list={["ms-4 select-none", { "opacity-50": !page.url.next }]}
+        href={page.url.next ?? undefined}
+        class:list={[BTN, page.url.next ? IDLE : OFF]}
         aria-label={t.a11y.goToNextPage}
       >
-        {t.pagination.next}
-        <IconArrowRight class="ms-1 inline-block rtl:rotate-180" />
+        <IconArrowRight class="size-4 rtl:rotate-180" />
       </LinkButton>
-    </nav>
+    </div>
+  ) : (
+    page.lastPage > 1 && (
+      <nav
+        class="mt-auto mb-8"
+        role="navigation"
+        aria-label="Pagination Navigation"
+      >
+        {/* 桌面：首尾页 + 当前页前后各一页；手机：只有当前页前后各一页 */}
+        <Astro.self {page} variant="full" />
+        <Astro.self {page} variant="compact" />
+      </nav>
+    )
   )
 }

@@ -92,6 +92,7 @@ export default {
     noResults: "No results found",
     goToPreviousPage: "Go to previous page",
     goToNextPage: "Go to next page",
+    goToPage: "Go to page {{page}}",
     searchUnavailable: "Search index not available. Run build first.",
     searchHintNavigate: "navigate",
     searchHintOpen: "open",

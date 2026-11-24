@@ -90,6 +90,7 @@ export interface UIStrings {
     noResults: string;
     goToPreviousPage: string;
     goToNextPage: string;
+    goToPage: string;
     searchUnavailable: string;
     searchHintNavigate: string;
     searchHintOpen: string;

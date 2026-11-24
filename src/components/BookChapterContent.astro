@@ -110,7 +110,7 @@ const readingLabel = tplStr(contentT.reading.metadata, {
             <span class="text-sm text-muted-foreground">
               {t.book.previousChapter}
             </span>
-            <div class="truncate text-sm font-medium text-accent">
+            <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
               {titleMap[prevSlug] || prevSlug}
             </div>
           </div>
@@ -139,7 +139,7 @@ const readingLabel = tplStr(contentT.reading.metadata, {
             <span class="text-sm text-muted-foreground">
               {t.book.nextChapter}
             </span>
-            <div class="truncate text-sm font-medium text-accent">
+            <div class="line-clamp-2 text-sm leading-5 font-medium wrap-break-word text-accent">
               {titleMap[nextSlug] || nextSlug}
             </div>
           </div>

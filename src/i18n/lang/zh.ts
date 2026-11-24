@@ -92,6 +92,7 @@ export default {
     noResults: "未找到结果",
     goToPreviousPage: "上一页",
     goToNextPage: "下一页",
+    goToPage: "第 {{page}} 页",
     searchUnavailable: "搜索索引不可用，请先运行 build。",
     searchHintNavigate: "导航",
     searchHintOpen: "打开",
