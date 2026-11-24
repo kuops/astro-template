@@ -21,6 +21,7 @@ export default async () => {
             props: {
               style: {
                 position: "absolute",
+                boxSizing: "border-box",
                 top: "-1px",
                 right: "-1px",
                 border: "4px solid #000",
@@ -39,6 +40,11 @@ export default async () => {
             type: "div",
             props: {
               style: {
+                // satori 0.63 起有三处默认行为变化：层叠时定位元素画在上层、
+                // 盒模型默认 content-box、<p> 默认上下间距改为 1em。
+                // 这里显式写回旧值，保证 OG 图外观不随 satori 版本变化
+                position: "relative",
+                boxSizing: "border-box",
                 border: "4px solid #000",
                 background: "#fefbfb",
                 borderRadius: "4px",
@@ -77,14 +83,19 @@ export default async () => {
                           {
                             type: "p",
                             props: {
-                              style: { fontSize: 72, fontWeight: "bold" },
+                              // 复刻旧版 satori 给 <p> 的默认上下间距 16px
+                              style: {
+                                margin: "16px 0",
+                                fontSize: 72,
+                                fontWeight: "bold",
+                              },
                               children: config.site.title,
                             },
                           },
                           {
                             type: "p",
                             props: {
-                              style: { fontSize: 28 },
+                              style: { margin: "16px 0", fontSize: 28 },
                               children: config.site.description,
                             },
                           },
