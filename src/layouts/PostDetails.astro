@@ -205,7 +205,11 @@ const layoutProps = {
 
     <ShareLinks />
 
-    <CustomPostEnd {post} />
+    <!-- 插槽内容（作者简介、订阅提示等）不属于文章正文：排除出搜索索引，
+         否则搜索任何词都会命中每一篇文章 -->
+    <div data-pagefind-ignore>
+      <CustomPostEnd {post} />
+    </div>
 
     <hr class="my-6 border-dashed" />
 
