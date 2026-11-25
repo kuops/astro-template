@@ -5,7 +5,9 @@ html[data-theme="light"] {
   --accent: #006cac;
   --accent-foreground: #fdfdfd;
   --muted: #e6e6e6;
-  --muted-foreground: #737373;
+  /* 次要文字（日期、描述、面包屑、目录等）。原来的 #737373 在纯色底上刚好压着 4.5 的线，
+     叠上背景图后实测只有 3.9~4.5，所以加深一档 */
+  --muted-foreground: #666666;
   --border: #ece9e9;
   --scrollbar-thumb: #d8d4cf;
   --scrollbar-thumb-hover: #b7b2ab;
