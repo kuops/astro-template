@@ -182,3 +182,15 @@
     }
   }
 }
+
+/* 配了全站背景图时（<html> 带 has-site-background，见 Layout.astro），代码块底色留一点
+   透明，和背景更贴合。代码是密集的小字，颜色是按它自己的底色调的，所以不做全透明；
+   84% 时清晰度不受影响。
+   必须写在 @layer 外面：代码块的底色由排版插件生成的工具类设定，那个类在更高的层里，
+   放进 base 层的规则盖不过它 */
+html.has-site-background .astro-code {
+  background-color: color-mix(in srgb, var(--shiki-light-bg) 84%, transparent);
+}
+html.has-site-background[data-theme="dark"] .astro-code {
+  background-color: color-mix(in srgb, var(--shiki-dark-bg) 84%, transparent);
+}

@@ -236,6 +236,18 @@ pre.astro-code {
   display: none;
 }
 
+/* 配了全站背景图时（<html> 带 has-site-background，见 Layout.astro），图表骨架块改成
+   半透明 + 毛玻璃，和渲染完成后的面板保持一致，避免加载完成时从实心跳到半透明。
+   面板的样式见 MermaidRenderer.astro 里的 .mermaid-wrapper */
+@supports (backdrop-filter: blur(1px)) {
+  html.has-site-background .mermaid-block {
+    background: color-mix(in srgb, var(--background) 72%, transparent);
+    /* 只写标准写法，不加 -webkit- 前缀：两者一起写会被构建工具合并成只剩前缀的那条，
+       而新版 Chrome 已经不认前缀写法，模糊会整个失效 */
+    backdrop-filter: blur(14px);
+  }
+}
+
 /* 代码标签组 */
 .code-tabs {
   overflow: hidden;
