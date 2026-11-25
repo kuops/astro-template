@@ -39,6 +39,8 @@ interface FeaturesConfig {
   /** 进场动画：正文淡入上移，并等首屏字体就绪后再播，避免看到字体切换。
       false 关闭；传对象为开启，并可调整等待上限 */
   enterAnimation?: boolean | EnterAnimationConfig;
+  /** 左上角站点标题的打字机效果：先出现提示符和光标，再逐字敲出标题 */
+  siteTitleTypewriter?: boolean;
   dynamicOgImage?: boolean;
   showArchives?: boolean;
   showBackButton?: boolean;

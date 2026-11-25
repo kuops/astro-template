@@ -5,6 +5,7 @@ import IconSearch from "@/assets/icons/IconSearch.svg";
 import IconLanguage from "@/assets/icons/IconLanguage.svg";
 import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
 import IconBarsMenu from "@/assets/icons/IconBarsMenu.svg";
+import SiteTitle from "@/components/SiteTitle.astro";
 import config from "@/config";
 import {
   getAlternateLocale,
@@ -80,12 +81,11 @@ const isCurrentPage = (path: string) => currentPath === path;
       "flex items-baseline justify-between md:items-center",
     ]}
   >
-    <a
+    <SiteTitle
+      title={config.site.title}
       href={localizedPath("/")}
-      class="absolute z-10 py-1 text-xl leading-8 font-semibold whitespace-nowrap md:static md:my-auto md:text-2xl md:leading-none"
-    >
-      {config.site.title}
-    </a>
+      class="absolute z-10 py-1 text-xl leading-8 font-semibold whitespace-nowrap md:relative md:my-auto md:text-2xl md:leading-none"
+    />
     <nav
       id="nav-menu"
       class="relative flex w-full flex-col items-center md:ms-2 md:flex-row md:justify-end md:space-x-4 md:py-0"

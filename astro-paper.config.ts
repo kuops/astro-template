@@ -35,6 +35,9 @@ export default defineAstroPaperConfig({
     enterAnimation: {
       maxFontWait: 600,
     },
+    // 左上角的站点标题像在终端里敲出来：先出现提示符和光标，再逐字敲出标题。
+    // 每个会话只敲一次，站内换页不重播。写 false 关闭，标题就是一个普通链接
+    siteTitleTypewriter: true,
   },
   layout: {
     // 布局宽度三档（CSS 长度）：阅读栏 / 浏览栏 / 导航带

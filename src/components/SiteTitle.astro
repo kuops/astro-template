@@ -1,0 +1,232 @@
+---
+/**
+ * 左上角的站点标题。开启打字机效果时像在终端里敲一条命令：先出现提示符和光标，
+ * 停顿一下，逐字敲出标题，敲完光标再闪几秒后淡出。
+ *
+ * 几条约束：
+ * - 标题文字完整地写在 HTML 里（逐字包成 span 只是为了能单独显隐），SEO 和禁用
+ *   JS 时拿到的都是完整标题；字符 span 始终占位，标题宽度从头到尾不变，右边的
+ *   导航不会被挤动。
+ * - 每个会话只敲一次：刷新会重播，站内换页不重播（换页后页头是新 DOM，直接完整显示）。
+ * - 等标题用到的字体就绪（或超时）再开始敲，避免敲到一半字形切换。
+ * - 系统要求「减少动态效果」、页面在后台标签页里打开时不播，直接显示完整标题。
+ *
+ * 开关在 astro-paper.config.ts 的 features.siteTitleTypewriter。关闭时不输出提示符、
+ * 光标和脚本，下面样式里的 tw-armed 标记也不会出现，标题就是一个普通链接。
+ *
+ * 敲字节奏在下方脚本的 type() 里（base 是每个字符的基础间隔）。
+ */
+import config from "@/config";
+
+type Props = {
+  title: string;
+  href: string;
+  class?: string;
+};
+
+const { title, href, class: className } = Astro.props;
+const typewriter = config.features.siteTitleTypewriter;
+const chars = [...title];
+/** 等标题字体的上限（毫秒）。和进场动画的等待互不影响，这里只等标题用到的字 */
+const FONT_WAIT = 600;
+---
+
+{typewriter && <script is:inline>
+  (() => {
+    // 只在首次加载时打标记。站内换页时这个脚本可能被再次执行，靠 __siteTitleTw
+    // 挡住；否则新页面的标题会被藏起来，却没有人来敲
+    if (window.__siteTitleTw) return;
+    // 系统要求「减少动态效果」：不播，标题直接显示
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    window.__siteTitleTw = "armed";
+    document.documentElement.classList.add("tw-armed");
+    // 兜底：无论后面的脚本出了什么状况，最多 6 秒后标题一定完整显示
+    setTimeout(
+      () => document.documentElement.classList.remove("tw-armed"),
+      6000
+    );
+  })();
+</script>}
+
+<a
+  id="site-title"
+  href={href}
+  class:list={[className, "site-title"]}
+  aria-label={title}
+>
+  {typewriter && (
+    <span class="tw-prompt text-accent select-none" aria-hidden="true">
+      &gt;
+    </span>
+  )}
+  {typewriter ? chars.map(ch => <span class="tw-char">{ch}</span>) : title}
+  {typewriter && (
+    <span
+      class="tw-cursor pointer-events-none absolute top-1/2 h-[1.15em] w-[0.6em] -translate-y-1/2 rounded-[1px] bg-accent select-none"
+      aria-hidden="true"
+    />
+  )}
+</a>
+
+{typewriter && <script is:inline define:vars={{ FONT_WAIT }}>
+  (() => {
+    if (window.__siteTitleTw !== "armed") return;
+    window.__siteTitleTw = "done";
+    const root = document.documentElement;
+    const link = document.getElementById("site-title");
+    const chars = link ? [...link.querySelectorAll(".tw-char")] : [];
+    const cursor = link && link.querySelector(".tw-cursor");
+    // 页面在后台标签页里打开，或结构和预期不符：不播，直接显示完整标题
+    if (
+      !link ||
+      !cursor ||
+      !chars.length ||
+      document.visibilityState === "hidden"
+    ) {
+      root.classList.remove("tw-armed");
+      return;
+    }
+
+    let alive = true;
+    const timers = new Set();
+    const sleep = ms =>
+      new Promise(resolve => {
+        const id = setTimeout(() => {
+          timers.delete(id);
+          resolve();
+        }, ms);
+        timers.add(id);
+      });
+
+    // 收尾：显示完整标题、撤掉等待标记。中途被打断和出错都走这里（不带光标）
+    const showAll = () => {
+      if (!alive) return;
+      alive = false;
+      for (const id of timers) clearTimeout(id);
+      timers.clear();
+      for (const ch of chars) ch.classList.add("is-on");
+      delete link.dataset.tw;
+      root.classList.remove("tw-armed");
+    };
+
+    // 光标放到第 i 个字符的格子上；i 超出范围时放到末尾。
+    // 宽字符（如汉字）的光标也跟着变宽
+    const place = i => {
+      const ch = chars[i] || chars[chars.length - 1];
+      cursor.style.left =
+        (chars[i] ? ch.offsetLeft : ch.offsetLeft + ch.offsetWidth) + "px";
+      cursor.style.width = ch.offsetWidth + "px";
+    };
+
+    const type = async () => {
+      // 1) 等标题用到的字体（最多 FONT_WAIT 毫秒，由 define:vars 注入）。
+      //    族名取自 <Font /> 生成的变量；标题是 font-semibold，所以等 600 字重
+      if (document.fonts && typeof document.fonts.load === "function") {
+        const computed = getComputedStyle(root);
+        const text = chars.map(ch => ch.textContent || "").join("");
+        const loads = ["--font-google-sans-code", "--font-noto-sans-sc"]
+          .map(name => computed.getPropertyValue(name).trim())
+          .filter(Boolean)
+          .map(family =>
+            document.fonts.load(`600 1em ${family}`, text).catch(() => [])
+          );
+        await Promise.race([Promise.all(loads), sleep(FONT_WAIT)]);
+        if (!alive) return;
+      }
+      place(0);
+      // 2) 提示符和光标先出现，停顿一下再开始敲
+      await sleep(320);
+      if (!alive) return;
+      link.dataset.tw = "typing";
+      // 3) 逐字敲：间隔有快有慢，空格后和偶尔停一下，像真人敲键盘。
+      //    标题很长时按比例加快，敲完不超过 1.6 秒左右
+      const base = Math.min(90, 1600 / chars.length);
+      for (let i = 0; i < chars.length; i++) {
+        let delay = base * (0.6 + Math.random() * 0.9);
+        if (i > 0 && chars[i - 1].textContent === " ") delay += base;
+        if (Math.random() < 0.12) delay += base * (0.8 + Math.random());
+        await sleep(delay);
+        if (!alive) return;
+        chars[i].classList.add("is-on");
+        place(i + 1);
+      }
+      // 4) 敲完：光标再闪几秒，然后淡出，标题定格
+      link.dataset.tw = "typed";
+      root.classList.remove("tw-armed");
+      await sleep(2800);
+      if (!alive) return;
+      link.dataset.tw = "idle";
+      await sleep(500);
+      if (!alive) return;
+      delete link.dataset.tw;
+      alive = false;
+    };
+
+    // 站内换页、切到后台标签页、出错：立即收尾
+    document.addEventListener("astro:before-swap", showAll, {
+      once: true,
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") showAll();
+    });
+    type().catch(showAll);
+  })();
+</script>}
+
+<style>
+  .tw-prompt {
+    /* 等宽字体里一个空格的宽度 */
+    margin-right: 0.6em;
+  }
+  .tw-cursor {
+    display: none;
+  }
+  /* 首次加载：上面的标记脚本在浏览器画出标题之前给 <html> 打上 tw-armed，标题先藏起来
+     等着敲。没有这个标记（功能关闭、没有 JS、系统要求减少动态效果）时下面几条都不生效 */
+  :global(html.tw-armed) .tw-char {
+    visibility: hidden;
+  }
+  :global(html.tw-armed) .tw-char.is-on {
+    visibility: visible;
+  }
+  :global(html.tw-armed) .tw-cursor,
+  .site-title[data-tw] .tw-cursor {
+    display: block;
+    animation: tw-blink 1s steps(1, end) infinite;
+  }
+  /* 敲的时候光标常亮（终端里打字时光标不闪），敲完再闪 */
+  .site-title[data-tw="typing"] .tw-cursor {
+    animation: none;
+  }
+  /* 定格：光标淡出 */
+  .site-title[data-tw="idle"] .tw-cursor {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  @keyframes tw-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.tw-armed) .tw-char {
+      visibility: visible;
+    }
+    :global(html.tw-armed) .tw-cursor {
+      display: none;
+    }
+  }
+  @media print {
+    :global(html.tw-armed) .tw-char {
+      visibility: visible;
+    }
+    :global(html.tw-armed) .tw-cursor {
+      display: none;
+    }
+  }
+</style>

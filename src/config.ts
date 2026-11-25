@@ -49,6 +49,7 @@ const config: ResolvedAstroPaperConfig = {
                 ? enterAnimation.maxFontWait
                 : undefined) ?? DEFAULT_ENTER_MAX_FONT_WAIT,
           },
+    siteTitleTypewriter: userConfig.features?.siteTitleTypewriter ?? true,
   },
   layout: {
     reading: userConfig.layout?.reading ?? "48rem",
