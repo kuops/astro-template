@@ -96,6 +96,12 @@ features: {
 },
 ```
 
+换图时先把新图转成 WebP。第二个参数写旧图的文件名，就会直接覆盖，配置不用改；超过 2560 宽的图会自动缩小：
+
+```bash
+npm run webp -- 新图.png site-background-light
+```
+
 背景图在 `astro-paper.config.ts` 顶部用 `import` 导入，再填到 `site.background` 里。深色、浅色模式各配一张，只配一种时另一种模式保持纯色。图的不透明度（`opacity`）越小图越淡、文字越清楚，默认 0.25；写一个数时两种模式共用，也可以分别写：
 
 ```ts
@@ -196,16 +202,17 @@ src/data/books/en/astro-guide/index.md
 
 所有命令都在项目根目录运行：
 
-| Command                | Action                                     |
-| :--------------------- | :----------------------------------------- |
-| `npm install`          | 安装依赖                                   |
-| `npm run dev`          | 启动本地开发服务器                         |
-| `npm run lint`         | 运行 ESLint                                |
-| `npm run format:check` | 检查 Prettier 格式                         |
-| `npm run format`       | 自动格式化文件                             |
-| `npm run build`        | 检查类型、构建站点、生成 Pagefind 搜索索引 |
-| `npm run preview`      | 本地预览构建结果                           |
-| `npm run sync`         | 生成 Astro 类型定义                        |
+| Command                | Action                                                                |
+| :--------------------- | :-------------------------------------------------------------------- |
+| `npm install`          | 安装依赖                                                              |
+| `npm run dev`          | 启动本地开发服务器                                                    |
+| `npm run lint`         | 运行 ESLint                                                           |
+| `npm run format:check` | 检查 Prettier 格式                                                    |
+| `npm run format`       | 自动格式化文件                                                        |
+| `npm run build`        | 检查类型、构建站点、生成 Pagefind 搜索索引                            |
+| `npm run preview`      | 本地预览构建结果                                                      |
+| `npm run sync`         | 生成 Astro 类型定义                                                   |
+| `npm run webp`         | 把一张图片转成 WebP 放进 `src/assets/images/`，用法见上方背景图的说明 |
 
 ## 部署说明（Deployment Notes）
 

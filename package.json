@@ -10,7 +10,8 @@
     "astro": "astro",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "webp": "node scripts/to-webp.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.10",
