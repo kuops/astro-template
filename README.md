@@ -21,6 +21,7 @@
 - **首页欢迎卡与天气**：首页分左右两栏，右侧的欢迎卡显示访客的本地时间和天气。天气取访客所在地：填了 `weather.proxy` 时先走 `workers/weather-proxy.js`（中国天气网的数据），不可用时回退 Open-Meteo；没填则直接用 Open-Meteo。定位不到或数据源都不可用时，卡片显示一句提示。
 - **进场动画**：每页正文淡入上移，并等首屏字体就绪后再播放，避免看到字体切换。不需要时设 `features.enterAnimation: false`。
 - **站点标题打字机**：左上角的站点标题像在终端里敲出来：先出现提示符和光标，再逐字敲出标题。每个会话只敲一次，站内换页不重播；系统开启「减少动态效果」时直接显示完整标题。不需要时设 `features.siteTitleTypewriter: false`。
+- **全站背景图**：深色、浅色模式可以各配一张固定背景图，所有页面铺满、滚动时不动，上面盖一层半透明底色保证文字清晰。图片在构建时自动压缩成多尺寸。不需要就不填，页面是纯色。配置在 `site.background`。
 - **搜索实现调整**：自研搜索 modal（`PagefindModal.astro`）+ Pagefind 静态索引；支持中英双语言索引合并，未翻译的回退原文也可被搜到并带"原文"徽标。
 - **字体与代码展示调整**：增加 Google Sans Code、Noto Sans SC、自定义代码块文件名与高亮 transformer，更适合中英文混排和技术写作。
 
@@ -76,7 +77,7 @@
 
 | 字段            | 用途                                                                             |
 | :-------------- | :------------------------------------------------------------------------------- |
-| `site`          | 站点地址、标题、描述、作者、语言、时区、强调色等                                 |
+| `site`          | 站点地址、标题、描述、作者、语言、时区、强调色、背景图等                         |
 | `i18n.locales`  | 启用的语言，默认语言由 `site.lang` 指定                                          |
 | `posts`         | `perPage` 是文章列表页和标签页每页的文章数，`perIndex` 是首页显示的篇数          |
 | `features`      | 明暗模式、初始主题、归档页、返回按钮、目录、搜索、进场动画、站点标题打字机等开关 |
@@ -93,6 +94,23 @@ features: {
   enterAnimation: { maxFontWait: 600 },
   siteTitleTypewriter: true,
 },
+```
+
+背景图在 `astro-paper.config.ts` 顶部用 `import` 导入，再填到 `site.background` 里。深色、浅色模式各配一张，只配一种时另一种模式保持纯色。图的不透明度（`opacity`）越小图越淡、文字越清楚，默认 0.25；写一个数时两种模式共用，也可以分别写：
+
+```ts
+import siteBackgroundDark from "./src/assets/images/site-background-dark.webp";
+
+export default defineAstroPaperConfig({
+  site: {
+    background: {
+      dark: siteBackgroundDark,
+      // light: siteBackgroundLight,
+      // opacity: 0.25,
+      // opacity: { dark: 0.25, light: 0.3 },
+    },
+  },
+});
 ```
 
 ## 快速开始（Quick Start）

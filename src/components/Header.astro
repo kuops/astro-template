@@ -77,7 +77,8 @@ const isCurrentPage = (path: string) => currentPath === path;
     class:list={[
       "py-4 md:py-6",
       "border-b border-border",
-      "relative w-full bg-background",
+      // 不设底色：全站背景图（SiteBackground）从页头开始就能透出来
+      "relative w-full",
       "flex items-baseline justify-between md:items-center",
     ]}
   >
@@ -119,7 +120,7 @@ const isCurrentPage = (path: string) => currentPath === path;
           "absolute top-full right-0 z-50 grid min-w-44 grid-cols-[1fr_auto_auto] gap-1 rounded-[var(--surface-radius)] border border-border bg-background px-4 py-2 shadow-lg dark:border-foreground/15 dark:shadow-none",
           "[&>li>a]:flex [&>li>a]:min-h-12 [&>li>a]:items-center [&>li>a]:px-3 [&>li>a]:font-medium [&>li>a]:hover:text-accent md:[&>li>a]:min-h-8 md:[&>li>a]:px-2 md:[&>li>a]:py-1",
           "hidden",
-          "md:static md:inset-auto md:mt-0 md:flex md:w-auto md:min-w-0 md:items-center md:gap-x-3 md:gap-y-0 md:rounded-none md:border-0 md:p-0 md:shadow-none",
+          "md:static md:inset-auto md:mt-0 md:flex md:w-auto md:min-w-0 md:items-center md:gap-x-3 md:gap-y-0 md:rounded-none md:border-0 md:bg-transparent md:p-0 md:shadow-none",
         ]}
       >
         <li class="order-4 col-span-3 md:order-1">

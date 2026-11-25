@@ -1,0 +1,135 @@
+---
+/**
+ * 全站固定背景图：所有页面铺满同一张图，滚动时不动。图下面垫着页面底色，图本身只留
+ * 一定的不透明度，相当于盖了一层半透明遮罩，文字照常压在上面。
+ *
+ * - 深色、浅色模式各配一张图（astro-paper.config.ts 的 site.background）。显示哪张跟
+ *   主题切换用的是同一个标记：html 上的 data-theme="dark"。没有 JS 时没有这个标记，
+ *   站点按浅色显示，这里也只显示浅色的图，两者一致。
+ * - 图在构建时自动压成几档宽度的 WebP，浏览器按屏幕挑一档，访客只会下载其中一张。
+ * - 这个元素带 transition:persist，站内换页时原样保留，背景不会闪。标识必须自己写死：
+ *   不写的话 Astro 按每页的渲染顺序自动编号，各页编出来的号不一样，换页时就对不上、
+ *   照样会被重建。
+ * - 竖屏（手机）上横向只看得到图中间一段，取景位置往画面主体那边挪，见下面的样式。
+ *
+ * 图层的 z-index 是 -1：画在页面底色之上、所有内容之下。它是 fixed 定位，所以页面的
+ * 各部分不能再把它包进带 transform 的容器里，这里直接放在 <body> 下面。
+ */
+import { getImage } from "astro:assets";
+import config from "@/config";
+
+const bg = config.site.background;
+
+const WIDTHS = [960, 1600, 2560];
+const DEFAULT_OPACITY = 0.25;
+// 不透明度：配置里写一个数时两种模式共用，写成对象时各用各的。限制在 0–1
+const opacityOf = (theme: "light" | "dark"): number => {
+  const value =
+    typeof bg?.opacity === "number" ? bg.opacity : bg?.opacity?.[theme];
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(1, Math.max(0, value))
+    : DEFAULT_OPACITY;
+};
+
+const layers: {
+  theme: "light" | "dark";
+  src: string;
+  srcset: string;
+  opacity: number;
+}[] = [];
+for (const theme of ["light", "dark"] as const) {
+  const image = bg?.[theme];
+  if (!image) continue;
+  // 不放大：比原图还宽的档位去掉；原图宽度本身也算一档，大屏上不至于被拉伸
+  const maxWidth = WIDTHS[WIDTHS.length - 1];
+  const widths = [
+    ...new Set([
+      ...WIDTHS.filter(width => width <= image.width),
+      Math.min(image.width, maxWidth),
+    ]),
+  ].sort((a, b) => a - b);
+  // layout: "none"：每次只生成这一个宽度。不指定的话 Astro 会按响应式图片的默认断点
+  // 再多生成一套用不到的尺寸
+  const files = await Promise.all(
+    widths.map(width =>
+      getImage({
+        src: image,
+        width,
+        layout: "none",
+        format: "webp",
+        quality: 80,
+      })
+    )
+  );
+  layers.push({
+    theme,
+    src: files[0].src,
+    srcset: files.map((file, i) => `${file.src} ${widths[i]}w`).join(", "),
+    opacity: opacityOf(theme),
+  });
+}
+---
+
+{layers.length > 0 && (
+  <div
+    id="site-background"
+    aria-hidden="true"
+    transition:persist="site-background"
+  >
+    {layers.map(layer => (
+      <img
+        data-bg={layer.theme}
+        src={layer.src}
+        srcset={layer.srcset}
+        sizes="100vw"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        fetchpriority="low"
+        style={`--site-bg-opacity:${layer.opacity}`}
+      />
+    ))}
+  </div>
+)}
+
+<style>
+  #site-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: var(--background);
+  }
+  #site-background img {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 50%;
+    opacity: var(--site-bg-opacity, 0.25);
+  }
+  /* 没有主题标记（未启用 JS）时按浅色算，和站点其它样式一致 */
+  #site-background img[data-bg="light"] {
+    display: block;
+  }
+  :global(html[data-theme="dark"]) #site-background img[data-bg="dark"] {
+    display: block;
+  }
+  :global(html[data-theme="dark"]) #site-background img[data-bg="light"] {
+    display: none;
+  }
+  /* 竖屏：横向只看得到图中间一段，把取景位置挪到画面主体那边 */
+  @media (max-aspect-ratio: 4 / 5) {
+    #site-background img {
+      object-position: 64% 50%;
+    }
+  }
+  @media print {
+    #site-background {
+      display: none;
+    }
+  }
+</style>

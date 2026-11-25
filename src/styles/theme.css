@@ -30,3 +30,11 @@ html[data-theme="dark"] {
   --overlay-shadow: 0 12px 32px rgb(0 0 0 / 35%);
   --sheet-shadow: 0 -8px 24px rgb(0 0 0 / 35%);
 }
+
+/* 配了全站背景图时（<html> 带 has-site-background，见 Layout.astro），页面底色上叠了一层图，
+   按纯色底调出来的边框会和底分不开。改用前景色的半透明：不管底下是白、淡蓝还是图片的
+   亮部暗部，边框都比底深一截，深浅两种模式各自自适应。
+   写在两个主题规则之后：特异度相同，靠先后顺序覆盖 */
+html.has-site-background {
+  --border: color-mix(in srgb, var(--foreground) 18%, transparent);
+}

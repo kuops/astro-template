@@ -1,4 +1,6 @@
 import { defineAstroPaperConfig } from "./src/types/config";
+import siteBackgroundDark from "./src/assets/images/site-background-dark.webp";
+import siteBackgroundLight from "./src/assets/images/site-background-light.webp";
 
 export default defineAstroPaperConfig({
   site: {
@@ -11,6 +13,16 @@ export default defineAstroPaperConfig({
     lang: "zh",
     timezone: "Asia/Shanghai",
     dir: "ltr",
+    // 全站固定背景图（可选）：所有页面铺满、滚动时不动，上面盖一层半透明底色保证文字清晰。
+    // 深色、浅色模式可以各配一张，只配一种时另一种模式保持纯色。
+    // 在本文件顶部 import 图片，再填到这里；构建时会自动压缩成多尺寸，换图就换 import 的路径
+    background: {
+      dark: siteBackgroundDark,
+      light: siteBackgroundLight,
+      // 图的不透明度（0–1），越小越淡。默认 0.25；两种模式想用不同的值就分开写，
+      // 比如 opacity: { dark: 0.1, light: 0.25 }
+      opacity: { dark: 0.15, light: 0.05 },
+    },
   },
   i18n: {
     locales: ["zh", "en"],

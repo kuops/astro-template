@@ -20,8 +20,10 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
     document.getElementById("myBar")?.parentElement?.remove();
 
     const progressContainer = document.createElement("div");
+    // 轨道不设底色：它是贴着视口顶边的一条，设了页面底色的话，全站背景图透出来时
+    // 顶边会多出一条实色线
     progressContainer.className =
-      "progress-container fixed top-0 z-50 h-1 w-full bg-background";
+      "progress-container fixed top-0 z-50 h-1 w-full";
 
     const progressBar = document.createElement("div");
     progressBar.className = "progress-bar h-1 w-0 bg-accent";

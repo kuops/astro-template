@@ -1,3 +1,5 @@
+import type { ImageMetadata } from "astro";
+
 type Locale = "zh" | "en";
 
 interface SiteConfig {
@@ -14,6 +16,20 @@ interface SiteConfig {
   lang?: Locale;
   timezone?: string;
   dir?: "ltr" | "rtl";
+  /** 全站固定背景图。不填则页面是纯色 */
+  background?: BackgroundConfig;
+}
+
+/** 全站固定背景图：所有页面铺满、滚动时不动，上面盖一层半透明底色保证文字清晰。
+    图片在 astro-paper.config.ts 顶部用 import 导入后填进来 */
+interface BackgroundConfig {
+  /** 深色模式用的图 */
+  dark?: ImageMetadata;
+  /** 浅色模式用的图 */
+  light?: ImageMetadata;
+  /** 背景图的不透明度（0–1）。越小图越淡、文字越清楚。写一个数时两种模式共用；
+      两种模式想用不同的值，写成 { dark: 0.25, light: 0.3 }。默认 0.25 */
+  opacity?: number | { dark?: number; light?: number };
 }
 
 interface I18nConfig {
@@ -106,7 +122,7 @@ type ResolvedSiteConfig = Required<
     | "ogImage"
   >
 > &
-  Pick<SiteConfig, "profile" | "avatar" | "accent">;
+  Pick<SiteConfig, "profile" | "avatar" | "accent" | "background">;
 
 type ResolvedFeaturesConfig = Required<
   Omit<FeaturesConfig, "enterAnimation">
@@ -137,6 +153,7 @@ export type {
   EnterAnimationConfig,
   FeaturesConfig,
   LayoutConfig,
+  BackgroundConfig,
   SocialLink,
   ShareLink,
   AstroPaperConfig,
