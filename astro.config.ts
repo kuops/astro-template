@@ -58,6 +58,12 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
+  // 站内链接提前取回：链接一进入视口就在后台预取目标页面，点击时不用再等网络。
+  // 默认只在鼠标悬停时才预取，网络慢时来不及
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: "viewport",
+  },
   markdown: {
     processor: satteri({
       features: {
