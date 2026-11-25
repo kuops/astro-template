@@ -54,7 +54,8 @@
 └── .github/
     ├── dependabot.yml
     └── workflows/
-        └── ci.yml
+        ├── ci.yml
+        └── deploy.yml
 ```
 
 与上游相比，最值得关注的是这些路径：
@@ -226,6 +227,15 @@ src/data/books/en/astro-guide/index.md
 - 这是纯静态站点：构建命令用 `npm run build`，发布目录是 `dist`
 - 部署前请把 `astro-template.config.ts` 里的 `site.url`、`title`、`description`、`author` 等站点信息改成你自己的
 - 如果站点部署在子路径，例如 `<username>.github.io/<repo>`，请在 `astro.config.ts` 里补充 `base: "/<repo>/"`
+
+### 自动发布到 Cloudflare Pages
+
+仓库自带 `.github/workflows/deploy.yml`：推送到 `main` 时复用 CI 的构建，把 `dist` 发布到 Cloudflare Pages。配好下面两个仓库 secrets 后才会执行，没配置时整个工作流直接跳过：
+
+- `CLOUDFLARE_API_TOKEN`：Cloudflare API Token，权限选 Account → Cloudflare Pages → Edit
+- `CLOUDFLARE_ACCOUNT_ID`：Cloudflare 账户 ID
+
+Pages 项目名默认用仓库名，第一次运行时会自动创建；想换名字就添加仓库变量 `CLOUDFLARE_PAGES_PROJECT`。
 
 ## 上游项目（Upstream）
 

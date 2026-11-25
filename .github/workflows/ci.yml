@@ -11,6 +11,11 @@ on:
       - synchronize
       - reopened
   workflow_call:
+    inputs:
+      upload:
+        description: "Build output to upload as an artifact for a deploy workflow"
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -43,3 +48,15 @@ jobs:
 
       - name: "🚀 Build the project"
         run: npm run build
+
+      # Only when called with `upload: true`, so that pull requests are unaffected
+      - name: "📦 Upload build output"
+        if: inputs.upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          # Upload everything that was built, including dotfiles
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
