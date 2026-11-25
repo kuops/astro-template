@@ -4,7 +4,7 @@ import siteBackgroundLight from "./src/assets/images/site-background-light.webp"
 
 export default defineTemplateConfig({
   site: {
-    url: "https://blog.example.com/",
+    url: "https://astro-template.opshsy.workers.dev/",
     title: "My Blog",
     description: "一个基于 Astro 的个人博客。",
     author: "Blog Author",

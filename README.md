@@ -31,6 +31,7 @@
 /
 ├── astro-template.config.ts
 ├── astro.config.ts
+├── wrangler.jsonc
 ├── scripts/
 ├── workers/
 │   └── weather-proxy.js
@@ -228,14 +229,14 @@ src/data/books/en/astro-guide/index.md
 - 部署前请把 `astro-template.config.ts` 里的 `site.url`、`title`、`description`、`author` 等站点信息改成你自己的
 - 如果站点部署在子路径，例如 `<username>.github.io/<repo>`，请在 `astro.config.ts` 里补充 `base: "/<repo>/"`
 
-### 自动发布到 Cloudflare Pages
+### 自动发布到 Cloudflare Workers
 
-仓库自带 `.github/workflows/deploy.yml`：推送到 `main` 时复用 CI 的构建，把 `dist` 发布到 Cloudflare Pages。配好下面两个仓库 secrets 后才会执行，没配置时整个工作流直接跳过：
+仓库自带 `.github/workflows/deploy.yml`：推送到 `main` 时复用 CI 的构建，把 `dist` 发布到 Cloudflare Workers（静态资源托管）。配好下面两个仓库 secrets 后才会执行，没配置时整个工作流直接跳过：
 
-- `CLOUDFLARE_API_TOKEN`：Cloudflare API Token，权限选 Account → Cloudflare Pages → Edit
+- `CLOUDFLARE_API_TOKEN`：Cloudflare API Token，权限用 "Edit Cloudflare Workers" 模板
 - `CLOUDFLARE_ACCOUNT_ID`：Cloudflare 账户 ID
 
-Pages 项目名默认用仓库名，第一次运行时会自动创建；想换名字就添加仓库变量 `CLOUDFLARE_PAGES_PROJECT`。
+站点名在 `wrangler.jsonc` 的 `name` 里，地址是 `<name>.<你的账户子域>.workers.dev`。改成自己的名字，第一次运行时会自动创建。
 
 ## 上游项目（Upstream）
 

@@ -1,12 +1,12 @@
-name: Deploy to Cloudflare Pages
+name: Deploy to Cloudflare Workers
 
-# 把 main 分支的构建产物发布到 Cloudflare Pages（纯静态站，用 pages.dev 域名）。
+# 把 main 分支的构建产物发布到 Cloudflare Workers（纯静态站，由 Workers 托管静态资源）。
+# 站点名在 wrangler.jsonc 的 name 里，地址是 <name>.<账户子域>.workers.dev。
 #
 # 需要两个仓库 secrets（Settings → Secrets and variables → Actions → Repository secrets）：
-#   CLOUDFLARE_API_TOKEN   权限选 Account → Cloudflare Pages → Edit
+#   CLOUDFLARE_API_TOKEN   权限用 "Edit Cloudflare Workers" 模板
 #   CLOUDFLARE_ACCOUNT_ID
 # 没配的话整个工作流会跳过，所以用这个模板的仓库推 main 时不会报错。
-# 可选的仓库变量 CLOUDFLARE_PAGES_PROJECT 可以改 Pages 项目名，默认用仓库名。
 
 on:
   push:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: cloudflare-pages
+  group: cloudflare-deploy
   cancel-in-progress: false
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
       upload: true
 
   deploy:
-    name: Deploy to Cloudflare Pages
+    name: Deploy to Cloudflare Workers
     needs: [check, build]
     if: needs.check.outputs.configured == 'true'
     runs-on: ubuntu-latest
@@ -62,10 +62,7 @@ jobs:
       deployments: write
     environment:
       name: production
-      url: ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
-    env:
-      PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT || github.event.repository.name }}
-      PAGES_PRODUCTION_BRANCH: ${{ github.event.repository.default_branch }}
+      url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v7
@@ -76,16 +73,13 @@ jobs:
           name: dist
           path: dist
 
-      - name: "🚀 Deploy to Cloudflare Pages"
+      # 配置在 wrangler.jsonc 里。安装 wrangler 会改动 lockfile，
+      # 所以声明工作区是"脏"的，免得 wrangler 每次都警告
+      - name: "🚀 Deploy to Cloudflare Workers"
         id: deploy
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # CI 里 wrangler pages deploy 不会自动建项目，所以第一次先建好；
-          # 项目已存在时这条命令会报错，忽略即可
-          preCommands: >-
-            wrangler pages project create "$PAGES_PROJECT" --production-branch
-            "$PAGES_PRODUCTION_BRANCH" || echo "project already exists, continuing"
-          command: pages deploy dist --project-name=${{ env.PAGES_PROJECT }}
+          command: deploy --commit-dirty=true
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
