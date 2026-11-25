@@ -4,7 +4,7 @@
   "version": "6.1.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && node scripts/fetch-weather.mjs && astro build && node scripts/pagefind-prep.mjs && pagefind --site dist && node scripts/pagefind-lang-copies.mjs && cp -r dist/pagefind public/",
+    "build": "astro check && astro build && node scripts/pagefind-prep.mjs && pagefind --site dist && node scripts/pagefind-lang-copies.mjs && cp -r dist/pagefind public/",
     "preview": "astro preview",
     "sync": "astro sync",
     "astro": "astro",

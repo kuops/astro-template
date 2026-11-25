@@ -58,7 +58,7 @@ export default {
     welcomeWind: "Wind",
     welcomeRange: "Today {{min}} ~ {{max}}",
     welcomeLoading: "Fetching your local weather…",
-    welcomeFallback: "Couldn't locate you; showing default city",
+    welcomeFallback: "Couldn't fetch the weather right now",
     weatherObserved: "Updated {{time}}",
   },
   footer: {

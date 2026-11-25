@@ -58,7 +58,7 @@ export default {
     welcomeWind: "风速",
     welcomeRange: "今日 {{min}} ~ {{max}}",
     welcomeLoading: "正在获取你当地的天气…",
-    welcomeFallback: "未能定位，显示默认城市天气",
+    welcomeFallback: "暂时拿不到当地天气",
     weatherObserved: "{{time}} 更新",
   },
   footer: {

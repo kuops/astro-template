@@ -18,7 +18,7 @@
 - **内容目录沿用旧结构**：上游后续把内容目录切换到了 `src/content/`，而这个模板延续了较早版本的 `src/data/` 组织方式，并按 `blog`、`books`、`pages` 分开管理。
 - **书籍内容系统**：除了博客，还新增了文件系统驱动的 `books` 集合，支持 `index.md`、`_index.md`、章节分组和书籍目录页。
 - **阅读体验补充**：增加了书籍导航、返回按钮、回到顶部、目录体验优化、图片灯箱等能力。
-- **首页欢迎卡与天气**：首页分左右两栏，右侧的欢迎卡显示访客的本地时间和天气。天气优先取访客所在地（默认走 Open-Meteo；部署 `workers/weather-proxy.js` 并填入 `weather.proxy` 后，国内城市改用中国天气网的数据），定位不到时显示构建时抓取的默认城市快照（`public/weather.json`）。
+- **首页欢迎卡与天气**：首页分左右两栏，右侧的欢迎卡显示访客的本地时间和天气。天气取访客所在地：填了 `weather.proxy` 时先走 `workers/weather-proxy.js`（中国天气网的数据），不可用时回退 Open-Meteo；没填则直接用 Open-Meteo。定位不到或数据源都不可用时，卡片显示一句提示。
 - **进场动画**：每页正文淡入上移，并等首屏字体就绪后再播放，避免看到字体切换。不需要时设 `features.enterAnimation: false`。
 - **搜索实现调整**：自研搜索 modal（`PagefindModal.astro`）+ Pagefind 静态索引；支持中英双语言索引合并，未翻译的回退原文也可被搜到并带"原文"徽标。
 - **字体与代码展示调整**：增加 Google Sans Code、Noto Sans SC、自定义代码块文件名与高亮 transformer，更适合中英文混排和技术写作。
@@ -33,8 +33,7 @@
 ├── workers/
 │   └── weather-proxy.js
 ├── public/
-│   ├── astropaper-og.jpg
-│   └── weather.json
+│   └── astropaper-og.jpg
 ├── src/
 │   ├── components/
 │   ├── custom/
@@ -66,7 +65,7 @@
 - `src/utils/books.ts`：从文件系统推导书籍结构、侧边栏和章节顺序
 - `src/i18n/`：多语言工具与中英文文案（`lang/zh.ts`、`lang/en.ts`）
 - `src/custom/`：自定义插入点（`Head.astro`、`BodyEnd.astro`、`PostEnd.astro`），放自己的统计代码、meta 标签、评论等。按设计，模板后续版本不会改动这些文件
-- `scripts/`：构建配套脚本。`fetch-weather.mjs` 在构建前抓取默认城市的天气快照，另两个处理 Pagefind 搜索索引
+- `scripts/`：构建配套脚本，处理 Pagefind 搜索索引
 - `workers/weather-proxy.js`：访客本地天气的 Cloudflare Worker 代理，可选部署
 
 ## 站点配置（Configuration）
@@ -92,8 +91,6 @@ features: {
   enterAnimation: { maxFontWait: 600 },
 },
 ```
-
-构建时抓取哪座城市的天气，由 `scripts/fetch-weather.mjs` 的参数或 `WEATHER_CITYKEY`、`WEATHER_CITY`、`WEATHER_PROVINCE` 环境变量决定，默认杭州。两个数据源都抓不到时构建照常进行，沿用已有的快照。
 
 ## 快速开始（Quick Start）
 
@@ -177,16 +174,16 @@ src/data/books/en/astro-guide/index.md
 
 所有命令都在项目根目录运行：
 
-| Command                | Action                                                   |
-| :--------------------- | :------------------------------------------------------- |
-| `npm install`          | 安装依赖                                                 |
-| `npm run dev`          | 启动本地开发服务器                                       |
-| `npm run lint`         | 运行 ESLint                                              |
-| `npm run format:check` | 检查 Prettier 格式                                       |
-| `npm run format`       | 自动格式化文件                                           |
-| `npm run build`        | 检查类型、抓取天气快照、构建站点、生成 Pagefind 搜索索引 |
-| `npm run preview`      | 本地预览构建结果                                         |
-| `npm run sync`         | 生成 Astro 类型定义                                      |
+| Command                | Action                                     |
+| :--------------------- | :----------------------------------------- |
+| `npm install`          | 安装依赖                                   |
+| `npm run dev`          | 启动本地开发服务器                         |
+| `npm run lint`         | 运行 ESLint                                |
+| `npm run format:check` | 检查 Prettier 格式                         |
+| `npm run format`       | 自动格式化文件                             |
+| `npm run build`        | 检查类型、构建站点、生成 Pagefind 搜索索引 |
+| `npm run preview`      | 本地预览构建结果                           |
+| `npm run sync`         | 生成 Astro 类型定义                        |
 
 ## 部署说明（Deployment Notes）
 

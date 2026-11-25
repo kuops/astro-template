@@ -117,7 +117,7 @@ const ds = {
     notice?: string;
     ganmao?: string;
   };
-  type Cache = { w: Weather; city: string; located: boolean; ts: number };
+  type Cache = { w: Weather; city: string; ts: number };
 
   // 天气/定位缓存：切语言等站内导航只换文案，不重新拉数据、不闪 loading
   const CACHE_KEY = "welcome-card:cache";
@@ -161,7 +161,7 @@ const ds = {
                   ? QI.sun
                   : "101";
 
-  // WMO 天气代码 → 文案（中/英两套，粒度与 scripts/fetch-weather.mjs 的备源映射一致）
+  // WMO 天气代码 → 文案（中/英两套）
   const WMO_TEXT = (c: number, zh: boolean): string =>
     zh
       ? c === 0
@@ -367,7 +367,7 @@ const ds = {
   };
 
   // 官方代理（Cloudflare Worker，见 workers/weather-proxy.js）：Worker 以合法
-  // Referer 抓中国天气网，返回与快照同构的数据（含 weatherEn/windDirEn）。
+  // Referer 抓中国天气网，返回归一化后的数据（含 weatherEn/windDirEn）。
   // 仅覆盖国内城市；未部署/查询失败时回退 Open-Meteo 链
   let PROXY = "";
   const fetchProxyWeather = async (city: string): Promise<Weather | null> => {
@@ -410,7 +410,7 @@ const ds = {
         day: "numeric",
         weekday: "long",
       });
-    // 天气现象文案（code 存在按当前语言渲染；否则快照/Worker 的原文本，英文优先 weatherEn）
+    // 天气现象文案（code 存在按当前语言渲染；否则 Worker 给的原文本，英文优先 weatherEn）
     const condText = w
       ? w.code != null
         ? WMO_TEXT(w.code, zh)
@@ -454,7 +454,7 @@ const ds = {
           : zh
             ? `${w.windDir ?? ""}${w.windPower ?? ""}`.trim()
             : `${(w.windDirEn || w.windDir) ?? ""} ${String(w.windPower ?? "").replace(/(\d+(?:-\d+)?)级/, "$1 Bft")}`.trim();
-    // 实况观测时间（气象站发布时刻）：Worker/快照给 "HH:mm"；Open-Meteo 给 ISO 时间取其时分
+    // 实况观测时间（气象站发布时刻）：Worker 给 "HH:mm"；Open-Meteo 给 ISO 时间取其时分
     const upd = $("wc-updated");
     if (upd) {
       const raw = String(w.updateTime ?? "");
@@ -505,35 +505,24 @@ const ds = {
           if (local) {
             const shown = local.city || ipCity;
             renderInto(document, card, local, shown);
-            writeCache({
-              w: local,
-              city: shown,
-              located: true,
-              ts: Date.now(),
-            });
+            writeCache({ w: local, city: shown, ts: Date.now() });
             return;
           }
-          // 天气源全挂：此时才请求构建时快照兜底（问候仍用访客城市）
-          let w: Weather | null = null;
-          try {
-            w = await getJSON("/weather.json");
-          } catch {}
+          // 天气源全挂：拿不到天气数据，只把访客城市和一句提示写进问候行
+          // （renderInto 的天气参数为 null）。不缓存，下次访问再试
           if (!alive) return;
-          renderInto(document, card, w, w ? ipCity : null);
-          if (w)
-            writeCache({ w, city: ipCity, located: false, ts: Date.now() });
+          renderInto(
+            document,
+            card,
+            null,
+            `${ipCity}${zh ? "，" : " — "}${card.dataset.fallback ?? ""}`
+          );
           return;
         }
 
-        // 3) 定位失败：用构建时快照（快照城市）
-        let w: Weather | null = null;
-        try {
-          w = await getJSON("/weather.json");
-        } catch {}
-        if (!alive || !w) return; // 快照也挂：保持 loading 态
-        const fb = (w.city || (zh ? "杭州" : "Hangzhou")).replace(/市$/, "");
-        renderInto(document, card, w, fb);
-        writeCache({ w, city: fb, located: false, ts: Date.now() });
+        // 3) 定位失败：同样只显示一句提示，不缓存
+        if (!alive) return;
+        renderInto(document, card, null, card.dataset.fallback ?? "");
       })();
       cleanup = () => {
         alive = false;

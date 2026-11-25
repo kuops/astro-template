@@ -8,7 +8,7 @@
  *
  * 用法：GET /weather?city=宁波        （支持市名或区县名）
  *       GET /health                   （健康检查）
- * 返回：与 public/weather.json 同构的 JSON，额外带 weatherEn/windDirEn
+ * 返回：归一化后的 JSON（字段见下方 normalize()，含 weatherEn/windDirEn）
  * 分层：
  *   ① D1 新鲜命中（<30 分钟）→ 毫秒级返回
  *   ② miss / 过期 → 实时抓 d1 → 返回并落库
