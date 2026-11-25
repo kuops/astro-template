@@ -30,6 +30,7 @@ import { transformerFileName } from "./src/utils/transformers/fileName";
 import { transformerCodeScroll } from "./src/utils/transformers/codeScroll";
 import { transformerMermaidHidden } from "./src/utils/transformers/mermaidHidden";
 import { devFontCache } from "./src/utils/devFontCache";
+import { shikiLightTheme } from "./src/utils/shikiLightTheme";
 import config from "./astro-template.config";
 
 const defaultLocale = config.site.lang ?? "en";
@@ -82,7 +83,8 @@ export default defineConfig({
     }),
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes
-      themes: { light: "min-light", dark: "one-dark-pro" },
+      // 浅色用项目内调整过的 min-light（见 src/utils/shikiLightTheme.ts），深色用原版
+      themes: { light: shikiLightTheme, dark: "one-dark-pro" },
       defaultColor: false,
       wrap: false,
       transformers: [

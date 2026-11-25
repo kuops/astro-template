@@ -123,7 +123,23 @@
     }
 
     blockquote {
-      @apply border-s-accent/80 wrap-break-word opacity-80;
+      /* 让引用显得次要，但不用整体的不透明度：那样引用里的代码块、图片、链接也会跟着变淡，
+         代码的文字对比度会掉到 3.6 左右。改成只把文字调成“八成的前景色”，看起来和原来一样；
+         引用里的代码、链接、图片则恢复正常。
+         排版插件给引用块、段落、列表项各自设了颜色，互不继承，所以三处都要写。
+         混色要用 --foreground（站点实际的文字颜色）：排版插件自己的 --tw-prose-body
+         不跟随深浅模式，深色模式下拿它来混会把文字混成深色，压在深色底上看不见。
+         左边框对齐原来的观感：原来是 80% 的强调色再整体打八折 */
+      @apply border-s-accent/65 wrap-break-word;
+      --tw-prose-quotes: color-mix(
+        in srgb,
+        var(--foreground) 80%,
+        var(--background)
+      );
+      & :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)),
+      & :where(li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+        color: color-mix(in srgb, var(--foreground) 80%, var(--background));
+      }
     }
 
     mark {
@@ -168,14 +184,17 @@
   }
 
   .astro-code {
+    /* 差异行和高亮行的底色：浅色模式下差异行用 10%、高亮行用 12%，深色模式仍是 20%。
+       行底色会把行里的字衬淡。浅色主题的语法色本来就不深，底色 20% 时
+       行里的数字、字符串实测掉到 4.4 左右（标准是 4.5），调浅后最低也在 4.6 以上 */
     .line.diff.add {
-      @apply relative inline-block w-full bg-green-400/20 before:absolute before:-left-3 before:text-green-500 before:content-['+'];
+      @apply relative inline-block w-full bg-green-400/10 before:absolute before:-left-3 before:text-green-500 before:content-['+'] dark:bg-green-400/20;
     }
     .line.diff.remove {
-      @apply relative inline-block w-full bg-red-500/20 before:absolute before:-left-3 before:text-red-500 before:content-['-'];
+      @apply relative inline-block w-full bg-red-500/10 before:absolute before:-left-3 before:text-red-500 before:content-['-'] dark:bg-red-500/20;
     }
     .line.highlighted {
-      @apply inline-block w-full bg-slate-400/20;
+      @apply inline-block w-full bg-slate-400/12 dark:bg-slate-400/20;
     }
     .highlighted-word {
       @apply rounded-sm border border-border px-0.5 py-px;
