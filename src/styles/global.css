@@ -5,6 +5,61 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+/* 提示块的类型色。上面引入的主题包自带的颜色在浅色下太淡：标题文字直接用这个颜色，
+   截图实测对比度只有 1.9~4.2（标准是 4.5）。这里保持色相、只调明暗。背景是同一颜色的
+   10%，会跟着一起变。深色模式下蓝、红、紫、灰四组原本也不达标，一并调了。
+   深浅是按截图实测校准的：提示块是半透明的，底上还映着背景图，按纯色底算出来的值
+   实测要低一成左右（理论 5.0 时实测只有 4.3），所以理论值定在 5.6（深色 5.3）。
+   主题包为每种类型各留了一个变量，所以同色的别名类型要各写一遍 */
+:root {
+  /* 蓝：note、info、todo */
+  --callout-note-color-light: rgb(7, 90, 183);
+  --callout-info-color-light: rgb(7, 90, 183);
+  --callout-todo-color-light: rgb(7, 90, 183);
+  --callout-note-color-dark: rgb(112, 180, 255);
+  --callout-info-color-dark: rgb(112, 180, 255);
+  --callout-todo-color-dark: rgb(112, 180, 255);
+  /* 青：abstract、summary、tldr、tip、hint、important */
+  --callout-abstract-color-light: rgb(0, 104, 102);
+  --callout-summary-color-light: rgb(0, 104, 102);
+  --callout-tldr-color-light: rgb(0, 104, 102);
+  --callout-tip-color-light: rgb(0, 104, 102);
+  --callout-hint-color-light: rgb(0, 104, 102);
+  --callout-important-color-light: rgb(0, 104, 102);
+  /* 绿：success、check、done */
+  --callout-success-color-light: rgb(5, 107, 45);
+  --callout-check-color-light: rgb(5, 107, 45);
+  --callout-done-color-light: rgb(5, 107, 45);
+  /* 橙：question、help、faq、warning、attention、caution */
+  --callout-question-color-light: rgb(146, 73, 0);
+  --callout-help-color-light: rgb(146, 73, 0);
+  --callout-faq-color-light: rgb(146, 73, 0);
+  --callout-warning-color-light: rgb(146, 73, 0);
+  --callout-attention-color-light: rgb(146, 73, 0);
+  --callout-caution-color-light: rgb(146, 73, 0);
+  /* 红：failure、missing、fail、danger、error、bug */
+  --callout-failure-color-light: rgb(181, 19, 39);
+  --callout-missing-color-light: rgb(181, 19, 39);
+  --callout-fail-color-light: rgb(181, 19, 39);
+  --callout-danger-color-light: rgb(181, 19, 39);
+  --callout-error-color-light: rgb(181, 19, 39);
+  --callout-bug-color-light: rgb(181, 19, 39);
+  --callout-failure-color-dark: rgb(253, 143, 147);
+  --callout-missing-color-dark: rgb(253, 143, 147);
+  --callout-fail-color-dark: rgb(253, 143, 147);
+  --callout-danger-color-dark: rgb(253, 143, 147);
+  --callout-error-color-dark: rgb(253, 143, 147);
+  --callout-bug-color-dark: rgb(253, 143, 147);
+  /* 紫：example */
+  --callout-example-color-light: rgb(95, 50, 235);
+  --callout-example-color-dark: rgb(189, 160, 255);
+  /* 灰：quote、cite */
+  --callout-quote-color-light: rgb(93, 93, 93);
+  --callout-cite-color-light: rgb(93, 93, 93);
+  --callout-quote-color-dark: rgb(176, 176, 176);
+  --callout-cite-color-dark: rgb(176, 176, 176);
+}
+
 /* 校准 fallback：使 web font 到达前后行宽/行高一致，消除字体 swap 布局跳动。
    度量来源：Google Sans Code upm2000 adv1200 winA2377 winD930；
    DejaVu Sans Mono upm2048 adv1233 winA1901 winD483。 */
