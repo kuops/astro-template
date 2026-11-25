@@ -37,14 +37,10 @@ const sourceLabel = tplStr(t.language.sourceLabel, {
 <li class="my-6">
   <a
     href={getLocalizedPath(getPath(id, filePath), requestedLocale)}
-    class:list={[
-      "inline-block text-lg font-medium text-accent",
-      "decoration-dashed underline-offset-4 hover:underline",
-      "focus-visible:no-underline focus-visible:underline-offset-0",
-    ]}
+    class="card-title inline-block text-lg font-medium text-accent"
   >
     <Heading style={{ viewTransitionName: toTransitionName(id) }}>
-      {title}
+      <span class="card-title-line">{title}</span>
       {isFallback && (
         <span class="ms-2 align-middle text-xs font-normal text-muted-foreground">
           ({sourceLabel})
@@ -55,3 +51,37 @@ const sourceLabel = tplStr(t.language.sourceLabel, {
   <Datetime {...props} />
   <p class="line-clamp-2 font-reading md:line-clamp-none">{description}</p>
 </li>
+
+<style>
+  /*
+   * 标题下的一条实线：平时宽度为 0，悬停或键盘聚焦时从左往右画出来，移开后原路缩回。
+   * 用背景而不是 text-decoration，因为 text-decoration 的长度做不了动画。
+   * 标题折成多行时，clone 让每一行各有一条线，而不是只在最后一行下面画一条。
+   * 线顶大约在基线下方 4px，和原来的下划线位置一致。行内元素的背景只能画在自己的盒子里，
+   * 所以用下内边距多留出 2px 给线（不影响行高），再让线从文字盒子的底边画起。
+   */
+  .card-title-line {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    padding-bottom: 2px;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 calc(100% - 2px);
+    background-size: 0% 1.5px;
+    transition: background-size 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  /* 和原来的 hover:underline 一样，只在支持悬停的设备上响应鼠标 */
+  @media (hover: hover) {
+    .card-title:hover .card-title-line {
+      background-size: 100% 1.5px;
+    }
+  }
+  .card-title:focus-visible .card-title-line {
+    background-size: 100% 1.5px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card-title-line {
+      transition: none;
+    }
+  }
+</style>
