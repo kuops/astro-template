@@ -23,12 +23,10 @@ export default {
     books: "Books",
   },
   post: {
-    publishedAt: "Published at",
     updatedAt: "Updated",
     sharePostIntro: "Share this post:",
     sharePostOn: "Share this post on {{platform}}",
     sharePostViaEmail: "Share this post via email",
-    tagLabel: "Tags",
     backToTop: "Back to top",
     goBack: "Go back",
     editPage: "Edit page",
@@ -38,8 +36,6 @@ export default {
     copied: "Copied",
   },
   pagination: {
-    prev: "Prev",
-    next: "Next",
     page: "Page",
   },
   home: {
@@ -51,9 +47,6 @@ export default {
     statsBooks: "books",
     statsTags: "tags",
     browseBooks: "Browse Books",
-    welcomeTitle: "Now · Greeting",
-    welcomeLocalTime: "Local time",
-    welcomeWeather: "Today's weather",
     welcomeHumidity: "Humidity",
     welcomeWind: "Wind",
     welcomeRange: "Today {{min}} ~ {{max}}",
@@ -77,7 +70,6 @@ export default {
     archivesTitle: "Archives",
     archivesDesc: "All the articles I've archived.",
     searchTitle: "Search",
-    searchDesc: "Search any article ...",
     toc: "Table of Contents",
     openToc: "Open TOC",
     closeToc: "Close TOC",
@@ -118,7 +110,6 @@ export default {
     chapters: "Chapters",
     onThisPage: "On this page",
     chapterProgress: "Chapter {{current}} of {{total}}",
-    allChapters: "All chapters",
     startReading: "Start reading",
   },
   booksPage: {

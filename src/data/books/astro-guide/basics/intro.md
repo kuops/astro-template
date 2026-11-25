@@ -51,4 +51,4 @@ node --version
 
 ## 下一步
 
-准备好了吗？继续阅读 [安装与创建项目](./installation) 开始动手实践。
+准备好了吗？继续阅读 [安装与创建项目](/books/astro-guide/basics/installation) 开始动手实践。

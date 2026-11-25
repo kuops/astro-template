@@ -21,12 +21,10 @@ export interface UIStrings {
     books: string;
   };
   post: {
-    publishedAt: string;
     updatedAt: string;
     sharePostIntro: string;
     sharePostOn: string;
     sharePostViaEmail: string;
-    tagLabel: string;
     backToTop: string;
     goBack: string;
     editPage: string;
@@ -36,8 +34,6 @@ export interface UIStrings {
     copied: string;
   };
   pagination: {
-    prev: string;
-    next: string;
     page: string;
   };
   home: {
@@ -49,9 +45,6 @@ export interface UIStrings {
     statsBooks: string;
     statsTags: string;
     browseBooks: string;
-    welcomeTitle: string;
-    welcomeLocalTime: string;
-    welcomeWeather: string;
     welcomeHumidity: string;
     welcomeWind: string;
     welcomeRange: string;
@@ -78,7 +71,6 @@ export interface UIStrings {
     archivesTitle: string;
     archivesDesc: string;
     searchTitle: string;
-    searchDesc: string;
     toc: string;
     openToc: string;
     closeToc: string;
@@ -119,7 +111,6 @@ export interface UIStrings {
     chapters: string;
     onThisPage: string;
     chapterProgress: string;
-    allChapters: string;
     startReading: string;
   };
   booksPage: {

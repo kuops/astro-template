@@ -22,4 +22,4 @@ This is a sample chapter that demonstrates the Books feature.
 
 ## Next Steps
 
-Read [Installation](./installation) to learn more.
+Read [Installation](/en/books/getting-started/installation) to learn more.

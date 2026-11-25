@@ -149,4 +149,4 @@ npx astro add tailwind
 
 ## 下一步
 
-掌握了组件和页面后，继续阅读 [内容集合](./collections) 学习如何管理 Markdown 内容。
+掌握了组件和页面后，继续阅读 [内容集合](/books/astro-guide/advanced/collections) 学习如何管理 Markdown 内容。

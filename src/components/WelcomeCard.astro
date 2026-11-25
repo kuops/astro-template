@@ -25,7 +25,6 @@ const ds = {
   data-range={ds.range}
   data-humidity={ds.humidity}
   data-wind={ds.wind}
-  data-loading={ds.loading}
   data-fallback={ds.fallback}
   data-observed={ds.observed}
   data-proxy={config.weather?.proxy ?? ""}
@@ -114,8 +113,6 @@ const ds = {
     code?: number;
     windDeg?: number | null;
     updateTime?: string;
-    notice?: string;
-    ganmao?: string;
   };
   type Cache = { w: Weather; city: string; ts: number };
 

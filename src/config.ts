@@ -1,6 +1,5 @@
 import userConfig from "../astro-paper.config";
 import type { ResolvedAstroPaperConfig } from "./types/config";
-import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 
 const DEFAULT_OG_IMAGE = "og.png";
 const DEFAULT_ENTER_MAX_FONT_WAIT = 600;
@@ -22,8 +21,6 @@ const config: ResolvedAstroPaperConfig = {
     lang: defaultLocale,
     timezone: userConfig.site.timezone ?? "UTC",
     dir: userConfig.site.dir ?? "ltr",
-    googleVerification:
-      userConfig.site.googleVerification || PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
   i18n: {
     locales,

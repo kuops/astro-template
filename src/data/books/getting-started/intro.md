@@ -22,4 +22,4 @@ order: 1
 
 ## 下一步
 
-阅读 [安装](./installation) 了解更多。
+阅读 [安装](/books/getting-started/installation) 了解更多。

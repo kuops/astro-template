@@ -14,7 +14,6 @@ interface SiteConfig {
   lang?: Locale;
   timezone?: string;
   dir?: "ltr" | "rtl";
-  googleVerification?: string;
 }
 
 interface I18nConfig {
@@ -105,7 +104,7 @@ type ResolvedSiteConfig = Required<
     | "ogImage"
   >
 > &
-  Pick<SiteConfig, "profile" | "googleVerification" | "avatar" | "accent">;
+  Pick<SiteConfig, "profile" | "avatar" | "accent">;
 
 type ResolvedFeaturesConfig = Required<
   Omit<FeaturesConfig, "enterAnimation">

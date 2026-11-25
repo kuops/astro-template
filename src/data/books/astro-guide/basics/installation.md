@@ -75,4 +75,4 @@ export default defineConfig({
 
 ## 下一步
 
-项目跑起来后，继续阅读 [组件与页面](../advanced/components) 学习 Astro 的核心语法。
+项目跑起来后，继续阅读 [组件与页面](/books/astro-guide/advanced/components) 学习 Astro 的核心语法。

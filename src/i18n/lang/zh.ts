@@ -23,12 +23,10 @@ export default {
     books: "书籍",
   },
   post: {
-    publishedAt: "发布于",
     updatedAt: "更新于",
     sharePostIntro: "分享本文：",
     sharePostOn: "分享到 {{platform}}",
     sharePostViaEmail: "通过邮件分享",
-    tagLabel: "标签",
     backToTop: "回到顶部",
     goBack: "返回",
     editPage: "编辑页面",
@@ -38,8 +36,6 @@ export default {
     copied: "已复制",
   },
   pagination: {
-    prev: "上一页",
-    next: "下一页",
     page: "页",
   },
   home: {
@@ -51,9 +47,6 @@ export default {
     statsBooks: "本书",
     statsTags: "个标签",
     browseBooks: "浏览书籍",
-    welcomeTitle: "此刻 · 问候",
-    welcomeLocalTime: "本地时间",
-    welcomeWeather: "今天天气",
     welcomeHumidity: "湿度",
     welcomeWind: "风速",
     welcomeRange: "今日 {{min}} ~ {{max}}",
@@ -76,7 +69,6 @@ export default {
     archivesTitle: "归档",
     archivesDesc: "所有已归档的文章。",
     searchTitle: "搜索",
-    searchDesc: "搜索任意文章 ...",
     toc: "目录",
     openToc: "打开目录",
     closeToc: "关闭目录",
@@ -117,7 +109,6 @@ export default {
     chapters: "章节",
     onThisPage: "本页",
     chapterProgress: "第 {{current}} / {{total}} 章",
-    allChapters: "全部章节",
     startReading: "开始阅读",
   },
   booksPage: {

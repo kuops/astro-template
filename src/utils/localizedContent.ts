@@ -81,17 +81,3 @@ export function resolveLocalizedEntries<T extends ContentEntry>(
     return byLocale.get(locale) ?? byLocale.get(config.site.lang) ?? group[0];
   });
 }
-
-export function hasTranslation<T extends ContentEntry>(
-  entries: T[],
-  collection: CollectionName,
-  entry: T,
-  locale: Locale
-): boolean {
-  const key = getTranslationKey(entry, collection);
-  return entries.some(
-    candidate =>
-      getTranslationKey(candidate, collection) === key &&
-      getContentLocale(candidate, collection) === locale
-  );
-}

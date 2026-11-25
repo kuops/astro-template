@@ -50,8 +50,9 @@
 │   └── utils/
 │       └── books.ts
 └── .github/
+    ├── dependabot.yml
     └── workflows/
-        └── deploy.yml
+        └── ci.yml
 ```
 
 与上游相比，最值得关注的是这些路径：
@@ -96,7 +97,7 @@ features: {
 
 ```bash
 # 使用 Astro 官方脚手架从这个模板初始化
-npm create astro@latest -- --template kuops/astro-paper-template
+npm create astro@latest -- --template kuops/astro-template
 
 # 安装依赖并启动
 npm install
@@ -141,6 +142,7 @@ src/data/books/
 - `index.md` 是书籍元数据
 - `_index.md` 是分组元数据
 - 其余 `.md` 文件是章节
+- 书籍首页直接显示第一章的内容，所以第一章同时有两个网址。章节正文里链接其它章节时写绝对路径（如 `/books/astro-guide/basics/installation`），不要用相对路径
 
 ### 中英文内容（Localized Content）
 
@@ -187,8 +189,7 @@ src/data/books/en/astro-guide/index.md
 
 ## 部署说明（Deployment Notes）
 
-- GitHub Pages 工作流位于 `.github/workflows/deploy.yml`
-- 工作流在推送到 `gh-pages` 分支时执行 `npm ci` 和 `npm run build`
+- 这是纯静态站点：构建命令用 `npm run build`，发布目录是 `dist`
 - 部署前请把 `astro-paper.config.ts` 里的 `site.url`、`title`、`description`、`author` 等站点信息改成你自己的
 - 如果站点部署在子路径，例如 `<username>.github.io/<repo>`，请在 `astro.config.ts` 里补充 `base: "/<repo>/"`
 
