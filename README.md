@@ -102,7 +102,12 @@ features: {
 npm run webp -- 新图.png site-background-light
 ```
 
-背景图在 `astro-template.config.ts` 顶部用 `import` 导入，再填到 `site.background` 里。深色、浅色模式各配一张，只配一种时另一种模式保持纯色。图的不透明度（`opacity`）越小图越淡、文字越清楚，默认 0.25；写一个数时两种模式共用，也可以分别写：
+背景图在 `astro-template.config.ts` 顶部用 `import` 导入，再填到 `site.background` 里。深色、浅色模式各配一张，只配一种时另一种模式保持纯色。
+
+- `opacity` 是图的不透明度，越小图越淡、文字越清楚，默认 0.25。
+- `quality` 是构建时的压缩质量（1–100），越低文件越小、图越模糊，默认 80。图显示得很淡时可以调低。
+
+这两项都既可以写一个数让两种模式共用，也可以分别写：
 
 ```ts
 import siteBackgroundDark from "./src/assets/images/site-background-dark.webp";
@@ -114,6 +119,8 @@ export default defineTemplateConfig({
       // light: siteBackgroundLight,
       // opacity: 0.25,
       // opacity: { dark: 0.25, light: 0.3 },
+      // quality: 80,
+      // quality: { dark: 80, light: 60 },
     },
   },
 });

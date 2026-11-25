@@ -22,14 +22,27 @@ const bg = config.site.background;
 
 const WIDTHS = [960, 1600, 2560];
 const DEFAULT_OPACITY = 0.25;
-// 不透明度：配置里写一个数时两种模式共用，写成对象时各用各的。限制在 0–1
-const opacityOf = (theme: "light" | "dark"): number => {
-  const value =
-    typeof bg?.opacity === "number" ? bg.opacity : bg?.opacity?.[theme];
-  return typeof value === "number" && Number.isFinite(value)
-    ? Math.min(1, Math.max(0, value))
-    : DEFAULT_OPACITY;
+const DEFAULT_QUALITY = 80;
+
+type Theme = "light" | "dark";
+// 不透明度和质量都可以在配置里写一个数（两种模式共用），也可以写成对象各用各的。
+// 取出来后限制在合理范围内；没配置或写得不对时用默认值
+const pick = (
+  value: number | Partial<Record<Theme, number>> | undefined,
+  theme: Theme,
+  fallback: number,
+  min: number,
+  max: number
+): number => {
+  const n = typeof value === "number" ? value : value?.[theme];
+  return typeof n === "number" && Number.isFinite(n)
+    ? Math.min(max, Math.max(min, n))
+    : fallback;
 };
+const opacityOf = (theme: Theme) =>
+  pick(bg?.opacity, theme, DEFAULT_OPACITY, 0, 1);
+const qualityOf = (theme: Theme) =>
+  pick(bg?.quality, theme, DEFAULT_QUALITY, 1, 100);
 
 const layers: {
   theme: "light" | "dark";
@@ -57,7 +70,7 @@ for (const theme of ["light", "dark"] as const) {
         width,
         layout: "none",
         format: "webp",
-        quality: 80,
+        quality: qualityOf(theme),
       })
     )
   );

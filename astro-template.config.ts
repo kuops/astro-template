@@ -22,6 +22,9 @@ export default defineTemplateConfig({
       // 图的不透明度（0–1），越小越淡。默认 0.25；两种模式想用不同的值就分开写，
       // 比如 opacity: { dark: 0.1, light: 0.25 }
       opacity: { dark: 0.15, light: 0.05 },
+      // 构建时压缩背景图的质量（1–100），越低文件越小、图越模糊。默认 80；
+      // 两种模式想用不同的值就分开写。浅色这张细节多、又只显示得很淡，压到 60 看不出区别
+      quality: { dark: 80, light: 60 },
     },
   },
   i18n: {

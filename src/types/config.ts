@@ -30,6 +30,9 @@ interface BackgroundConfig {
   /** 背景图的不透明度（0–1）。越小图越淡、文字越清楚。写一个数时两种模式共用；
       两种模式想用不同的值，写成 { dark: 0.25, light: 0.3 }。默认 0.25 */
   opacity?: number | { dark?: number; light?: number };
+  /** 构建时压缩背景图的质量（1–100）。越低文件越小、图越模糊，默认 80；图显示得很淡时
+      可以调低。写法同 opacity：一个数两种模式共用，或分别写 */
+  quality?: number | { dark?: number; light?: number };
 }
 
 interface I18nConfig {
