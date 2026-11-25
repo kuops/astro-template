@@ -1,5 +1,6 @@
 ---
 import { getLocaleFromPath, getLocalizedPath } from "@/i18n";
+import { toTransitionName } from "@/utils/toTransitionName";
 
 type Props = {
   tag: string;
@@ -9,12 +10,14 @@ type Props = {
 
 const { tag, tagName, size = "lg" } = Astro.props;
 const locale = getLocaleFromPath(Astro.url.pathname);
+// 过渡名带 tag- 前缀，和文章标题的过渡名（post- 前缀）区分开，避免同名的文章和标签撞上
+const transitionName = toTransitionName(tag, "tag");
 ---
 
 <li>
   <a
     href={getLocalizedPath(`/tags/${tag}/`, locale)}
-    transition:name={tag}
+    transition:name={transitionName}
     class:list={[
       // 胶囊标签：强调色淡底 + 正文色；悬停/键盘聚焦时反色为实色强调底
       "inline-flex items-center rounded-full bg-accent/10 text-foreground transition-colors",

@@ -17,6 +17,7 @@ import {
   useTranslations,
 } from "@/i18n";
 import { resolveLocalizedEntries } from "@/utils/localizedContent";
+import { toTransitionName } from "@/utils/toTransitionName";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const allPosts = await getCollection("blog", ({ data }) => !data.draft);
@@ -62,7 +63,7 @@ const pageDesc = tplStr(
   <Header {alternateUrl} />
   <Main
     pageTitle={[heading, tagName]}
-    titleTransition={tag}
+    titleTransition={toTransitionName(String(tag), "tag")}
     pageDesc={pageDesc}
     width="browse"
   >
