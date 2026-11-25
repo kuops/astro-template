@@ -29,7 +29,7 @@
 
 ```bash
 /
-├── astro-paper.config.ts
+├── astro-template.config.ts
 ├── astro.config.ts
 ├── scripts/
 ├── workers/
@@ -59,7 +59,7 @@
 
 与上游相比，最值得关注的是这些路径：
 
-- `astro-paper.config.ts`：模板主配置入口
+- `astro-template.config.ts`：模板主配置入口
 - `astro.config.ts`：Astro 配置，字体、Markdown 处理器等在这里
 - `src/data/blog/`：博客文章内容
 - `src/data/books/`：书籍内容与分组目录
@@ -73,7 +73,7 @@
 
 ## 站点配置（Configuration）
 
-模板的配置集中在 `astro-paper.config.ts`，每个字段都有注释：
+模板的配置集中在 `astro-template.config.ts`，每个字段都有注释：
 
 | 字段            | 用途                                                                             |
 | :-------------- | :------------------------------------------------------------------------------- |
@@ -102,12 +102,12 @@ features: {
 npm run webp -- 新图.png site-background-light
 ```
 
-背景图在 `astro-paper.config.ts` 顶部用 `import` 导入，再填到 `site.background` 里。深色、浅色模式各配一张，只配一种时另一种模式保持纯色。图的不透明度（`opacity`）越小图越淡、文字越清楚，默认 0.25；写一个数时两种模式共用，也可以分别写：
+背景图在 `astro-template.config.ts` 顶部用 `import` 导入，再填到 `site.background` 里。深色、浅色模式各配一张，只配一种时另一种模式保持纯色。图的不透明度（`opacity`）越小图越淡、文字越清楚，默认 0.25；写一个数时两种模式共用，也可以分别写：
 
 ```ts
 import siteBackgroundDark from "./src/assets/images/site-background-dark.webp";
 
-export default defineAstroPaperConfig({
+export default defineTemplateConfig({
   site: {
     background: {
       dark: siteBackgroundDark,
@@ -172,7 +172,7 @@ src/data/books/
 
 ### 中英文内容（Localized Content）
 
-`astro-paper.config.ts` 使用 `site.lang` 指定默认语言，并通过 `i18n.locales` 启用语言：
+`astro-template.config.ts` 使用 `site.lang` 指定默认语言，并通过 `i18n.locales` 启用语言：
 
 ```ts
 site: {
@@ -217,7 +217,7 @@ src/data/books/en/astro-guide/index.md
 ## 部署说明（Deployment Notes）
 
 - 这是纯静态站点：构建命令用 `npm run build`，发布目录是 `dist`
-- 部署前请把 `astro-paper.config.ts` 里的 `site.url`、`title`、`description`、`author` 等站点信息改成你自己的
+- 部署前请把 `astro-template.config.ts` 里的 `site.url`、`title`、`description`、`author` 等站点信息改成你自己的
 - 如果站点部署在子路径，例如 `<username>.github.io/<repo>`，请在 `astro.config.ts` 里补充 `base: "/<repo>/"`
 
 ## 上游项目（Upstream）

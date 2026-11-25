@@ -30,7 +30,7 @@ import { transformerFileName } from "./src/utils/transformers/fileName";
 import { transformerCodeScroll } from "./src/utils/transformers/codeScroll";
 import { transformerMermaidHidden } from "./src/utils/transformers/mermaidHidden";
 import { devFontCache } from "./src/utils/devFontCache";
-import config from "./astro-paper.config";
+import config from "./astro-template.config";
 
 const defaultLocale = config.site.lang ?? "en";
 const locales = config.i18n?.locales ?? [defaultLocale];

@@ -14,7 +14,7 @@
  * 动画期间 main 带 transform，其内部固定定位的后代会以 main 为包含块而错位，
  * 所以浮动按钮（回到顶部、目录）这类固定定位的元素要放在 main 外面。
  *
- * 开关和等待上限在 astro-paper.config.ts 的 features.enterAnimation；
+ * 开关和等待上限在 astro-template.config.ts 的 features.enterAnimation；
  * 关闭时 <Layout /> 不输出这里的脚本，也就不会打 enter-anim 标记，下面的样式全部不匹配，
  * 正文直接显示。
  *

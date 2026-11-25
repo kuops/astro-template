@@ -1,5 +1,5 @@
-import userConfig from "../astro-paper.config";
-import type { ResolvedAstroPaperConfig } from "./types/config";
+import userConfig from "../astro-template.config";
+import type { ResolvedTemplateConfig } from "./types/config";
 
 const DEFAULT_OG_IMAGE = "og.png";
 const DEFAULT_ENTER_MAX_FONT_WAIT = 600;
@@ -13,7 +13,7 @@ if (!locales.includes(defaultLocale)) {
   );
 }
 
-const config: ResolvedAstroPaperConfig = {
+const config: ResolvedTemplateConfig = {
   site: {
     ...userConfig.site,
     ogImage: userConfig.site.ogImage ?? DEFAULT_OG_IMAGE,

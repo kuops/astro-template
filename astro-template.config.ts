@@ -1,8 +1,8 @@
-import { defineAstroPaperConfig } from "./src/types/config";
+import { defineTemplateConfig } from "./src/types/config";
 import siteBackgroundDark from "./src/assets/images/site-background-dark.webp";
 import siteBackgroundLight from "./src/assets/images/site-background-light.webp";
 
-export default defineAstroPaperConfig({
+export default defineTemplateConfig({
   site: {
     url: "https://blog.example.com/",
     title: "My Blog",

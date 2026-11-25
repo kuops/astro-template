@@ -5,7 +5,7 @@
  *
  * 第一个参数是原图路径；第二个参数可选，是不带扩展名的输出文件名，省略时沿用原文件名。
  * 超过 2560 宽的图会等比缩到 2560（背景图最大只生成到这一档），小图不放大。
- * 转完在 astro-paper.config.ts 里 import 这个文件即可；沿用原文件名时配置不用改。
+ * 转完在 astro-template.config.ts 里 import 这个文件即可；沿用原文件名时配置不用改。
  */
 import sharp from "sharp";
 import { mkdir } from "node:fs/promises";

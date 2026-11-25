@@ -21,7 +21,7 @@ interface SiteConfig {
 }
 
 /** 全站固定背景图：所有页面铺满、滚动时不动，上面盖一层半透明底色保证文字清晰。
-    图片在 astro-paper.config.ts 顶部用 import 导入后填进来 */
+    图片在 astro-template.config.ts 顶部用 import 导入后填进来 */
 interface BackgroundConfig {
   /** 深色模式用的图 */
   dark?: ImageMetadata;
@@ -98,7 +98,7 @@ interface WeatherConfig {
   proxy?: string;
 }
 
-interface AstroPaperConfig {
+interface TemplateConfig {
   site: SiteConfig;
   i18n?: I18nConfig;
   posts?: PostsConfig;
@@ -130,7 +130,7 @@ type ResolvedFeaturesConfig = Required<
   enterAnimation: false | Required<EnterAnimationConfig>;
 };
 
-export interface ResolvedAstroPaperConfig {
+export interface ResolvedTemplateConfig {
   site: ResolvedSiteConfig;
   i18n: Required<I18nConfig>;
   posts: Required<PostsConfig>;
@@ -141,7 +141,7 @@ export interface ResolvedAstroPaperConfig {
   shareLinks: ShareLink[];
 }
 
-function defineAstroPaperConfig(config: AstroPaperConfig): AstroPaperConfig {
+function defineTemplateConfig(config: TemplateConfig): TemplateConfig {
   return config;
 }
 
@@ -156,7 +156,7 @@ export type {
   BackgroundConfig,
   SocialLink,
   ShareLink,
-  AstroPaperConfig,
+  TemplateConfig,
 };
 
-export { defineAstroPaperConfig };
+export { defineTemplateConfig };

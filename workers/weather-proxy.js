@@ -23,7 +23,7 @@
  *      Variable name 必须填 DB，选中你建的数据库
  *   3. Worker → Settings → Trigger Events → Cron Triggers：
  *      添加每 10 分钟一次的表达式（分批轮转，30 分钟覆盖全部预热城市）
- *   4. 把 Worker 地址填进 astro-paper.config.ts 的 weather.proxy
+ *   4. 把 Worker 地址填进 astro-template.config.ts 的 weather.proxy
  *   （表结构首次运行自动创建，无需手工执行 SQL）
  *
  * 数据说明：
