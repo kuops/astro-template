@@ -5,6 +5,8 @@
  *
  * 第一个参数是原图路径；第二个参数可选，是不带扩展名的输出文件名，省略时沿用原文件名。
  * 超过 2560 宽的图会等比缩到 2560（背景图最大只生成到这一档），小图不放大。
+ * 质量保持 100（等同无损），不在这里压：访客下载的版本是构建时按
+ * site.background.quality 压出来的，压缩只做那一次。
  * 转完在 astro-template.config.ts 里 import 这个文件即可；沿用原文件名时配置不用改。
  */
 import sharp from "sharp";
@@ -12,7 +14,11 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
 const MAX_WIDTH = 2560;
-const QUALITY = 92;
+// 质量保持 100（仍然是有损编码，但等同无损）：这里产出的是进仓库的源图，访客下载的
+// 那几档是构建时从它压出来的，质量见 astro-template.config.ts 的 site.background.quality。
+// 这一步如果先压一次，构建时就是从已经压过的图再压，等于压了两遍。
+// 不用完全无损是因为体积会是现在的四倍左右
+const QUALITY = 100;
 const OUT_DIR = "src/assets/images";
 
 const args = process.argv.slice(2);
