@@ -55,8 +55,7 @@
 └── .github/
     ├── dependabot.yml
     └── workflows/
-        ├── ci.yml
-        └── deploy.yml
+        └── ci.yml
 ```
 
 与上游相比，最值得关注的是这些路径：
@@ -226,17 +225,9 @@ src/data/books/en/astro-guide/index.md
 ## 部署说明（Deployment Notes）
 
 - 这是纯静态站点：构建命令用 `npm run build`，发布目录是 `dist`
+- 用 Cloudflare Workers 托管静态资源时，站点名和 404 页面配置在 `wrangler.jsonc` 里
 - 部署前请把 `astro-template.config.ts` 里的 `site.url`、`title`、`description`、`author` 等站点信息改成你自己的
 - 如果站点部署在子路径，例如 `<username>.github.io/<repo>`，请在 `astro.config.ts` 里补充 `base: "/<repo>/"`
-
-### 自动发布到 Cloudflare Workers
-
-仓库自带 `.github/workflows/deploy.yml`：推送到 `main` 时复用 CI 的构建，把 `dist` 发布到 Cloudflare Workers（静态资源托管）。配好下面两个仓库 secrets 后才会执行，没配置时整个工作流直接跳过：
-
-- `CLOUDFLARE_API_TOKEN`：Cloudflare API Token，权限用 "Edit Cloudflare Workers" 模板
-- `CLOUDFLARE_ACCOUNT_ID`：Cloudflare 账户 ID
-
-站点名在 `wrangler.jsonc` 的 `name` 里，地址是 `<name>.<你的账户子域>.workers.dev`。改成自己的名字，第一次运行时会自动创建。
 
 ## 上游项目（Upstream）
 
