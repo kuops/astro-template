@@ -113,6 +113,8 @@ const ds = {
     code?: number;
     windDeg?: number | null;
     updateTime?: string;
+    // 代理带回的逐日预报（每一天带日期），用来挑出访客今天的温度范围
+    forecast?: { ymd: string; low: number | null; high: number | null }[];
   };
   type Cache = { w: Weather; city: string; ts: number };
 
@@ -238,112 +240,172 @@ const ds = {
     }
   };
 
-  // 访客城市：腾讯 r.inews.qq.com/api/ip2city（服务端按出口 IP 定位，免 key、无防盗链）。
-  // 该接口 CORS 仅对腾讯自家域开放，浏览器 fetch 不可用，故走 JSONP（<script> 加载 + 回调）。
-  // 国外 IP 也能定位（返回中文城市名与 country 字段，如 纽约/美国），用于后续分流。
-  type IpLoc = { city: string; domestic: boolean };
-  const ip2city = (timeoutMs = 6000): Promise<IpLoc | null> =>
+  // ── 定位：按访客 IP 拿城市和坐标 ──────────────────────────────────
+  type Loc = {
+    lat: number;
+    lon: number;
+    // 给访客看的地名，按站点语言：中文页拿中文名（没有中文名时是英文），英文页是英文
+    name: string;
+    // ISO 两位国家/地区代码，大写
+    country: string;
+  };
+  const isNum = (v: unknown): v is number =>
+    typeof v === "number" && Number.isFinite(v);
+  const firstText = (...vals: unknown[]) =>
+    vals
+      .find((v): v is string => typeof v === "string" && v.trim() !== "")
+      ?.trim() ?? "";
+  // 请求带上时间戳，防止中间缓存把别人的定位结果发回来
+  const noCache = () => "_=" + Date.now();
+
+  // 主：ipwho.is。免 key、支持跨域，境外 IP 也能定位，而且带经纬度——大陆城市的
+  // 坐标实测准确，落在它说的城市里。中文名只有 lang=zh-CN 才有，台湾和海外的城市名是繁体
+  const locateByIpWho = async (zh: boolean): Promise<Loc | null> => {
+    const j = await getJSON(
+      "https://ipwho.is/?" + (zh ? "lang=zh-CN&" : "") + noCache(),
+      5000
+    );
+    if (j?.success === false || !isNum(j?.latitude) || !isNum(j?.longitude))
+      return null;
+    const name = firstText(j.city, j.region, j.country);
+    if (!name) return null;
+    return {
+      lat: j.latitude,
+      lon: j.longitude,
+      name,
+      country: String(j.country_code ?? "").toUpperCase(),
+    };
+  };
+
+  // 备：ip.sb。它的坐标在中国大陆不可用（大陆 IP 多数返回同一个点，和城市对不上），
+  // 所以只取城市名，坐标按名字向 Open-Meteo 地理编码另查。按名字也查不到、又是在
+  // 大陆，就宁可不算定位成功，免得拿着错的坐标取来别处的天气
+  const locateByIpSb = async (zh: boolean): Promise<Loc | null> => {
+    const j = await getJSON("https://api.ip.sb/geoip?" + noCache(), 5000);
+    const name = firstText(j?.city, j?.region);
+    const country = String(j?.country_code ?? "").toUpperCase();
+    if (!name) return null;
+    const g = await getJSON(
+      "https://geocoding-api.open-meteo.com/v1/search?name=" +
+        encodeURIComponent(name) +
+        "&count=1&language=" +
+        (zh ? "zh" : "en") +
+        (country ? "&countrycode=" + country : "") +
+        "&format=json"
+    );
+    const hit = g?.results?.[0];
+    if (hit && isNum(hit.latitude) && isNum(hit.longitude))
+      return {
+        lat: hit.latitude,
+        lon: hit.longitude,
+        name: zh ? firstText(hit.name) || name : name,
+        country,
+      };
+    return country &&
+      country !== "CN" &&
+      isNum(j?.latitude) &&
+      isNum(j?.longitude)
+      ? { lat: j.latitude, lon: j.longitude, name, country }
+      : null;
+  };
+
+  // 主接口不可用（超时、报错）时换备用的
+  const locate = async (zh: boolean): Promise<Loc | null> => {
+    for (const attempt of [locateByIpWho, locateByIpSb]) {
+      try {
+        const loc = await attempt(zh);
+        if (loc) return loc;
+      } catch {}
+    }
+    return null;
+  };
+
+  // 坐标 → 中国天气网的站点（JSONP：接口不支持跨域，但免 key、无防盗链）。返回站号、
+  // 站名和它所属的地级市：天气代理按站号查最精确，海外的站点也只有站号靠得住（韩国的
+  // 大田和福建的大田就重名）。台北、香港、新加坡、纽约这些坐标都有站点，连大洋中间也有
+  // （给的是最近的站）；大陆给到区县一级，比如慈溪
+  const cnStation = (
+    lat: number,
+    lon: number,
+    timeoutMs = 5000
+  ): Promise<{
+    code: string;
+    name: string;
+    city: string;
+    taiwan: boolean;
+  } | null> =>
     new Promise(resolve => {
-      const cb = "__qqIp2city" + Math.random().toString(36).slice(2, 10);
+      const cb = "__wStation" + Math.random().toString(36).slice(2, 10);
       const holder = window as unknown as Record<
         string,
-        | ((data: { ret?: number; city?: string; country?: string }) => void)
+        | ((data: {
+            status?: string;
+            data?: { station?: Record<string, unknown> };
+          }) => void)
         | undefined
       >;
       const s = document.createElement("script");
       let settled = false;
-      const finish = (loc: IpLoc | null) => {
+      const finish = (
+        v: {
+          code: string;
+          name: string;
+          city: string;
+          taiwan: boolean;
+        } | null
+      ) => {
         if (settled) return;
         settled = true;
         window.clearTimeout(timer);
         delete holder[cb];
         s.remove();
-        resolve(loc);
+        resolve(v);
       };
       const timer = window.setTimeout(() => finish(null), timeoutMs);
       holder[cb] = data => {
-        if (!(data?.ret === 0 && typeof data.city === "string" && data.city))
-          return finish(null);
+        const st = data?.data?.station;
+        if (data?.status !== "success" || !st) return finish(null);
+        const text = (k: string) =>
+          typeof st[k] === "string" ? st[k].trim() : "";
+        const name = text("namecn");
+        if (!name) return finish(null);
+        // 站号有时给字符串、有时给数字，所以不用 text() 取；不是 9 位数字就不带
+        const code = String(st.areaid ?? "").trim();
         finish({
-          city: data.city.replace(/市$/, ""),
-          domestic: data.country === "中国",
+          code: /^\d{9}$/.test(code) ? code : "",
+          name,
+          // 这个接口把表示「地级市」的字段写成了 distictcn（个别站是 districtcn），两种都认
+          city: text("distictcn") || text("districtcn"),
+          taiwan: /台湾|臺灣|taiwan/i.test(
+            text("provincecn") + text("provinceen")
+          ),
         });
       };
       s.onerror = () => finish(null);
       s.src =
-        "https://r.inews.qq.com/api/ip2city?otype=jsonp&callback=" +
-        cb +
-        "&_=" +
-        Date.now();
+        "https://d4.weather.com.cn/geong/v1/api?params=" +
+        encodeURIComponent(
+          JSON.stringify({ method: "stationinfo", lat, lng: lon, callback: cb })
+        );
       document.head.appendChild(s);
     });
 
-  // 城市名 → 坐标：国内走 Open-Meteo geocoding（中文名可靠，需去"市"后缀，language 必须 zh）；
-  // 海外城市 GeoNames 中文别名覆盖差（"纽约"查不到、"东京"会错命中中国同名地名、
-  // "伦敦"错给加拿大），改用 OSM Nominatim（大城市带 name:zh 标签，CORS 开放、免 key）。
-  const geocodeCoords = async (
-    city: string,
-    domestic: boolean
-  ): Promise<{ lat: number; lon: number; name: string } | null> => {
+  // 按坐标向 Open-Meteo 要天气。接口免 key、CORS 开放；weather 用 WMO code、
+  // 风向用角度存语言无关值，渲染时按 locale 转文案
+  const fetchWeatherByCoords = async (loc: Loc): Promise<Weather | null> => {
     try {
-      if (domestic) {
-        const g = await getJSON(
-          "https://geocoding-api.open-meteo.com/v1/search?name=" +
-            encodeURIComponent(city) +
-            "&count=1&language=zh&format=json"
-        );
-        const hit = g?.results?.[0];
-        if (
-          !hit ||
-          typeof hit.latitude !== "number" ||
-          typeof hit.longitude !== "number"
-        )
-          return null;
-        return {
-          lat: hit.latitude,
-          lon: hit.longitude,
-          name: typeof hit.name === "string" && hit.name ? hit.name : city,
-        };
-      }
-      const n = await getJSON(
-        "https://nominatim.openstreetmap.org/search?q=" +
-          encodeURIComponent(city) +
-          "&format=jsonv2&limit=1&accept-language=zh"
-      );
-      const h = n?.[0];
-      if (
-        !h ||
-        !Number.isFinite(Number(h.lat)) ||
-        !Number.isFinite(Number(h.lon))
-      )
-        return null;
-      return { lat: Number(h.lat), lon: Number(h.lon), name: city };
-    } catch {
-      return null;
-    }
-  };
-
-  // 访客本地天气：城市名 → 坐标（geocodeCoords 按国内/海外分流）→ Open-Meteo forecast。
-  // 接口均免 key、CORS 开放；weather 用 WMO code、风向用角度存语言无关值，渲染时按 locale 转文案。
-  const fetchLocalWeather = async (
-    city: string,
-    domestic: boolean
-  ): Promise<Weather | null> => {
-    try {
-      const c = await geocodeCoords(city, domestic);
-      if (!c) return null;
       const j = await getJSON(
         "https://api.open-meteo.com/v1/forecast?latitude=" +
-          c.lat +
+          loc.lat +
           "&longitude=" +
-          c.lon +
+          loc.lon +
           "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1"
       );
       const cur = j?.current;
       if (!cur) return null;
       return {
         source: "open-meteo",
-        city: c.name,
+        city: loc.name,
         temp: Math.round(cur.temperature_2m),
         humidity: Math.round(cur.relative_humidity_2m),
         code: cur.weather_code,
@@ -365,17 +427,71 @@ const ds = {
 
   // 官方代理（Cloudflare Worker，见 workers/weather-proxy.js）：Worker 以合法
   // Referer 抓中国天气网，返回归一化后的数据（含 weatherEn/windDirEn）。
-  // 仅覆盖国内城市；未部署/查询失败时回退 Open-Meteo 链
+  // 有站号就按站号查（code），没有就按城市名或区县名查。没配或查不到时回退 Open-Meteo
   let PROXY = "";
-  const fetchProxyWeather = async (city: string): Promise<Weather | null> => {
+  const fetchProxyWeather = async (
+    code: string,
+    city: string
+  ): Promise<Weather | null> => {
     if (!PROXY) return null;
     try {
       const j = await getJSON(
-        PROXY + "/weather?city=" + encodeURIComponent(city)
+        PROXY +
+          "/weather?" +
+          (code ? "code=" + code + "&" : "") +
+          "city=" +
+          encodeURIComponent(city)
       );
       return j && j.source === "weather.com.cn" ? j : null;
     } catch {
       return null;
+    }
+  };
+
+  // 国际站点的预报每天只更新一次，列表的第一天是「更新那一刻在当地的那一天」，对欧洲和
+  // 美洲来说几乎全天都是昨天。代理会带回整份预报和每一天的日期，这里按访客自己日历上的
+  // 今天挑出温度范围；列表里没有这一天（访客的时区和站点差得远）就用代理给的值
+  const pickToday = (w: Weather): Weather => {
+    const days = w.forecast;
+    if (!days?.length) return w;
+    const now = new Date();
+    const today = now.getMonth() + 1 + "-" + now.getDate();
+    const hit = days.find(
+      f => String(f.ymd || "").replace(/^\d+-/, "") === today
+    );
+    return hit ? { ...w, min: hit.low ?? w.min, max: hit.high ?? w.max } : w;
+  };
+
+  // 访客本地天气。定位已经拿到坐标，不再把城市名换成坐标（按名字查会认错地方）：
+  //   ① 坐标换成中国天气网的站点 → 天气代理（中国气象局的数据，海外城市也有）
+  //   ② 没有站点、代理没配或查不到 → 按坐标向 Open-Meteo 要
+  // 返回的 city 是给访客看的地名：走代理时是站名（中文页）或定位接口给的名字（英文页，
+  // 中国天气网的英文名是拼音），否则是定位接口给的名字
+  const fetchWeather = async (
+    loc: Loc,
+    zh: boolean
+  ): Promise<{ w: Weather | null; city: string }> => {
+    try {
+      const st = await cnStation(loc.lat, loc.lon);
+      // 台湾的 IP 只认台湾的站点：中国天气网没有澎湖、马祖，它们的坐标会落到福建的站点上，
+      // 那是别处的天气。金门例外，它有自己的站点，归在福建泉州下面
+      if (st && (loc.country !== "TW" || st.taiwan || st.name === "金门")) {
+        const done = (w: Weather, key: string) => ({
+          w: pickToday(w),
+          city: zh ? key : loc.name,
+        });
+        // 先按站号查。代理还是不认站号的旧版本时，它只会拿站名去查
+        const byCode = await fetchProxyWeather(st.code, st.name);
+        if (byCode) return done(byCode, st.name);
+        // 站号没查到（这个站上游暂时没数据、或旧版代理里没有这个站名）：退一步按地级市名查
+        if (st.city && st.city !== st.name) {
+          const byCity = await fetchProxyWeather("", st.city);
+          if (byCity) return done(byCity, st.city);
+        }
+      }
+      return { w: await fetchWeatherByCoords(loc), city: loc.name };
+    } catch {
+      return { w: null, city: loc.name };
     }
   };
 
@@ -488,38 +604,32 @@ const ds = {
     else {
       let alive = true;
       (async () => {
-        // 1) 先定位访客城市（腾讯 ip2city JSONP，免 key）
-        const loc = await ip2city();
+        // 1) 先定位访客（按 IP，境外 IP 也能定位）
+        const loc = await locate(zh);
         if (!alive) return;
 
-        // 2) 定位成功：拉访客本地天气一步到位（Worker 官方代理优先，Open-Meteo 兜底）
-        if (loc) {
-          const ipCity = loc.city;
-          const local =
-            (await fetchProxyWeather(ipCity)) ??
-            (await fetchLocalWeather(ipCity, loc.domestic));
-          if (!alive) return;
-          if (local) {
-            const shown = local.city || ipCity;
-            renderInto(document, card, local, shown);
-            writeCache({ w: local, city: shown, ts: Date.now() });
-            return;
-          }
-          // 天气源全挂：拿不到天气数据，只把访客城市和一句提示写进问候行
-          // （renderInto 的天气参数为 null）。不缓存，下次访问再试
-          if (!alive) return;
-          renderInto(
-            document,
-            card,
-            null,
-            `${ipCity}${zh ? "，" : " — "}${card.dataset.fallback ?? ""}`
-          );
+        // 2) 定位失败：只显示一句提示，不缓存，下次访问再试
+        if (!loc) {
+          renderInto(document, card, null, card.dataset.fallback ?? "");
           return;
         }
 
-        // 3) 定位失败：同样只显示一句提示，不缓存
+        // 3) 定位成功：按坐标取访客本地天气（天气代理优先，Open-Meteo 兜底）
+        const { w, city } = await fetchWeather(loc, zh);
         if (!alive) return;
-        renderInto(document, card, null, card.dataset.fallback ?? "");
+        if (w) {
+          renderInto(document, card, w, city);
+          writeCache({ w, city, ts: Date.now() });
+          return;
+        }
+        // 拿不到天气数据：只把访客城市和一句提示写进问候行（renderInto 的天气参数为
+        // null）。不缓存，下次访问再试
+        renderInto(
+          document,
+          card,
+          null,
+          `${loc.name}${zh ? "，" : " — "}${card.dataset.fallback ?? ""}`
+        );
       })();
       cleanup = () => {
         alive = false;
