@@ -1,8 +1,13 @@
 ---
+import IconX from "@/assets/icons/IconX.svg";
 import config from "@/config";
+import { getLocaleFromPath, useTranslations } from "@/i18n";
+
 import LinkButton from "./LinkButton.astro";
 
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+
+const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 
 const socialIcons = import.meta.glob<{ default: AstroComponentFactory }>(
   "@/assets/icons/socials/*.svg",
@@ -17,22 +22,134 @@ function getSocialIcon(name: string) {
 }
 ---
 
-<div class="flex flex-wrap items-center gap-1">
+<div class="flex flex-wrap items-center gap-1" data-socials>
   {config.socials.map(social => {
     const Icon = getSocialIcon(social.name);
     const linkTitle =
       social.linkTitle ?? `${config.site.title} on ${social.name}`;
     return (
       Icon && (
-        <LinkButton
-          href={social.url}
-          class="p-2 hover:rotate-6 sm:p-1"
-          title={linkTitle}
-        >
-          <Icon class="inline-block size-5 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
-          <span class="sr-only">{linkTitle}</span>
-        </LinkButton>
+        <>
+          <LinkButton
+            href={social.image ?? social.url}
+            target={social.image ? "_blank" : undefined}
+            rel={social.image ? "noopener" : undefined}
+            class="p-2 hover:rotate-6 sm:p-1"
+            title={linkTitle}
+            data-social-image-trigger={social.image ? social.name : undefined}
+          >
+            <Icon class="inline-block size-5 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
+            <span class="sr-only">{linkTitle}</span>
+          </LinkButton>
+          {social.image && (
+            <dialog
+              class="social-image-dialog"
+              aria-label={linkTitle}
+              data-social-image-dialog
+            >
+              <div class="flex min-h-12 items-center gap-3 px-4 pt-1">
+                <span class="min-w-0 flex-1 truncate text-sm font-semibold">
+                  {social.name}
+                </span>
+                <button
+                  type="button"
+                  class="flex size-11 flex-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-accent active:bg-foreground/10"
+                  data-social-image-close
+                  aria-label={t.a11y.closeSocialImage}
+                  title={t.a11y.closeSocialImage}
+                >
+                  <IconX class="size-5" />
+                </button>
+              </div>
+              <img
+                src={social.image}
+                alt={linkTitle}
+                width="288"
+                height="288"
+                loading="lazy"
+                decoding="async"
+                class="mx-auto mb-4 block w-72 max-w-[80vw] aspect-square rounded-md bg-white p-2 object-contain"
+              />
+            </dialog>
+          )}
+        </>
       )
     );
   })}
 </div>
+
+<style>
+  .social-image-dialog {
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--surface-radius);
+    color: var(--foreground);
+    background: var(--background);
+    box-shadow: var(--sheet-shadow);
+  }
+  .social-image-dialog::backdrop {
+    background: var(--overlay-backdrop);
+  }
+  .social-image-dialog[open] {
+    animation: social-image-in 0.15s ease-out;
+  }
+  @keyframes social-image-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+</style>
+
+<script is:inline data-astro-rerun>
+  (function () {
+    document.querySelectorAll("[data-socials]").forEach(function (root) {
+      root.__socialsCleanup?.();
+
+      const controller = new AbortController();
+      root.__socialsCleanup = function () {
+        controller.abort();
+      };
+
+      root
+        .querySelectorAll("[data-social-image-trigger]")
+        .forEach(function (trigger) {
+          const dialog = trigger.nextElementSibling;
+          if (!(dialog instanceof HTMLDialogElement)) return;
+
+          const closeButton = dialog.querySelector("[data-social-image-close]");
+          if (!closeButton) return;
+
+          trigger.addEventListener(
+            "click",
+            function (event) {
+              if (event.ctrlKey || event.metaKey || event.shiftKey) return;
+              if (event.altKey || event.button !== 0) return;
+              if (dialog.open) return;
+              event.preventDefault();
+              dialog.showModal();
+            },
+            { signal: controller.signal }
+          );
+
+          closeButton.addEventListener(
+            "click",
+            function () {
+              dialog.close();
+            },
+            { signal: controller.signal }
+          );
+
+          dialog.addEventListener(
+            "click",
+            function (event) {
+              if (event.target === dialog) dialog.close();
+            },
+            { signal: controller.signal }
+          );
+        });
+    });
+  })();
+</script>

@@ -80,6 +80,7 @@ export default {
     skipToContent: "跳到内容",
     openMenu: "打开菜单",
     closeMenu: "关闭菜单",
+    closeSocialImage: "关闭",
     toggleTheme: "切换明暗模式",
     searchPlaceholder: "搜索文章...",
     noResults: "未找到结果",

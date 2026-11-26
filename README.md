@@ -81,16 +81,16 @@ Files with the same relative path are treated as translations of each other. If 
 
 All settings live in [`astro-template.config.ts`](./astro-template.config.ts):
 
-| Field           | Purpose                                                                                                             |
-| :-------------- | :------------------------------------------------------------------------------------------------------------------ |
-| `site`          | URL, title, description, author, language, timezone, accent color and the optional background image                 |
-| `i18n.locales`  | Enabled languages. The default one is `site.lang`                                                                   |
-| `posts`         | Posts per list page (`perPage`) and on the home page (`perIndex`)                                                   |
-| `features`      | Toggles such as dark mode, initial theme, archives, table of contents, search, enter animation and typewriter title |
-| `layout`        | The three layout widths: reading, browse and chrome                                                                 |
-| `weather.proxy` | Optional proxy for the weather card. Leave it empty to use Open-Meteo                                               |
-| `socials`       | Links shown in the footer                                                                                           |
-| `shareLinks`    | Share buttons on posts                                                                                              |
+| Field           | Purpose                                                                                                                  |
+| :-------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| `site`          | URL, title, description, author, language, timezone, accent color and the optional background image                      |
+| `i18n.locales`  | Enabled languages. The default one is `site.lang`                                                                        |
+| `posts`         | Posts per list page (`perPage`) and on the home page (`perIndex`)                                                        |
+| `features`      | Toggles such as dark mode, initial theme, archives, table of contents, search, enter animation and typewriter title      |
+| `layout`        | The three layout widths: reading, browse and chrome                                                                      |
+| `weather.proxy` | Optional proxy for the weather card. Leave it empty to use Open-Meteo                                                    |
+| `socials`       | Links shown in the footer; an entry with `image` opens that image on click (e.g. a WeChat QR code) instead of navigating |
+| `shareLinks`    | Share buttons on posts                                                                                                   |
 
 To replace the background image, convert the new one first. The second argument is the output name, so reusing the current name means the config needs no change:
 

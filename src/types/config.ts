@@ -81,11 +81,19 @@ interface LayoutConfig {
   chrome?: string;
 }
 
-interface SocialLink {
-  name: string;
-  url: string;
-  linkTitle?: string;
-}
+type SocialLink =
+  | {
+      name: string;
+      url: string;
+      linkTitle?: string;
+      image?: undefined;
+    }
+  | {
+      name: string;
+      image: string;
+      url?: undefined;
+      linkTitle?: string;
+    };
 
 interface ShareLink {
   name: string;
