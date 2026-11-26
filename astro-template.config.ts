@@ -4,7 +4,7 @@ import siteBackgroundLight from "./src/assets/images/site-background-light.webp"
 
 export default defineTemplateConfig({
   site: {
-    url: "https://astro-template.opshsy.workers.dev/",
+    url: "https://astro-template-ruby.vercel.app/",
     title: "My Blog",
     description: "一个基于 Astro 的个人博客。",
     author: "Blog Author",
