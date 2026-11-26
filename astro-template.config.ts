@@ -67,9 +67,9 @@ export default defineTemplateConfig({
     proxy: "https://weather.kernel.fans",
   },
   socials: [
-    { name: "github", url: "https://github.com/satnaing/astro-paper" },
+    { name: "github", url: "https://github.com/satnaing/astro-paper", linkTitle: "github" },
     { name: "x", url: "https://x.com/username" },
-    { name: "wechat", url: "#" },
+    { name: "wechat", image: "/demo-qr.png", linkTitle: "扫码访问本站" },
     { name: "mail", url: "mailto:yourmail@gmail.com" },
   ],
   shareLinks: [
