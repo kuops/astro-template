@@ -1,242 +1,125 @@
 # AstroPaper Template
 
-![AstroPaper](public/astropaper-og.jpg)
+<p align="center">
+  <img src=".github/preview.webp" alt="AstroPaper Template" width="752">
+</p>
 
-一个基于 [AstroPaper](https://github.com/satnaing/astro-paper) 的中文博客与书籍脚手架。
+A bilingual (Chinese/English) blog and documentation starter built on [AstroPaper](https://github.com/satnaing/astro-paper) and [Astro](https://astro.build). Content is plain Markdown. There is no CMS and no database.
 
-这个仓库保留了 AstroPaper 简洁、响应式、SEO 友好的基础能力，同时补充了更适合中文内容站点的默认配置、书籍内容模型和阅读体验增强。
+English | [简体中文](./README.zh-CN.md)
 
-## 为什么用这个模板（Why This Template）
+## Features
 
-- 适合做中文博客、教程站、知识库和轻量书籍站点
-- 保留 AstroPaper 的整体结构，便于跟进上游更新
-- 在不引入重型 CMS 的前提下，补足更适合内容型站点的能力
+- **Bilingual sites.** Chinese and English out of the box. The default language has no URL prefix, and content without a translation falls back to the original.
+- **Blogs and books.** Posts, plus file-based books with chapters, groups, a book index and previous/next navigation.
+- **Markdown for technical writing.** Code tabs, callouts, collapsible blocks, steps, Mermaid diagrams and scrollable code blocks. See [`src/data/books/getting-started/markdown-test.md`](./src/data/books/getting-started/markdown-test.md) for the syntax.
+- **On-site search** powered by Pagefind, with the indexes of all languages merged.
+- **Reading experience.** Table of contents, reading time, image lightbox, enter animation, typewriter site title, an optional site-wide background image, and a home-page card with the visitor's local time and weather.
+- **Self-hosted fonts** (Google Sans Code and Noto Sans SC), so no request goes to a third-party font server.
+- **SEO built in:** sitemap, RSS, auto-generated OG images and JSON-LD.
+- **One config file.** Every setting is in [`astro-template.config.ts`](./astro-template.config.ts), with a comment on each field.
 
-## 与上游 AstroPaper 的差异（Compared with upstream AstroPaper）
+AstroPaper's overall structure is kept, so upstream changes are easy to follow. One difference to know about: content lives in `src/data/`, as in earlier AstroPaper versions, rather than in `src/content/`.
 
-- **可配置中英文站点**：默认语言为 `zh`、默认时区为 `Asia/Shanghai`；默认语言不带 URL 前缀，另一语言使用 `/en/` 或 `/zh/` 前缀。
-- **内容目录沿用旧结构**：上游后续把内容目录切换到了 `src/content/`，而这个模板延续了较早版本的 `src/data/` 组织方式，并按 `blog`、`books`、`pages` 分开管理。
-- **书籍内容系统**：除了博客，还新增了文件系统驱动的 `books` 集合，支持 `index.md`、`_index.md`、章节分组和书籍目录页。
-- **阅读体验补充**：增加了书籍导航、返回按钮、回到顶部、目录体验优化、图片灯箱等能力。
-- **首页欢迎卡与天气**：首页分左右两栏，右侧的欢迎卡显示访客的本地时间和天气。天气取访客所在地：填了 `weather.proxy` 时先走 `workers/weather-proxy.js`（中国天气网的数据），不可用时回退 Open-Meteo；没填则直接用 Open-Meteo。定位不到或数据源都不可用时，卡片显示一句提示。
-- **进场动画**：每页正文淡入上移，并等首屏字体就绪后再播放，避免看到字体切换。不需要时设 `features.enterAnimation: false`。
-- **站点标题打字机**：左上角的站点标题像在终端里敲出来：先出现提示符和光标，再逐字敲出标题。每个会话只敲一次，站内换页不重播；系统开启「减少动态效果」时直接显示完整标题。不需要时设 `features.siteTitleTypewriter: false`。
-- **全站背景图**：深色、浅色模式可以各配一张固定背景图，所有页面铺满、滚动时不动，上面盖一层半透明底色保证文字清晰。图片在构建时自动压缩成多尺寸。不需要就不填，页面是纯色。配置在 `site.background`。
-- **搜索实现调整**：自研搜索 modal（`PagefindModal.astro`）+ Pagefind 静态索引；支持中英双语言索引合并，未翻译的回退原文也可被搜到并带"原文"徽标。
-- **字体与代码展示调整**：增加 Google Sans Code、Noto Sans SC、自定义代码块文件名与高亮 transformer，更适合中英文混排和技术写作。
-
-## 项目结构（Project Structure）
+## Quick Start
 
 ```bash
-/
-├── astro-template.config.ts
-├── astro.config.ts
-├── wrangler.jsonc
-├── scripts/
-├── workers/
-│   └── weather-proxy.js
-├── public/
-│   └── astropaper-og.jpg
-├── src/
-│   ├── components/
-│   ├── custom/
-│   ├── data/
-│   │   ├── blog/
-│   │   ├── books/
-│   │   └── pages/
-│   ├── i18n/
-│   ├── layouts/
-│   ├── pages/
-│   │   └── books/
-│   ├── styles/
-│   ├── types/
-│   └── utils/
-│       └── books.ts
-└── .github/
-    ├── dependabot.yml
-    └── workflows/
-        └── ci.yml
-```
-
-与上游相比，最值得关注的是这些路径：
-
-- `astro-template.config.ts`：模板主配置入口
-- `astro.config.ts`：Astro 配置，字体、Markdown 处理器等在这里
-- `src/data/blog/`：博客文章内容
-- `src/data/books/`：书籍内容与分组目录
-- `src/data/pages/`：关于页等单页内容
-- `src/pages/books/`：书籍首页、章节页路由
-- `src/utils/books.ts`：从文件系统推导书籍结构、侧边栏和章节顺序
-- `src/i18n/`：多语言工具与中英文文案（`lang/zh.ts`、`lang/en.ts`）
-- `src/custom/`：自定义插入点（`Head.astro`、`BodyEnd.astro`、`PostEnd.astro`），放自己的统计代码、meta 标签、评论等。按设计，模板后续版本不会改动这些文件
-- `scripts/`：构建配套脚本，处理 Pagefind 搜索索引
-- `workers/weather-proxy.js`：访客本地天气的 Cloudflare Worker 代理，可选部署
-
-## 站点配置（Configuration）
-
-模板的配置集中在 `astro-template.config.ts`，每个字段都有注释：
-
-| 字段            | 用途                                                                             |
-| :-------------- | :------------------------------------------------------------------------------- |
-| `site`          | 站点地址、标题、描述、作者、语言、时区、强调色、背景图等                         |
-| `i18n.locales`  | 启用的语言，默认语言由 `site.lang` 指定                                          |
-| `posts`         | `perPage` 是文章列表页和标签页每页的文章数，`perIndex` 是首页显示的篇数          |
-| `features`      | 明暗模式、初始主题、归档页、返回按钮、目录、搜索、进场动画、站点标题打字机等开关 |
-| `layout`        | 三档布局宽度（CSS 长度）：阅读栏、浏览栏、导航带                                 |
-| `weather.proxy` | 访客本地天气的 Worker 代理地址，留空则走 Open-Meteo                              |
-| `socials`       | 页脚的社交链接                                                                   |
-| `shareLinks`    | 文章的分享渠道                                                                   |
-
-进场动画默认开启，等首屏字体的上限是 600 毫秒，超时先显示正文。站点标题打字机也默认开启，写 `siteTitleTypewriter: false` 关闭：
-
-```ts
-features: {
-  // 关闭写成 enterAnimation: false
-  enterAnimation: { maxFontWait: 600 },
-  siteTitleTypewriter: true,
-},
-```
-
-换图时先把新图转成 WebP。第二个参数写旧图的文件名，就会直接覆盖，配置不用改；超过 2560 宽的图会自动缩小。脚本只转格式、缩尺寸，不压质量，压缩留给构建时按 `quality` 做：
-
-```bash
-npm run webp -- 新图.png site-background-light
-```
-
-背景图在 `astro-template.config.ts` 顶部用 `import` 导入，再填到 `site.background` 里。深色、浅色模式各配一张，只配一种时另一种模式保持纯色。
-
-- `opacity` 是图的不透明度，越小图越淡、文字越清楚，默认 0.25。
-- `quality` 是构建时的压缩质量（1–100），越低文件越小、图越模糊，默认 80。图显示得很淡时可以调低。
-
-这两项都既可以写一个数让两种模式共用，也可以分别写：
-
-```ts
-import siteBackgroundDark from "./src/assets/images/site-background-dark.webp";
-
-export default defineTemplateConfig({
-  site: {
-    background: {
-      dark: siteBackgroundDark,
-      // light: siteBackgroundLight,
-      // opacity: 0.25,
-      // opacity: { dark: 0.25, light: 0.3 },
-      // quality: 80,
-      // quality: { dark: 80, light: 60 },
-    },
-  },
-});
-```
-
-## 快速开始（Quick Start）
-
-```bash
-# 使用 Astro 官方脚手架从这个模板初始化
 npm create astro@latest -- --template kuops/astro-template
-
-# 安装依赖并启动
-npm install
-npm run dev
 ```
 
-默认本地地址为 `http://localhost:4321`。
+Node.js 24 is the version used in CI. create-astro installs the dependencies for you.
 
-## 内容约定（Content Conventions）
+## Writing Content
 
-### 博客文章（Blog Posts）
+### Blog posts
 
-博客文章放在 `src/data/blog/`，至少需要这些 frontmatter：
+Drop a `.md` or `.mdx` file into `src/data/blog/`:
 
 ```yaml
-title: 标题
-pubDatetime: 2026-06-08T12:00:00Z
-description: 文章摘要
-tags:
-  - astro
-  - blog
+---
+title: Hello World
+pubDatetime: 2026-06-08
+description: A short summary, shown in lists and meta tags.
+tags: [astro, blog]
+---
 ```
 
-### 书籍内容（Books）
+`title`, `pubDatetime` and `description` are required. The other frontmatter fields are listed in [`src/content.config.ts`](./src/content.config.ts).
 
-书籍内容放在 `src/data/books/`，目录结构本身就是数据源：
+### Books
 
-```bash
-src/data/books/
-  astro-guide/
-    index.md
-    basics/
-      _index.md
-      intro.md
-      installation.md
-    advanced/
-      _index.md
-      components.md
+Each top-level folder under `src/data/books/` is a book, and the folder structure is its table of contents:
+
+```text
+src/data/books/astro-guide/
+  index.md            # book metadata
+  basics/
+    _index.md         # group metadata
+    intro.md          # a chapter
+    installation.md
+  advanced/
+    _index.md
+    components.md
 ```
 
-- 顶层目录代表一本书
-- `index.md` 是书籍元数据
-- `_index.md` 是分组元数据
-- 其余 `.md` 文件是章节
-- 书籍首页直接显示第一章的内容，所以第一章同时有两个网址。章节正文里链接其它章节时写绝对路径（如 `/books/astro-guide/basics/installation`），不要用相对路径
+- `index.md` holds the book's metadata, and a book without groups can skip `_index.md`.
+- Link to other chapters with absolute paths such as `/books/astro-guide/basics/installation`, not relative ones.
+- A book's landing page shows its first chapter, so that chapter has two URLs.
 
-### 中英文内容（Localized Content）
+### Translations
 
-`astro-template.config.ts` 使用 `site.lang` 指定默认语言，并通过 `i18n.locales` 启用语言：
-
-```ts
-site: {
-  lang: "zh",
-},
-i18n: {
-  locales: ["zh", "en"],
-},
-```
-
-默认语言内容继续放在原目录，其他语言放在对应语言子目录：
+`site.lang` sets the default language, and `i18n.locales` lists the enabled ones. Content in the default language stays where it is. Translations go in a folder named after their locale:
 
 ```text
 src/data/blog/hello.md
 src/data/blog/en/hello.md
-
-src/data/pages/about.md
-src/data/pages/en/about.md
-
-src/data/books/astro-guide/index.md
-src/data/books/en/astro-guide/index.md
 ```
 
-相同相对路径会自动视为同一内容的译文。不同语言需要使用不同文件路径时，可在 frontmatter 中设置相同的 `translationKey`。没有译文的内容仍会显示在目标语言列表中，并标记原文语言、链接到原语言页面；不会生成重复的目标语言正文页面。
+Files with the same relative path are treated as translations of each other. If the paths differ, give them the same `translationKey` in the frontmatter. Content without a translation still shows up in the other language's lists, marked with its original language.
 
-## 命令（Commands）
+## Configuration
 
-所有命令都在项目根目录运行：
+All settings live in [`astro-template.config.ts`](./astro-template.config.ts):
 
-| Command                | Action                                                                |
-| :--------------------- | :-------------------------------------------------------------------- |
-| `npm install`          | 安装依赖                                                              |
-| `npm run dev`          | 启动本地开发服务器                                                    |
-| `npm run lint`         | 运行 ESLint                                                           |
-| `npm run format:check` | 检查 Prettier 格式                                                    |
-| `npm run format`       | 自动格式化文件                                                        |
-| `npm run build`        | 检查类型、构建站点、生成 Pagefind 搜索索引                            |
-| `npm run preview`      | 本地预览构建结果                                                      |
-| `npm run sync`         | 生成 Astro 类型定义                                                   |
-| `npm run webp`         | 把一张图片转成 WebP 放进 `src/assets/images/`，用法见上方背景图的说明 |
+| Field           | Purpose                                                                                                             |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------ |
+| `site`          | URL, title, description, author, language, timezone, accent color and the optional background image                 |
+| `i18n.locales`  | Enabled languages. The default one is `site.lang`                                                                   |
+| `posts`         | Posts per list page (`perPage`) and on the home page (`perIndex`)                                                   |
+| `features`      | Toggles such as dark mode, initial theme, archives, table of contents, search, enter animation and typewriter title |
+| `layout`        | The three layout widths: reading, browse and chrome                                                                 |
+| `weather.proxy` | Optional proxy for the weather card. Leave it empty to use Open-Meteo                                               |
+| `socials`       | Links shown in the footer                                                                                           |
+| `shareLinks`    | Share buttons on posts                                                                                              |
 
-## 部署说明（Deployment Notes）
+To replace the background image, convert the new one first. The second argument is the output name, so reusing the current name means the config needs no change:
 
-- 这是纯静态站点：构建命令用 `npm run build`，发布目录是 `dist`
-- 用 Cloudflare Workers 托管静态资源时，站点名和 404 页面配置在 `wrangler.jsonc` 里
-- 部署前请把 `astro-template.config.ts` 里的 `site.url`、`title`、`description`、`author` 等站点信息改成你自己的
-- 如果站点部署在子路径，例如 `<username>.github.io/<repo>`，请在 `astro.config.ts` 里补充 `base: "/<repo>/"`
+```bash
+npm run webp -- new-image.png site-background-light
+```
 
-## 上游项目（Upstream）
+## Project Structure
 
-- 上游项目：`satnaing/astro-paper`
+| Path                                                   | What it is                                                                                                   |
+| :----------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| `astro-template.config.ts`                             | Site configuration                                                                                           |
+| `astro.config.ts`                                      | Astro configuration: fonts, Markdown pipeline and integrations                                               |
+| `src/data/blog/`, `src/data/books/`, `src/data/pages/` | Content                                                                                                      |
+| `src/pages/`                                           | Routes                                                                                                       |
+| `src/i18n/`                                            | Locale helpers and UI strings (`lang/zh.ts`, `lang/en.ts`)                                                   |
+| `src/custom/`                                          | Your own additions: `Head.astro`, `BodyEnd.astro`, `PostEnd.astro`. Template updates leave these files alone |
+| `src/utils/books.ts`                                   | Derives book structure, sidebar and chapter order from the file system                                       |
+| `scripts/`                                             | Build helpers for the search index and image conversion                                                      |
+| `workers/weather-proxy.js`                             | Optional weather proxy, deployed as a Cloudflare Worker                                                      |
 
-## 许可证（License）
+## Deployment
 
-Licensed under the MIT License, Copyright © 2025-2026
+`npm run build` type-checks, builds the site and generates the search index. The output in `dist/` is fully static, so publish that directory.
 
----
+- **Vercel:** import the repository. Astro is detected, so nothing needs configuring, and every push to the production branch deploys.
+- **Any other static host** works too, such as Netlify, Cloudflare or GitHub Pages. For a sub-path like `<user>.github.io/<repo>`, set `base: "/<repo>/"` in `astro.config.ts`.
+- Before deploying, change `site.url`, `title`, `description` and `author` in `astro-template.config.ts` to your own.
 
-Made with appreciation for [Sat Naing](https://satnaing.dev) and the [AstroPaper contributors](https://github.com/satnaing/astro-paper/graphs/contributors).
+## License
+
+Released under the [MIT License](./LICENSE). Made with appreciation for [Sat Naing](https://satnaing.dev) and the [AstroPaper contributors](https://github.com/satnaing/astro-paper/graphs/contributors).
