@@ -1,0 +1,198 @@
+---
+title: "MDX 测试"
+description: "测试书籍章节里的 MDX：语言特性，以及各项文档增强在 MDX 里的写法。"
+order: 6
+---
+
+这一篇测试 MDX 章节能用到什么。Markdown 的各项增强在 MDX 里全部可用，只有标签组、步骤指引和注释的写法不同。对照着看：[Markdown 测试](/books/getting-started/markdown-test)。
+
+{/* MDX 里不能写 HTML 注释，注释用这种写法 */}
+
+## MDX 的语言特性
+
+### 变量和表达式
+
+export const tools = ["x64dbg", "GDB", "IDA"];
+
+本章用到的工具：{tools.join("、")}，共 {tools.length} 个。
+
+### 条件渲染
+
+export const showAnswer = true;
+
+{showAnswer ? (
+
+<p>条件成立时显示这一段。</p>
+
+) : (
+
+<p>条件不成立时显示这一段。</p>
+
+)}
+
+### 组件
+
+export const Tag = ({ children }) => (
+  <span
+    style={{
+      display: "inline-block",
+      padding: "0.1rem 0.5rem",
+      borderRadius: "9999px",
+      fontSize: "0.85em",
+      fontWeight: 500,
+      color: "var(--color-accent)",
+      backgroundColor:
+        "color-mix(in srgb, var(--color-accent) 14%, transparent)",
+    }}
+  >
+    {children}
+  </span>
+);
+
+<Tag>汇编</Tag> <Tag>调试</Tag>
+
+## 写法不同的几项
+
+### 标签组
+
+MDX 里没有 HTML 注释，标签和结束标记改写成 JSX 元素：
+
+<Tab label="Windows" />
+
+```bat file=build.bat
+cl /Od /FAcs add.c
+```
+
+<Tab label="Linux" />
+
+```bash file=build.sh
+gcc -O0 -S -masm=intel add.c
+```
+
+<TabsEnd />
+
+### 步骤指引
+
+同样是一对 JSX 元素包住有序列表，步骤体内可以放标签组：
+
+<Steps />
+
+1. **编译**
+
+   <Tab label="Windows" />
+
+   ```bat
+   cl /Od /FAcs add.c
+   ```
+
+   <Tab label="Linux" />
+
+   ```bash
+   gcc -O0 -S add.c
+   ```
+
+   <TabsEnd />
+
+2. **反汇编**
+
+   ```console
+   dumpbin /disasm add.obj
+   ```
+
+<StepsEnd />
+
+### 折叠块
+
+连续的两个自动归为一组，写法和 Markdown 里一样：
+
+<details>
+<summary>MDX 里的注释怎么写</summary>
+
+写成 `{/* 注释内容 */}`。HTML 注释会让构建失败。
+
+</details>
+
+<details>
+<summary>哪些字符要小心</summary>
+
+花括号和尖括号在 MDX 里是语法的一部分。像 `{1, 2, 3}` 或 `a < b` 这样的内容要放进行内代码。
+
+</details>
+
+## 写法相同的几项
+
+### 提示块
+
+> [!NOTE]
+> 提示块的写法不变，里面还可以放标签组：
+>
+> <Tab label="Windows" />
+>
+> ```console
+> dumpbin /disasm add.obj
+> ```
+>
+> <Tab label="Linux" />
+>
+> ```console
+> objdump -d -M intel add.o
+> ```
+>
+> <TabsEnd />
+
+> [!TIP]- 默认折叠的提示
+> 类型后面加减号表示默认折叠。
+
+### 代码块
+
+行高亮、词高亮、差异标记、文件名标签的写法都不变：
+
+```c file=add.c {1}
+int add(int a, int b) {
+    int sum = a + b;   // [!code word:sum]
+    return sum;        // [!code highlight]
+}
+```
+
+```c
+int add(int a, int b) {
+    return a + b;      // [!code --]
+    return a - b;      // [!code ++]
+}
+```
+
+```console scroll
+dumpbin /disasm add.obj
+0000000000000000: 89 54 24 10  mov  dword ptr [rsp+10h],edx
+0000000000000004: 89 4C 24 08  mov  dword ptr [rsp+8],ecx
+0000000000000008: 8B 44 24 10  mov  eax,dword ptr [rsp+10h]
+000000000000000C: 8B 4C 24 08  mov  ecx,dword ptr [rsp+8]
+0000000000000010: 03 C8        add  ecx,eax
+0000000000000012: 8B C1        mov  eax,ecx
+0000000000000014: C3           ret
+```
+
+### 行内元素
+
+高亮 ==文字==，上标 2^10^，下标 H~2~O，脚注[^1]，按键 <kbd>Ctrl</kbd> + <kbd>G</kbd>。
+
+[^1]: 脚注的写法不变。
+
+- [x] 任务列表
+- [ ] 也一样
+
+### 表格和 Mermaid
+
+| 增强     | Markdown       | MDX                 |
+| -------- | -------------- | ------------------- |
+| 标签组   | `<!--tab:…-->` | `<Tab label="…" />` |
+| 步骤指引 | `<!--steps-->` | `<Steps />`         |
+| 注释     | `<!-- … -->`   | `{/* … */}`         |
+
+```mermaid
+graph LR
+    A[源码] --> B[编译]
+    B --> C[反汇编]
+```
+
+如果上面的内容都正常显示，说明 MDX 章节可以使用全部文档增强。

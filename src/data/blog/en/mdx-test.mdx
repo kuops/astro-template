@@ -108,6 +108,71 @@ export const features = [
   </tbody>
 </table>
 
+## Document Enhancements in MDX
+
+The template's document enhancements work in MDX too. In MDX, the code tabs and steps markers become JSX elements; everything else keeps the same syntax.
+
+<Tab label="npm" />
+
+```bash
+npm create astro@latest
+```
+
+<Tab label="pnpm" />
+
+```bash
+pnpm create astro@latest
+```
+
+<TabsEnd />
+
+<Steps />
+
+1. **Create a project**
+
+   ```bash
+   npm create astro@latest
+   ```
+
+2. **Write content**
+
+   Add a Markdown file under `src/data/`.
+
+<StepsEnd />
+
+> [!NOTE]
+> Code tabs also work inside a callout:
+>
+> <Tab label="npm" />
+>
+> ```bash
+> npm run build
+> ```
+>
+> <Tab label="pnpm" />
+>
+> ```bash
+> pnpm run build
+> ```
+>
+> <TabsEnd />
+
+<details>
+<summary>Collapsible block</summary>
+
+Two adjacent ones are grouped automatically.
+
+</details>
+
+<details>
+<summary>Second block</summary>
+
+Content.
+
+</details>
+
+HTML comments are not allowed in MDX. Write comments as `{/* like this */}`.
+
 ## Summary
 
 If everything above (variables, conditional rendering, lists, styled components, dynamic tables) displays correctly, MDX integration is fully working. You can now use JSX inside `.mdx` files to enhance your posts.

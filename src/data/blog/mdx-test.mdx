@@ -100,6 +100,71 @@ export const features = [
   </tbody>
 </table>
 
+## 文档增强在 MDX 里
+
+模板的文档增强在 MDX 里同样可用。标签组和步骤指引的标记在 MDX 里改写成 JSX 元素，其余写法不变。
+
+<Tab label="npm" />
+
+```bash
+npm create astro@latest
+```
+
+<Tab label="pnpm" />
+
+```bash
+pnpm create astro@latest
+```
+
+<TabsEnd />
+
+<Steps />
+
+1. **创建项目**
+
+   ```bash
+   npm create astro@latest
+   ```
+
+2. **编写内容**
+
+   在 `src/data/` 下新增 Markdown 文件即可。
+
+<StepsEnd />
+
+> [!NOTE]
+> 提示块里也可以放标签组：
+>
+> <Tab label="npm" />
+>
+> ```bash
+> npm run build
+> ```
+>
+> <Tab label="pnpm" />
+>
+> ```bash
+> pnpm run build
+> ```
+>
+> <TabsEnd />
+
+<details>
+<summary>折叠块</summary>
+
+连续的两个会自动归为一组。
+
+</details>
+
+<details>
+<summary>第二个</summary>
+
+内容。
+
+</details>
+
+MDX 里不能写 HTML 注释，注释写成 `{/* 这样 */}`。
+
 ## 总结
 
 如果以上内容（变量、条件渲染、列表、样式组件、动态表格）都能正常显示，说明 MDX 集成完全工作。现在可以在 `.mdx` 文件中使用 JSX 来增强文章内容。

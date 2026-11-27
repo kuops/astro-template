@@ -1,6 +1,58 @@
 import { defineHastPlugin, type HastContent } from "satteri";
 import type { ElementContent } from "hast";
 
+function wrapRuns(
+  children: HastContent[],
+  runs: HastContent[][]
+): HastContent[] {
+  // 一次性重写 children：连续段整段替换为组容器（内容克隆进容器），
+  // 避免逐节点增删的索引漂移与引用残留
+  const wrapped = new Set<HastContent>();
+  for (const run of runs) run.forEach(n => wrapped.add(n));
+
+  const next: HastContent[] = [];
+  let i = 0;
+  while (i < children.length) {
+    const child = children[i];
+    const run = runs.find(r => r[0] === child);
+    if (!run) {
+      if (!wrapped.has(child)) next.push(child);
+      i++;
+      continue;
+    }
+    next.push({
+      type: "element",
+      tagName: "div",
+      properties: { className: ["accordion-group"] },
+      children: run.map(node => structuredClone(node)) as ElementContent[],
+    });
+    i += run.length;
+  }
+  return next;
+}
+
+function isDetails(node: HastContent): boolean {
+  if (node.type === "element") return node.tagName.toLowerCase() === "details";
+  const jsx = node as unknown as { type: string; name?: string | null };
+  return jsx.type === "mdxJsxFlowElement" && jsx.name === "details";
+}
+
+function groupDetails(children: HastContent[]): HastContent[] {
+  const runs: HastContent[][] = [];
+  let buffer: HastContent[] = [];
+  for (const child of children) {
+    if (child.type === "text" && !child.value?.trim()) continue;
+    if (isDetails(child)) {
+      buffer.push(child);
+      continue;
+    }
+    if (buffer.length >= 2) runs.push(buffer);
+    buffer = [];
+  }
+  if (buffer.length >= 2) runs.push(buffer);
+  return wrapRuns(children, runs);
+}
+
 /**
  * 折叠块自动分组：正文里连续相邻（中间无其他块级元素）的手写
  * <details> 折叠块 ≥ 2 个时，包进 div.accordion-group，由 CSS 渲染成
@@ -57,30 +109,17 @@ export const satteriAccordion = () => {
       }
       flush();
 
-      // 一次性重写 children：连续段整段替换为组容器（内容克隆进容器），
-      // 避免逐节点增删的索引漂移与引用残留
-      const wrapped = new Set<HastContent>();
-      for (const run of runs) run.forEach(n => wrapped.add(n));
-
-      const next: HastContent[] = [];
-      let i = 0;
-      while (i < children.length) {
-        const child = children[i];
-        const run = runs.find(r => r[0] === child);
-        if (!run) {
-          if (!wrapped.has(child)) next.push(child);
-          i++;
-          continue;
-        }
-        next.push({
-          type: "element",
-          tagName: "div",
-          properties: { className: ["accordion-group"] },
-          children: run.map(node => structuredClone(node)) as ElementContent[],
-        });
-        i += run.length;
-      }
-      ctx.setField(parent, "children", next);
+      ctx.setField(parent, "children", wrapRuns(children, runs));
+    },
+    mdxJsxFlowElement: {
+      filter: ["details"],
+      visit(node, ctx) {
+        const parent = ctx.parent(node);
+        if (!parent || processed.has(parent)) return;
+        processed.add(parent);
+        const children = groupDetails(parent.children as HastContent[]);
+        ctx.setField(parent, "children", children);
+      },
     },
   });
 };

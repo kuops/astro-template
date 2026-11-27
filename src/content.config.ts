@@ -29,7 +29,7 @@ const blog = defineCollection({
 });
 
 const books = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: `./${BOOKS_PATH}` }),
+  loader: glob({ pattern: "**/*.{md,mdx}", base: `./${BOOKS_PATH}` }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

@@ -1,4 +1,11 @@
-import { defineMdastPlugin, type Custom, type MdastTarget } from "satteri";
+import {
+  defineMdastPlugin,
+  type Custom,
+  type MdxJsxAttributeNode,
+  type MdxJsxFlowElement,
+  type MdastTarget,
+  type MdastVisitorContext,
+} from "satteri";
 
 const TAB_MARK = /^<!--\s*tab:\s*(.*?)\s*-->$/;
 const TAB_ELEMENT = /^<Tab\s+label="([^"]*)"\s*\/>$/;
@@ -6,10 +13,31 @@ const TABS_END = /^(?:<!--\s*tabs-end\s*-->|<TabsEnd\s*\/>)$/;
 
 type Tab = { label: string; content: MdastTarget[] };
 
+function toJsxElement(node: MdastTarget): MdxJsxFlowElement | undefined {
+  return node.type === "mdxJsxFlowElement"
+    ? (node as MdxJsxFlowElement)
+    : undefined;
+}
+
 function getTabLabel(node: MdastTarget): string | undefined {
+  const jsx = toJsxElement(node);
+  if (jsx) {
+    if (jsx.name !== "Tab") return undefined;
+    const label = jsx.attributes.find(
+      (attr): attr is MdxJsxAttributeNode =>
+        attr.type === "mdxJsxAttribute" && attr.name === "label"
+    );
+    return typeof label?.value === "string" ? label.value.trim() : undefined;
+  }
   if (node.type !== "html") return undefined;
   const value = node.value?.trim() ?? "";
   return (TAB_MARK.exec(value) ?? TAB_ELEMENT.exec(value))?.[1].trim();
+}
+
+function isTabsEnd(node: MdastTarget): boolean {
+  const jsx = toJsxElement(node);
+  if (jsx) return jsx.name === "TabsEnd";
+  return node.type === "html" && TABS_END.test(node.value?.trim() ?? "");
 }
 
 function element(
@@ -65,8 +93,7 @@ function assembleTabs(
   let start = 0;
 
   for (const [index, node] of children.entries()) {
-    if (node.type !== "html" || !TABS_END.test(node.value?.trim() ?? ""))
-      continue;
+    if (!isTabsEnd(node)) continue;
 
     const tabs: Tab[] = [];
     for (const child of children.slice(start, index)) {
@@ -114,26 +141,29 @@ export const satteriCodeTabs = () => {
   const processed = new WeakSet();
   let groupCount = 0;
 
+  const assemble = (node: MdastTarget, ctx: MdastVisitorContext) => {
+    if (getTabLabel(node) === undefined && !isTabsEnd(node)) return;
+
+    const parent = ctx.parent(node);
+    if (
+      !parent ||
+      (parent.type !== "root" &&
+        parent.type !== "blockquote" &&
+        parent.type !== "listItem") ||
+      processed.has(parent)
+    )
+      return;
+
+    processed.add(parent);
+    const children = assembleTabs(parent.children, tabs =>
+      renderGroup(tabs, `code-tabs-${++groupCount}`)
+    );
+    ctx.setField(parent, "children", children);
+  };
+
   return defineMdastPlugin({
     name: "satteri-code-tabs",
-    html(node, ctx) {
-      const value = node.value?.trim() ?? "";
-      if (getTabLabel(node) === undefined && !TABS_END.test(value)) return;
-
-      const parent = ctx.parent(node);
-      if (
-        (parent.type !== "root" &&
-          parent.type !== "blockquote" &&
-          parent.type !== "listItem") ||
-        processed.has(parent)
-      )
-        return;
-
-      processed.add(parent);
-      const children = assembleTabs(parent.children, tabs =>
-        renderGroup(tabs, `code-tabs-${++groupCount}`)
-      );
-      ctx.setField(parent, "children", children);
-    },
+    html: assemble,
+    mdxJsxFlowElement: assemble,
   });
 };
