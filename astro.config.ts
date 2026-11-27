@@ -148,7 +148,7 @@ export default defineConfig({
       // 字体到达前正文里的英文数字被画成约两倍宽（实测同一段文字 253px → 511px）。
       // 正文回退不校准：汉字宽度在各中文字体里都是 1em，本身不跳版
       fallbacks: [],
-      weights: [400, 500, 700],
+      weights: [400, 500, 600, 700],
       styles: ["normal"],
       formats: ["woff2"],
       display: "swap",

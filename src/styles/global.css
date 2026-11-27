@@ -89,12 +89,13 @@
 @theme inline {
   --font-app:
     var(--font-google-sans-code), "GSC Fallback", "GSC Fallback CJK",
-    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    var(--font-noto-sans-sc), "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono:
     var(--font-google-sans-code), "GSC Fallback", "GSC Fallback CJK",
-    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-monospace, monospace;
-  /* 中文正文主字体：Noto Sans SC（OFL，构建期自托管，见 astro.config.ts fonts）。
-     标题/导航/代码仍走 --font-app（Google Sans Code）。 */
+    var(--font-noto-sans-sc), "PingFang SC", "Microsoft YaHei", ui-monospace,
+    monospace;
+  /* 中文主字体：Noto Sans SC（OFL，构建期自托管，见 astro.config.ts fonts），
+     全站中文都走它。英文数字：标题/导航/代码走 --font-app（Google Sans Code），正文走 --font-reading。 */
   --font-reading:
     var(--font-noto-sans-sc), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC",

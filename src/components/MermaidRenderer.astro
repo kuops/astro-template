@@ -163,6 +163,10 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
     display: block;
   }
 
+  .mermaid-wrapper feDropShadow[flood-color="#FFFFFF"] {
+    flood-color: var(--background);
+  }
+
   .mermaid-source {
     display: none;
     padding: 1rem;
@@ -313,35 +317,130 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
     });
   }
 
+  function readThemeColor(name: string) {
+    const declared = getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
+    const probe = document.createElement("span");
+    probe.style.cssText =
+      "position:absolute;visibility:hidden;pointer-events:none";
+    probe.style.color = declared ? `var(${name})` : "";
+    document.body.appendChild(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  }
+
+  function parseRgb(color: string) {
+    const match = color.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+    return match
+      ? ([Number(match[1]), Number(match[2]), Number(match[3])] as [
+          number,
+          number,
+          number,
+        ])
+      : null;
+  }
+
+  function mix(from: string, to: string, amount: number) {
+    const fromRgb = parseRgb(from);
+    const toRgb = parseRgb(to);
+    if (!fromRgb || !toRgb) return from;
+    const blend = (a: number, b: number) =>
+      Math.round(a + (b - a) * amount)
+        .toString(16)
+        .padStart(2, "0");
+    return `#${blend(fromRgb[0], toRgb[0])}${blend(
+      fromRgb[1],
+      toRgb[1]
+    )}${blend(fromRgb[2], toRgb[2])}`;
+  }
+
+  function cssVariable(name: string) {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
+  }
+
+  function fontStack() {
+    return getComputedStyle(document.body).fontFamily;
+  }
+
+  async function waitForFonts(sources: string[]) {
+    if (!document.fonts || typeof document.fonts.load !== "function") return;
+    const families = ["--font-noto-sans-sc", "--font-google-sans-code"]
+      .map(cssVariable)
+      .filter(Boolean);
+    if (families.length === 0) return;
+    const text = [...new Set(sources.join("").replace(/\s+/g, ""))].join("");
+    const loads = [];
+    for (const family of families) {
+      for (const weight of [400, 500, 600, 700]) {
+        loads.push(
+          document.fonts
+            .load(`normal ${weight} 1em ${family}`, text)
+            .catch(() => [])
+        );
+      }
+    }
+    await Promise.race([
+      Promise.all(loads),
+      new Promise(resolve => setTimeout(resolve, 600)),
+    ]);
+  }
+
   function initMermaidConfig(m: NonNullable<typeof mermaid>) {
     const isDark =
       document.documentElement.getAttribute("data-theme") === "dark";
+    const background = readThemeColor("--background");
+    const foreground = readThemeColor("--foreground");
+    const accent = readThemeColor("--accent");
+    const muted = readThemeColor("--muted");
+    const border = readThemeColor("--border");
+    if (
+      ![background, foreground, accent, muted].every(color => parseRgb(color))
+    ) {
+      m.initialize({
+        startOnLoad: false,
+        theme: isDark ? "dark" : "default",
+      });
+      return;
+    }
+    const fontFamily = fontStack();
+    const fill = mix(background, accent, isDark ? 0.2 : 0.09);
+    const shadowOpacity = isDark ? 0.45 : 0.2;
+    const shadow = `drop-shadow( 1px 2px 2px rgba(0, 0, 0, ${shadowOpacity}))`;
     m.initialize({
       startOnLoad: false,
       theme: isDark ? "dark" : "default",
-      themeVariables: isDark
-        ? {
-            primaryColor: "#c678dd",
-            primaryTextColor: "#eaedf3",
-            primaryBorderColor: "#3e4451",
-            lineColor: "#abb2bf",
-            secondaryColor: "#353c4d",
-            tertiaryColor: "#2c313a",
-            noteBkgColor: "#353c4d",
-            noteTextColor: "#eaedf3",
-            actorTextColor: "#eaedf3",
-            actorBkgColor: "#353c4d",
-            actorBorder: "#3e4451",
-            labelTextColor: "#eaedf3",
-            loopTextColor: "#eaedf3",
-            sectionBkgColor: "#353c4d",
-            altSectionBkgColor: "#2c313a",
-            taskTextColor: "#eaedf3",
-            taskBkgColor: "#c678dd",
-            gridColor: "#3e4451",
-            todayLineColor: "#e5c07b",
-          }
-        : {},
+      themeVariables: {
+        background,
+        mainBkg: fill,
+        nodeBkg: fill,
+        nodeBorder: accent,
+        border1: accent,
+        primaryBorderColor: accent,
+        nodeTextColor: foreground,
+        textColor: foreground,
+        primaryTextColor: foreground,
+        mainContrastColor: foreground,
+        actorTextColor: foreground,
+        signalColor: foreground,
+        signalTextColor: foreground,
+        labelTextColor: foreground,
+        loopTextColor: foreground,
+        lineColor: mix(foreground, background, 0.35),
+        edgeLabelBackground: background,
+        labelBackground: background,
+        useGradient: false,
+        dropShadow: shadow,
+        filterColor: "#000000",
+        fontFamily,
+        clusterBkg: muted,
+        clusterBorder: parseRgb(border)
+          ? border
+          : mix(foreground, background, 0.82),
+      },
     });
   }
 
@@ -653,6 +752,11 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 
     const m = await loadMermaid();
     initMermaidConfig(m);
+    await waitForFonts(
+      [...mermaidBlocks].map(pre =>
+        stripTheme(pre.querySelector("code")?.textContent || "")
+      )
+    );
 
     for (const pre of mermaidBlocks) {
       const code = pre.querySelector("code");
@@ -698,6 +802,11 @@ const t = useTranslations(getLocaleFromPath(Astro.url.pathname));
 
     const m = await loadMermaid();
     initMermaidConfig(m);
+    await waitForFonts(
+      [...containers].map(
+        container => (container as HTMLElement).dataset.mermaidSource || ""
+      )
+    );
 
     for (const container of containers) {
       const source = (container as HTMLElement).dataset.mermaidSource || "";
