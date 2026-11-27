@@ -117,6 +117,42 @@ graph LR
     D --> E
 ```
 
+### 形状、子图与新箭头
+
+`@{ shape: …, label: … }` 可以选用几十种扩展形状，下面是其中的几种。连线支持圆头（`--o`）、叉头（`--x`）和双向箭头（`<-->`）。
+
+```mermaid
+flowchart LR
+    subgraph proc["目标进程"]
+        S@{ shape: sm-circ, label: "开始" } --> IN@{ shape: manual-input, label: "用户输入" }
+        IN --> F@{ shape: fr-rect, label: "调用函数" }
+        F --> DB@{ shape: cyl, label: "内存" }
+        F --> D@{ shape: diam, label: "是否为零" }
+    end
+    D --o C@{ shape: console, label: "调试器窗口" }
+    D --x E@{ shape: fr-circ, label: "结束" }
+    C <--> DB
+```
+
+### 边的编号与逐步动画
+
+给边编上号之后，可以让一个点按顺序沿着边移动，用来说明一次调用的先后过程。`stepNumbers: true` 会在边上显示序号。读者的系统开启了“减少动态效果”时，移动的点和行进时的高亮会隐藏，只留下带序号的静态图。
+
+```mermaid
+---
+config:
+  flowchart:
+    stepNumbers: true
+---
+flowchart LR
+    调用者 e1@--> 被调函数
+    被调函数 e2@--> 返回值
+    返回值 e3@--> 调用者
+    e1@{ step: 1 }
+    e2@{ step: 2 }
+    e3@{ step: 3 }
+```
+
 ## Mermaid 时序图
 
 ```mermaid
@@ -236,6 +272,8 @@ echo "第十行"
 
 `<!--steps-->` 包住有序列表，渲染为"编号圆圈 + 连接竖线"的步骤条，步骤体内可嵌套标签组等任意元素。
 
+MDX 里这两个标记改写成 `<Steps />` 和 `<StepsEnd />`，写法见 [MDX 测试](/books/getting-started/mdx-test)。
+
 <!--steps-->
 
 1. **创建项目**
@@ -341,6 +379,23 @@ echo "第十行"
   ```
 
 ## 更多 Mermaid 图表
+
+配色跟随站点的深浅模式。画风可以在图的开头用 frontmatter 指定，手绘（`handDrawn`）只对流程图、状态图、类图、实体关系图这类图生效，下面这张状态图就是；时序图、甘特图、饼图、时间线保持原来的线条。
+
+### 状态图
+
+```mermaid
+---
+config:
+  look: handDrawn
+---
+stateDiagram-v2
+    direction LR
+    [*] --> 待机
+    待机 --> 运行 : 按下开始
+    运行 --> 待机 : 按下停止
+    运行 --> [*]
+```
 
 ### 甘特图
 
@@ -476,3 +531,5 @@ const site = {
 <!--tabs-end-->
 
 被普通段落隔开的标签组各自独立；单个标记的代码块按普通代码块渲染。
+
+MDX 里不能写 HTML 注释，标记改写成 `<Tab label="标签名" />` 和 `<TabsEnd />`，写法见 [MDX 测试](/books/getting-started/mdx-test)。

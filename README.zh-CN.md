@@ -11,8 +11,8 @@
 ## 特性
 
 - **中英双语**：开箱即用。默认语言不带 URL 前缀，没有译文的内容自动回退到原文。
-- **博客与书籍**：文章之外，还支持纯文件组织的书籍，带章节、分组、书籍目录和上一章 / 下一章导航。
-- **面向技术写作的 Markdown**：代码标签组、提示块、折叠块、步骤指引、Mermaid 图和可滚动的代码块，语法示例见 [`src/data/books/getting-started/markdown-test.md`](./src/data/books/getting-started/markdown-test.md)。
+- **博客与书籍**：文章之外，还支持纯文件组织的书籍，带章节、分组、书籍目录和上一章 / 下一章导航。章节可以用 Markdown 或 MDX 编写。
+- **面向技术写作的 Markdown**：代码标签组、提示块、折叠块、步骤指引、Mermaid 图（配色跟随深浅模式，画风可以在图里指定）和可滚动的代码块，语法示例见 [`src/data/books/getting-started/markdown-test.md`](./src/data/books/getting-started/markdown-test.md)。
 - **站内搜索**：基于 Pagefind，所有语言的索引合在一起搜。
 - **阅读体验**：目录、阅读时长、图片灯箱、进场动画、打字机式的站点标题、可选的全站背景图，以及首页那张显示访客本地时间和天气的欢迎卡。
 - **字体自托管**（Google Sans Code 和 Noto Sans SC），不向第三方字体服务器发请求。
@@ -65,6 +65,7 @@ src/data/books/astro-guide/
 - `index.md` 是书籍的元数据；不分组的书可以没有 `_index.md`。
 - 链接其它章节时写绝对路径，如 `/books/astro-guide/basics/installation`，不要用相对路径。
 - 书籍首页直接显示第一章，所以第一章有两个网址。
+- 章节可以是 `.md` 或 `.mdx`。MDX 章节里可以用变量、表达式和组件；标签组和步骤指引的标记改写成 `<Tab label="…" />`、`<TabsEnd />`、`<Steps />`、`<StepsEnd />`，其余增强写法不变，见 [`src/data/books/getting-started/mdx-test.mdx`](./src/data/books/getting-started/mdx-test.mdx)。
 
 ### 多语言
 

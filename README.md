@@ -11,8 +11,8 @@ English | [简体中文](./README.zh-CN.md)
 ## Features
 
 - **Bilingual sites.** Chinese and English out of the box. The default language has no URL prefix, and content without a translation falls back to the original.
-- **Blogs and books.** Posts, plus file-based books with chapters, groups, a book index and previous/next navigation.
-- **Markdown for technical writing.** Code tabs, callouts, collapsible blocks, steps, Mermaid diagrams and scrollable code blocks. See [`src/data/books/getting-started/markdown-test.md`](./src/data/books/getting-started/markdown-test.md) for the syntax.
+- **Blogs and books.** Posts, plus file-based books with chapters, groups, a book index and previous/next navigation. Chapters can be written in Markdown or MDX.
+- **Markdown for technical writing.** Code tabs, callouts, collapsible blocks, steps, Mermaid diagrams (colors follow the light/dark mode, the look can be set per diagram) and scrollable code blocks. See [`src/data/books/getting-started/markdown-test.md`](./src/data/books/getting-started/markdown-test.md) for the syntax.
 - **On-site search** powered by Pagefind, with the indexes of all languages merged.
 - **Reading experience.** Table of contents, reading time, image lightbox, enter animation, typewriter site title, an optional site-wide background image, and a home-page card with the visitor's local time and weather.
 - **Self-hosted fonts** (Google Sans Code and Noto Sans SC), so no request goes to a third-party font server.
@@ -65,6 +65,7 @@ src/data/books/astro-guide/
 - `index.md` holds the book's metadata, and a book without groups can skip `_index.md`.
 - Link to other chapters with absolute paths such as `/books/astro-guide/basics/installation`, not relative ones.
 - A book's landing page shows its first chapter, so that chapter has two URLs.
+- Chapters can be `.md` or `.mdx`. An MDX chapter can use variables, expressions and components; the code tabs and steps markers become `<Tab label="…" />`, `<TabsEnd />`, `<Steps />` and `<StepsEnd />`, while every other enhancement keeps its syntax. See [`src/data/books/getting-started/mdx-test.mdx`](./src/data/books/getting-started/mdx-test.mdx).
 
 ### Translations
 
