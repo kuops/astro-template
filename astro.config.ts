@@ -22,8 +22,10 @@ import { satteriAccordion } from "./src/utils/satteriAccordion";
 import { satteriTableWrapper } from "./src/utils/satteriTableWrapper";
 import {
   transformerNotationDiff,
+  transformerNotationErrorLevel,
   transformerNotationHighlight,
   transformerNotationWordHighlight,
+  transformerNotationFocus,
   transformerMetaHighlight,
 } from "@shikijs/transformers";
 import { transformerFileName } from "./src/utils/transformers/fileName";
@@ -93,6 +95,8 @@ export default defineConfig({
         transformerMetaHighlight(),
         transformerNotationHighlight(),
         transformerNotationWordHighlight(),
+        transformerNotationFocus(),
+        transformerNotationErrorLevel(),
         transformerNotationDiff({ matchAlgorithm: "v3" }),
         transformerCodeScroll(),
       ],

@@ -203,6 +203,15 @@
     .highlighted-word {
       @apply rounded-sm border border-border px-0.5 py-px;
     }
+    .has-focused .line:not(.focused) {
+      @apply opacity-60;
+    }
+    .line.error {
+      @apply relative inline-block w-full bg-red-500/10 before:absolute before:-left-3 before:text-red-500 before:content-['×'] dark:bg-red-500/20;
+    }
+    .line.warning {
+      @apply relative inline-block w-full bg-amber-400/10 before:absolute before:-left-3 before:text-amber-500 before:content-['!'] dark:bg-amber-400/20;
+    }
   }
 }
 

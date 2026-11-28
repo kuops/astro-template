@@ -240,6 +240,48 @@ echo "第九行"
 echo "第十行"
 ```
 
+### 标出某几行
+
+在语言后面写 `{2}`、`{1,3}`，对应的行高亮。也可以把记号写在该行末尾的注释里，写了记号的注释不会显示。`highlight` 高亮这一行，`word:名字` 给这个词加框：
+
+```c {1} file=sum.c
+int sum(int a, int b) {
+    return a + b; // [!code highlight]
+}
+
+int twice(int n) {
+    return sum(n, n); // [!code word:sum]
+}
+```
+
+`++` 和 `--` 标出改动前后的行：
+
+```c
+    return a - b; // [!code --]
+    return a + b; // [!code ++]
+```
+
+`focus` 让标了记号的行保持醒目，其余的行变暗：
+
+```c
+int main(void) {
+    int x = 1;
+    int y = 2;
+    int z = x + y; // [!code focus]
+    return z; // [!code focus]
+}
+```
+
+`error` 和 `warning` 给那一行标色：
+
+```c
+int main(void) {
+    int x = 0;
+    return 10 / x; // [!code error]
+    return x; // [!code warning]
+}
+```
+
 ## 图片
 
 ![示例图片](https://picsum.photos/seed/book-test/600/300)
