@@ -3,11 +3,11 @@ import "photoswipe/style.css";
 ---
 
 <style is:inline>
-  .pswp__img {
+  .pswp__img[src*=".svg"] {
     background: var(--background);
   }
 
-  .pswp__img--placeholder {
+  .pswp__img--placeholder[src*=".svg"] {
     background: var(--background) !important;
   }
 </style>

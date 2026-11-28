@@ -61,7 +61,11 @@
     }
 
     img {
-      @apply mx-auto border border-border;
+      @apply mx-auto;
+    }
+
+    img[src*=".svg"] {
+      @apply border border-border;
     }
 
     img[role="button"] {
