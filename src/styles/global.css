@@ -129,7 +129,7 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
-  #article img {
+  #article img[src*=".svg"] {
     background-color: var(--muted);
   }
   #article img.img-fade {
